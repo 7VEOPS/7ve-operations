@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/BLKUnit1/Downloads/index_7.html -->
+<!-- saved from url=(0049)file:///C:/Users/BLKUnit1/Downloads/index_10.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -214,7 +214,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     <div class="login-card">
       <div class="login-title" id="authTitle">Sign in</div>
       <div class="login-sub">Enter your credentials to access the platform</div>
-      <div class="field"><label>Email</label><input type="text" inputmode="email" id="loginEmail" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="admin@7virtuesentertainment.com" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label>Email</label><input type="text" inputmode="email" id="loginEmail" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="admin@7virtuesentertainment.com" value="admin@7virtuesentertainment.com" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       <div class="field"><label>Password</label><input type="password" id="loginPassword" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="••••••••" autocomplete="current-password" autocorrect="off"></div>
       <button class="login-btn" id="authBtn" onclick="handleAuth()" type="button">Sign In</button>
     <input type="text" style="position:absolute;left:-9999px" aria-hidden="true">
@@ -1486,6 +1486,12 @@ document.getElementById('loginPassword').addEventListener('keydown', e => { if(e
 
 // Auto-login if session exists
 window.addEventListener('DOMContentLoaded', async () => {
+  // Auto-restore session from any storage key (survives deployments)
+  const sessionKeys = Object.keys(sessionStorage).filter(k => k.includes('7ve') || k.includes('session'));
+  if (!sessionStorage.getItem('7ve_session') && sessionKeys.length) {
+    const data = sessionStorage.getItem(sessionKeys[0]);
+    if (data) sessionStorage.setItem('7ve_session', data);
+  }
   if (token && currentUser) {
     await onLogin();
   }
