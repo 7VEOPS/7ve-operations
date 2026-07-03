@@ -2993,7 +2993,8 @@ function exportPeopleCSV() {
   const rows = people.filter(p => p.status === peopleTab);
   const csv = ['Name,Department,Title,Phone,Email,Pay Type,Pay Rate,W9,NDA,COI,Onboarding']
     .concat(rows.map(p => `"${p.first_name} ${p.last_name}","${p.department}","${p.title||''}","${p.phone||''}","${p.email||''}","${p.pay_type||''}","${p.pay_rate||''}","${p.doc_w9?'Yes':'No'}","${p.doc_nda?'Yes':'No'}","${p.doc_coi?'Yes':'No'}","${p.doc_onboard?'Yes':'No'}"`))
-    .join('\n');
+    .join('
+');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = `7VE-${peopleTab}-${new Date().toISOString().split('T')[0]}.csv`;
