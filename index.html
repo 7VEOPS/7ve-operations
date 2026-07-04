@@ -215,7 +215,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <div class="login-title" id="authTitle">Sign in</div>
       <div class="login-sub">Enter your credentials to access the platform</div>
       <div class="field"><label>Email</label><input type="text" inputmode="email" id="loginEmail" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="admin@7virtuesentertainment.com" value="admin@7virtuesentertainment.com" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
-      <div class="field"><label>Password</label><input type="password" id="loginPassword" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" autocomplete="current-password" autocorrect="off"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPassword" oninput="this.dataset.val=this.value" onchange="this.dataset.val=this.value" placeholder="••••••••" autocomplete="current-password" autocorrect="off"></div>
       <button class="login-btn" id="authBtn" onclick="handleAuth()" type="button">Sign In</button>
     <input type="text" style="position:absolute;left:-9999px" aria-hidden="true">
       <div class="login-err" id="authErr"></div>
@@ -244,20 +244,20 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <div class="nav-section">
       <div class="section-label">Navigation</div>
-      <div class="nav-item active" onclick="setView(&#39;inventory&#39;,this)">ð¦ Inventory</div>
-      <div class="nav-item" onclick="setView(&#39;scan&#39;,this)">ð· Scan / QR</div>
-      <div class="nav-item" onclick="setView(&#39;rentals&#39;,this)">ð Rentals</div>
-      <div class="nav-item" onclick="setView(&#39;contacts&#39;,this)">ð¥ Contacts</div>
-      <div class="nav-item" onclick="setView(&#39;truckpack&#39;,this)">ð Truck Pack</div>
+      <div class="nav-item active" onclick="setView(&#39;inventory&#39;,this)">📦 Inventory</div>
+      <div class="nav-item" onclick="setView(&#39;scan&#39;,this)">📷 Scan / QR</div>
+      <div class="nav-item" onclick="setView(&#39;rentals&#39;,this)">🔄 Rentals</div>
+      <div class="nav-item" onclick="setView(&#39;contacts&#39;,this)">👥 Contacts</div>
+      <div class="nav-item" onclick="setView(&#39;truckpack&#39;,this)">🚛 Truck Pack</div>
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:var(--accent);letter-spacing:0.1em">LOGISTICS</div>
-      <div class="nav-item" onclick="setView(&#39;people&#39;,this)">ð§âð¤âð§ People</div>
-      <div class="nav-item" onclick="setView(&#39;payscale&#39;,this)">ð° Pay Scale</div>
+      <div class="nav-item" onclick="setView(&#39;people&#39;,this)">🧑‍🤝‍🧑 People</div>
+      <div class="nav-item" onclick="setView(&#39;payscale&#39;,this)">💰 Pay Scale</div>
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:#4ADE80;letter-spacing:0.1em">MONEY</div>
-      <div class="nav-item" onclick="setView(&#39;money&#39;,this)">ðµ Show Finance</div>
+      <div class="nav-item" onclick="setView(&#39;money&#39;,this)">💵 Show Finance</div>
     </div>
 
 
@@ -265,23 +265,23 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">?</div>
         <div class="user-info">
-          <div class="user-email" id="userEmail">â</div>
-          <div class="user-role" id="userRoleText">â</div>
+          <div class="user-email" id="userEmail">—</div>
+          <div class="user-role" id="userRoleText">—</div>
         </div>
-        <button class="signout-btn" onclick="signOut()" title="Sign out">â»</button>
+        <button class="signout-btn" onclick="signOut()" title="Sign out">⏻</button>
       </div>
     </div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <button class="menu-btn" onclick="toggleSidebar()">â°</button>
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div>
         <div class="topbar-title" id="viewTitle">Inventory</div>
-        <div class="topbar-crumb"><span id="wsCrumb">â</span> âº <span id="viewCrumb">All Assets</span></div>
+        <div class="topbar-crumb"><span id="wsCrumb">—</span> › <span id="viewCrumb">All Assets</span></div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-ghost admin-only" onclick="openLibrary()">ð Library</button>
+        <button class="btn btn-ghost admin-only" onclick="openLibrary()">📚 Library</button>
         <button class="btn btn-primary admin-only" onclick="openAdd()">+ Add Asset</button>
       </div>
     </div>
@@ -290,10 +290,10 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <!-- INVENTORY -->
       <div class="view active" id="view-inventory">
         <div class="stats-row">
-          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Total Assets</div><div class="stat-val" id="sTot" style="color:var(--text)">â</div><div class="stat-sub">All departments</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;Missing&#39;)"><div class="stat-label">Missing</div><div class="stat-val" id="sMiss" style="color:var(--red)">â</div><div class="stat-sub">Requires attention</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;Repair&#39;)"><div class="stat-label">In Repair</div><div class="stat-val" id="sRep" style="color:var(--purple)">â</div><div class="stat-sub">Out of service</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Operational</div><div class="stat-val" id="sOp" style="color:var(--green)">â</div><div class="stat-sub">Ready to deploy</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Total Assets</div><div class="stat-val" id="sTot" style="color:var(--text)">—</div><div class="stat-sub">All departments</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;Missing&#39;)"><div class="stat-label">Missing</div><div class="stat-val" id="sMiss" style="color:var(--red)">—</div><div class="stat-sub">Requires attention</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;Repair&#39;)"><div class="stat-label">In Repair</div><div class="stat-val" id="sRep" style="color:var(--purple)">—</div><div class="stat-sub">Out of service</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Operational</div><div class="stat-val" id="sOp" style="color:var(--green)">—</div><div class="stat-sub">Ready to deploy</div></div>
         </div>
         <!-- CABLE TYPE TABS -->
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;flex-shrink:0">
@@ -310,8 +310,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         </div>
         <div class="filter-bar">
           <div class="search-wrap">
-            <span class="search-icon">ð</span>
-            <input type="text" class="search-input" id="searchQ" placeholder="Search assets, IDsâ¦" oninput="renderTable()">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchQ" placeholder="Search assets, IDs…" oninput="renderTable()">
           </div>
           <button class="chip active" data-crit="" onclick="setCrit(this,&#39;&#39;)">All</button>
           <button class="chip" data-crit="Mission Critical" onclick="setCrit(this,&#39;Mission Critical&#39;)">Mission</button>
@@ -320,7 +320,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <button class="chip" data-crit="Consumable" onclick="setCrit(this,&#39;Consumable&#39;)">Consumable</button>
         </div>
         <div class="table-wrap">
-          <div id="tableLoading" class="loading"><div class="spinner"></div> Loading assetsâ¦</div>
+          <div id="tableLoading" class="loading"><div class="spinner"></div> Loading assets…</div>
           <table id="assetTable" style="display:none">
             <thead><tr>
               <th>ID</th><th>Asset</th>
@@ -352,10 +352,10 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
         <!-- RENTAL STATS -->
         <div class="stats-row" style="margin-bottom:20px">
-          <div class="stat-card"><div class="stat-label">Out to Clients</div><div class="stat-val" id="rOut" style="color:var(--accent)">â</div><div class="stat-sub">Gear rented out</div></div>
-          <div class="stat-card"><div class="stat-label">In from Vendors</div><div class="stat-val" id="rIn" style="color:var(--blue)">â</div><div class="stat-sub">Gear rented in</div></div>
-          <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-val" id="rOverdue" style="color:var(--red)">â</div><div class="stat-sub">Past return date</div></div>
-          <div class="stat-card"><div class="stat-label">Total Active</div><div class="stat-val" id="rTotal" style="color:var(--text)">â</div><div class="stat-sub">All rentals</div></div>
+          <div class="stat-card"><div class="stat-label">Out to Clients</div><div class="stat-val" id="rOut" style="color:var(--accent)">—</div><div class="stat-sub">Gear rented out</div></div>
+          <div class="stat-card"><div class="stat-label">In from Vendors</div><div class="stat-val" id="rIn" style="color:var(--blue)">—</div><div class="stat-sub">Gear rented in</div></div>
+          <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-val" id="rOverdue" style="color:var(--red)">—</div><div class="stat-sub">Past return date</div></div>
+          <div class="stat-card"><div class="stat-label">Total Active</div><div class="stat-val" id="rTotal" style="color:var(--text)">—</div><div class="stat-sub">All rentals</div></div>
         </div>
 
         <!-- RENTAL TABS -->
@@ -367,7 +367,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         </div>
 
         <div class="table-wrap">
-          <div id="rentalLoading" class="loading"><div class="spinner"></div> Loading rentalsâ¦</div>
+          <div id="rentalLoading" class="loading"><div class="spinner"></div> Loading rentals…</div>
           <table id="rentalTable" style="display:none">
             <thead><tr>
               <th>Direction</th>
@@ -398,12 +398,12 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="font-size:12px;color:var(--muted);margin-top:2px" id="contactsSubtitle">Project contacts for this workspace</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="generatePDF()">ð Generate Show Packet PDF</button>
+            <button class="btn btn-ghost" onclick="generatePDF()">📄 Generate Show Packet PDF</button>
             <button class="btn btn-primary admin-only" onclick="openModal(&#39;addContactModal&#39;)">+ Add Contact</button>
           </div>
         </div>
         <div id="contactsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
-          <div class="loading"><div class="spinner"></div> Loading contactsâ¦</div>
+          <div class="loading"><div class="spinner"></div> Loading contacts…</div>
         </div>
       </div>
 
@@ -415,7 +415,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="font-size:12px;color:var(--muted);margin-top:2px" id="truckSubtitle">Organize load order by zone</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="generatePDF()">ð Show Packet</button>
+            <button class="btn btn-ghost" onclick="generatePDF()">📄 Show Packet</button>
             <button class="btn btn-primary admin-only" onclick="openModal(&#39;addZoneModal&#39;)">+ Add Zone</button>
           </div>
         </div>
@@ -426,17 +426,17 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="flex:1;min-width:180px">
               <div class="fl" style="margin-bottom:5px">Vehicle / Trailer Size</div>
               <select class="fs" id="truckSizeSelect" onchange="updateTruckCalc()">
-                <option value="0">Select vehicleâ¦</option>
-                <option value="250|500|0.85">Cargo Van (5Ã8 ft) â 250 cu ft / 500 lb payload</option>
-                <option value="450|1500|0.85">Sprinter Van (8Ã13 ft) â 450 cu ft / 1,500 lb payload</option>
-                <option value="800|3000|0.85">16 ft Box Truck â 800 cu ft / 3,000 lb payload</option>
-                <option value="1200|5000|0.85">20 ft Box Truck â 1,200 cu ft / 5,000 lb payload</option>
-                <option value="1800|7500|0.85">24 ft Box Truck â 1,800 cu ft / 7,500 lb payload</option>
-                <option value="2400|10000|0.85">26 ft Box Truck â 2,400 cu ft / 10,000 lb payload</option>
-                <option value="2000|12000|0.85">28 ft Semi Trailer â 2,000 cu ft / 12,000 lb payload</option>
-                <option value="2700|20000|0.85">40 ft Semi Trailer â 2,700 cu ft / 20,000 lb payload</option>
-                <option value="3000|44000|0.85">48 ft Semi Trailer â 3,000 cu ft / 44,000 lb payload</option>
-                <option value="3400|45000|0.85">53 ft Semi Trailer (Standard) â 3,400 cu ft / 45,000 lb payload</option>
+                <option value="0">Select vehicle…</option>
+                <option value="250|500|0.85">Cargo Van (5×8 ft) — 250 cu ft / 500 lb payload</option>
+                <option value="450|1500|0.85">Sprinter Van (8×13 ft) — 450 cu ft / 1,500 lb payload</option>
+                <option value="800|3000|0.85">16 ft Box Truck — 800 cu ft / 3,000 lb payload</option>
+                <option value="1200|5000|0.85">20 ft Box Truck — 1,200 cu ft / 5,000 lb payload</option>
+                <option value="1800|7500|0.85">24 ft Box Truck — 1,800 cu ft / 7,500 lb payload</option>
+                <option value="2400|10000|0.85">26 ft Box Truck — 2,400 cu ft / 10,000 lb payload</option>
+                <option value="2000|12000|0.85">28 ft Semi Trailer — 2,000 cu ft / 12,000 lb payload</option>
+                <option value="2700|20000|0.85">40 ft Semi Trailer — 2,700 cu ft / 20,000 lb payload</option>
+                <option value="3000|44000|0.85">48 ft Semi Trailer — 3,000 cu ft / 44,000 lb payload</option>
+                <option value="3400|45000|0.85">53 ft Semi Trailer (Standard) — 3,400 cu ft / 45,000 lb payload</option>
               </select>
             </div>
             <div style="flex:1;min-width:160px">
@@ -459,7 +459,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
               <div style="background:var(--bg-input);border-radius:var(--r);padding:12px">
                 <div class="fl" style="margin-bottom:4px">Total Gear Weight</div>
                 <div id="totalWeightDisplay" style="font-size:20px;font-weight:700;font-family:monospace;color:var(--accent)">0 lbs</div>
-                <div id="weightCapDisplay" style="font-size:10px;color:var(--muted);margin-top:2px">of â lb payload</div>
+                <div id="weightCapDisplay" style="font-size:10px;color:var(--muted);margin-top:2px">of — lb payload</div>
               </div>
               <div style="background:var(--bg-input);border-radius:var(--r);padding:12px">
                 <div class="fl" style="margin-bottom:4px">Payload Used</div>
@@ -485,7 +485,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="truckZones">
-          <div class="loading" style="grid-column:1/-1"><div class="spinner"></div> Loading truck packâ¦</div>
+          <div class="loading" style="grid-column:1/-1"><div class="spinner"></div> Loading truck pack…</div>
         </div>
 
         <div id="unassignedAssets" style="margin-top:20px">
@@ -503,7 +503,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="font-size:12px;color:var(--muted);margin-top:2px">Staff roster and prospect pipeline</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" id="peopleExportBtn" onclick="exportPeopleCSV()">â¬ Export</button>
+            <button class="btn btn-ghost" id="peopleExportBtn" onclick="exportPeopleCSV()">⬇ Export</button>
             <button class="btn btn-primary admin-only" onclick="openModal(&#39;addPersonModal&#39;)">+ Add Person</button>
           </div>
         </div>
@@ -517,8 +517,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <!-- SEARCH + FILTER -->
         <div class="filter-bar" style="margin-bottom:20px">
           <div class="search-wrap" style="flex:1">
-            <span class="search-icon">ð</span>
-            <input type="text" class="search-input" id="peopleSearch" placeholder="Search by name, role, departmentâ¦" oninput="renderPeople()">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="peopleSearch" placeholder="Search by name, role, department…" oninput="renderPeople()">
           </div>
           <select class="fs" id="peopleDeptFilter" onchange="renderPeople()" style="width:auto;min-width:140px">
             <option value="">All Departments</option>
@@ -528,7 +528,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         </div>
 
         <div id="peopleGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
-          <div class="loading"><div class="spinner"></div> Loading peopleâ¦</div>
+          <div class="loading"><div class="spinner"></div> Loading people…</div>
         </div>
       </div>
 
@@ -538,18 +538,18 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
           <div>
             <h2 style="font-size:18px;font-weight:600">Pay Scale</h2>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">Based on Client Approved Budget â not personal discretion</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Based on Client Approved Budget — not personal discretion</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="generatePayScalePDF()">ð Export Pay Scale</button>
+            <button class="btn btn-ghost" onclick="generatePayScalePDF()">📄 Export Pay Scale</button>
           </div>
         </div>
 
         <!-- IMPORTANT NOTICE -->
         <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;font-size:12px;color:var(--steel)">
-          <div style="font-weight:700;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">ð How Pay Works at 7 Virtues Entertainment</div>
+          <div style="font-weight:700;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px">📋 How Pay Works at 7 Virtues Entertainment</div>
           All rates below are calculated from the <strong style="color:var(--text)">Client Approved Budget</strong> for each show. 
-          Pay is determined by show type, your role tier, and the contracted scope â not by ownership decisions. 
+          Pay is determined by show type, your role tier, and the contracted scope — not by ownership decisions. 
           Bringing in a referral earns a <strong style="color:var(--text)">one-time referral bonus</strong> per booked show. 
           Referrals and sales do not constitute equity, partnership, or ownership in 7 Virtues Entertainment.
         </div>
@@ -565,7 +565,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
         <!-- BUDGET SIMULATOR -->
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">ð¡ Budget Simulator â Enter Client Approved Budget</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">💡 Budget Simulator — Enter Client Approved Budget</div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="flex:1;min-width:180px">
               <div class="fl" style="margin-bottom:5px">Client Approved Budget ($)</div>
@@ -610,7 +610,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-top:20px">
           <div style="background:rgba(245,166,35,0.06);border-bottom:1px solid var(--border);padding:12px 16px">
             <div style="font-size:13px;font-weight:700">Referral Bonus Structure</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">One-time per booked show â this is a finder fee, not equity or partnership</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">One-time per booked show — this is a finder fee, not equity or partnership</div>
           </div>
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead><tr style="background:rgba(0,0,0,0.2)">
@@ -653,7 +653,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             </tbody>
           </table>
           <div style="padding:12px 16px;background:rgba(232,64,64,0.04);border-top:1px solid var(--border);font-size:11px;color:var(--muted)">
-            â  <strong style="color:var(--steel)">Important:</strong> Referral bonuses are taxable income. They do not constitute equity, ownership, profit sharing, or partnership in 7 Virtues Entertainment LLC. All referrals become 7VE clients â not personal clients of the referring employee.
+            ⚠ <strong style="color:var(--steel)">Important:</strong> Referral bonuses are taxable income. They do not constitute equity, ownership, profit sharing, or partnership in 7 Virtues Entertainment LLC. All referrals become 7VE clients — not personal clients of the referring employee.
           </div>
         </div>
       </div>
@@ -664,7 +664,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div>
             <h2 style="font-size:18px;font-weight:600">Show Finance</h2>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">Revenue in Â· Tech pay out Â· What the business keeps</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Revenue in · Tech pay out · What the business keeps</div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-primary admin-only" onclick="openModal(&#39;addShowModal&#39;)">+ Log Show</button>
@@ -673,8 +673,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
         <!-- MONEY TABS -->
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
-          <div class="tab active" onclick="setMoneyTab(&#39;shows&#39;,this)">ð Show Costs</div>
-          <div class="tab" onclick="setMoneyTab(&#39;techpay&#39;,this)">ð· Tech Pay</div>
+          <div class="tab active" onclick="setMoneyTab(&#39;shows&#39;,this)">📋 Show Costs</div>
+          <div class="tab" onclick="setMoneyTab(&#39;techpay&#39;,this)">👷 Tech Pay</div>
         </div>
 
         <!-- SHOW COSTS TAB -->
@@ -688,7 +688,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           </div>
 
           <div class="table-wrap">
-            <div id="showsLoading" class="loading"><div class="spinner"></div> Loading showsâ¦</div>
+            <div id="showsLoading" class="loading"><div class="spinner"></div> Loading shows…</div>
             <table id="showsTable" style="display:none">
               <thead><tr>
                 <th>Show / Event</th>
@@ -720,8 +720,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <!-- PAY TYPE FILTER -->
           <div class="filter-bar" style="margin-bottom:16px">
             <div class="search-wrap" style="flex:1">
-              <span class="search-icon">ð</span>
-              <input type="text" class="search-input" id="techPaySearch" placeholder="Search by nameâ¦" oninput="renderTechPay()">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="techPaySearch" placeholder="Search by name…" oninput="renderTechPay()">
             </div>
             <button class="chip active" data-pt="" onclick="setPayTypeFilter(this,&#39;&#39;)">All</button>
             <button class="chip" data-pt="hourly" onclick="setPayTypeFilter(this,&#39;hourly&#39;)">Hourly</button>
@@ -731,7 +731,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           </div>
 
           <div class="table-wrap">
-            <div id="techPayLoading" class="loading"><div class="spinner"></div> Loadingâ¦</div>
+            <div id="techPayLoading" class="loading"><div class="spinner"></div> Loading…</div>
             <table id="techPayTable" style="display:none">
               <thead><tr>
                 <th>Tech / Person</th>
@@ -763,7 +763,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">QR Scanner</h2>
           <div class="fg" style="margin-bottom:16px">
             <label class="fl">Select Asset</label>
-            <select class="fs" id="scanSel" onchange="doScan()"><option value="">â Choose asset â</option></select>
+            <select class="fs" id="scanSel" onchange="doScan()"><option value="">— Choose asset —</option></select>
           </div>
           <div id="scanOut" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
             <div style="padding:20px;text-align:center">
@@ -783,8 +783,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 <div class="overlay" id="addModal">
   <div class="modal">
     <div class="modal-hdr">
-      <div><div class="modal-title">Add New Asset</div><div class="modal-sub" id="addModalWs">â</div></div>
-      <button class="modal-close" onclick="closeModal(&#39;addModal&#39;)">Ã</button>
+      <div><div class="modal-title">Add New Asset</div><div class="modal-sub" id="addModalWs">—</div></div>
+      <button class="modal-close" onclick="closeModal(&#39;addModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -796,14 +796,14 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
               <input type="radio" name="trackMode" value="pool" checked="" onchange="setTrackMode(&#39;pool&#39;)" style="accent-color:var(--accent);margin-top:2px">
               <div>
                 <div style="font-size:13px;font-weight:600;color:var(--accent)">Pool Qty</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">One record with a count â cables, consumables, fixtures</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">One record with a count — cables, consumables, fixtures</div>
               </div>
             </label>
             <label id="modeIndivLabel" style="flex:1;display:flex;align-items:flex-start;gap:8px;background:var(--bg-input);border:2px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:all 0.15s">
               <input type="radio" name="trackMode" value="individual" onchange="setTrackMode(&#39;individual&#39;)" style="accent-color:var(--accent);margin-top:2px">
               <div>
                 <div style="font-size:13px;font-weight:600">Individual Units</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">Separate record per unit â speakers, consoles, moving lights</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">Separate record per unit — speakers, consoles, moving lights</div>
               </div>
             </label>
           </div>
@@ -822,7 +822,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="fg"><label class="fl">Status</label>
           <select class="fs" id="fStatus"><option>Operational</option><option>Repair</option><option>Missing</option><option>Rental</option></select>
         </div>
-        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="fNotes" placeholder="Condition notes, known issuesâ¦"></textarea></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="fNotes" placeholder="Condition notes, known issues…"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -837,10 +837,10 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:600px">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title" id="dName">â</div>
-        <div style="font-family:monospace;font-size:11px;color:var(--accent);margin-top:1px" id="dId">â</div>
+        <div class="modal-title" id="dName">—</div>
+        <div style="font-family:monospace;font-size:11px;color:var(--accent);margin-top:1px" id="dId">—</div>
       </div>
-      <button class="modal-close" onclick="closeModal(&#39;detailModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;detailModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div id="dAlert"></div>
@@ -891,16 +891,16 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:620px">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title">ð Gear Library</div>
-        <div class="modal-sub">Pick from common live event gear â added instantly to your inventory</div>
+        <div class="modal-title">📚 Gear Library</div>
+        <div class="modal-sub">Pick from common live event gear — added instantly to your inventory</div>
       </div>
-      <button class="modal-close" onclick="closeModal(&#39;libraryModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;libraryModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         <div class="search-wrap" style="flex:1;min-width:180px">
-          <span class="search-icon">ð</span>
-          <input type="text" class="search-input" id="libSearch" placeholder="Search gearâ¦" oninput="filterLibrary()">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="libSearch" placeholder="Search gear…" oninput="filterLibrary()">
         </div>
         <select class="fs" id="libDept" onchange="filterLibrary()" style="width:auto;min-width:140px">
           <option value="">All Departments</option>
@@ -925,12 +925,12 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:400px">
     <div class="modal-hdr">
       <div class="modal-title">Add Workspace</div>
-      <button class="modal-close" onclick="closeModal(&#39;addWsModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addWsModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="fg">
         <label class="fl">Workspace Name *</label>
-        <input type="text" class="fi" id="wsName" placeholder="e.g. Hotel AV, Corporate Eventsâ¦">
+        <input type="text" class="fi" id="wsName" placeholder="e.g. Hotel AV, Corporate Events…">
       </div>
     </div>
     <div class="modal-ftr">
@@ -945,7 +945,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:580px">
     <div class="modal-hdr">
       <div class="modal-title">New Rental</div>
-      <button class="modal-close" onclick="closeModal(&#39;addRentalModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addRentalModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -969,7 +969,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="fg"><label class="fl">Job / Project</label><input type="text" class="fi" id="rJob" placeholder="e.g. Fluffy Cloud Feb 14"></div>
         <div class="fg"><label class="fl">Out Date *</label><input type="date" class="fi" id="rOutDate"></div>
         <div class="fg"><label class="fl">Expected Return</label><input type="date" class="fi" id="rReturnDate"></div>
-        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="rNotes" placeholder="Condition notes, special instructions, deposit infoâ¦"></textarea></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="rNotes" placeholder="Condition notes, special instructions, deposit info…"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -984,10 +984,10 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:560px">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title" id="rdItem">â</div>
+        <div class="modal-title" id="rdItem">—</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px" id="rdDir"></div>
       </div>
-      <button class="modal-close" onclick="closeModal(&#39;rentalDetailModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;rentalDetailModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="tabs">
@@ -1012,7 +1012,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <button class="btn btn-danger admin-only" style="display:none" onclick="deleteRental()">Delete</button>
       <div style="flex:1"></div>
       <button class="btn btn-ghost" onclick="closeModal(&#39;rentalDetailModal&#39;)">Close</button>
-      <button class="btn btn-primary admin-only" style="display:none" onclick="markReturned()">â Mark Returned</button>
+      <button class="btn btn-primary admin-only" style="display:none" onclick="markReturned()">✓ Mark Returned</button>
     </div>
   </div>
 </div>
@@ -1023,7 +1023,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:480px">
     <div class="modal-hdr">
       <div class="modal-title">Add Contact</div>
-      <button class="modal-close" onclick="closeModal(&#39;addContactModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addContactModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -1042,7 +1042,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="fg"><label class="fl">Company</label><input type="text" class="fi" id="cCompany" placeholder="Company or organization"></div>
         <div class="fg"><label class="fl">Phone</label><input type="text" class="fi" id="cPhone" placeholder="Phone number"></div>
         <div class="fg full"><label class="fl">Email</label><input type="text" class="fi" id="cEmail" placeholder="Email address"></div>
-        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="cNotes" placeholder="Any additional infoâ¦"></textarea></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="cNotes" placeholder="Any additional info…"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -1057,7 +1057,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:380px">
     <div class="modal-hdr">
       <div class="modal-title">Add Truck Zone</div>
-      <button class="modal-close" onclick="closeModal(&#39;addZoneModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addZoneModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="fg" style="margin-bottom:12px">
@@ -1082,7 +1082,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:620px">
     <div class="modal-hdr">
       <div class="modal-title">Add Person</div>
-      <button class="modal-close" onclick="closeModal(&#39;addPersonModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addPersonModal&#39;)">×</button>
     </div>
     <div class="modal-body">
 
@@ -1135,7 +1135,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="fg"><label class="fl">Payment Handle / Info</label><input type="text" class="fi" id="pPayHandle" placeholder="e.g. @username or account info"></div>
 
         <!-- SENSITIVE -->
-        <div class="fg full"><label class="fl">SSN (for W9) â stored encrypted</label><input type="password" class="fi" id="pSSN" placeholder="XXX-XX-XXXX" autocomplete="off"></div>
+        <div class="fg full"><label class="fl">SSN (for W9) — stored encrypted</label><input type="password" class="fi" id="pSSN" placeholder="XXX-XX-XXXX" autocomplete="off"></div>
 
         <!-- TRAVEL -->
         <div class="fg"><label class="fl">T-Shirt Size</label>
@@ -1167,7 +1167,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           </div>
         </div>
 
-        <div class="fg full"><label class="fl">Notes / Comments</label><textarea class="ft" id="pNotes" placeholder="Skills, availability, how they were referred, anything relevantâ¦"></textarea></div>
+        <div class="fg full"><label class="fl">Notes / Comments</label><textarea class="ft" id="pNotes" placeholder="Skills, availability, how they were referred, anything relevant…"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -1185,12 +1185,12 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div style="display:flex;align-items:center;gap:12px">
           <div id="pdAvatar" style="width:44px;height:44px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);flex-shrink:0"></div>
           <div>
-            <div class="modal-title" id="pdName">â</div>
+            <div class="modal-title" id="pdName">—</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px" id="pdRole"></div>
           </div>
         </div>
       </div>
-      <button class="modal-close" onclick="closeModal(&#39;personDetailModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;personDetailModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="tabs">
@@ -1234,7 +1234,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div style="padding:12px;background:var(--bg-input);border-radius:var(--r);border:1px dashed var(--border-hi);text-align:center">
           <div style="font-size:12px;color:var(--steel);margin-bottom:8px">Upload documents for this person</div>
           <input type="file" id="docUploadInput" accept=".pdf,.doc,.docx,.jpg,.png" style="display:none" onchange="handleDocUpload(event)">
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById(&#39;docUploadInput&#39;).click()">ð Choose File to Upload</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById(&#39;docUploadInput&#39;).click()">📎 Choose File to Upload</button>
           <div style="font-size:10px;color:var(--muted);margin-top:6px">PDF, Word, or image files</div>
         </div>
         <div id="pdDocsList" style="margin-top:12px"></div>
@@ -1269,11 +1269,11 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:580px">
     <div class="modal-hdr">
       <div class="modal-title">Log Show</div>
-      <button class="modal-close" onclick="closeModal(&#39;addShowModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addShowModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="fg full"><label class="fl">Show / Event Name *</label><input type="text" class="fi" id="sfName" placeholder="e.g. Outside Days 2026 â Lighting"></div>
+        <div class="fg full"><label class="fl">Show / Event Name *</label><input type="text" class="fi" id="sfName" placeholder="e.g. Outside Days 2026 — Lighting"></div>
         <div class="fg"><label class="fl">Show Type</label>
           <select class="fs" id="sfType">
             <option>Corporate</option><option>Festival</option><option>Hotel / Venue</option>
@@ -1294,7 +1294,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div><div class="fl" style="margin-bottom:4px">Margin %</div><div id="sfCalcPct" style="font-size:18px;font-weight:700;font-family:monospace"></div></div>
           </div>
         </div>
-        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="sfNotes" placeholder="Client name, venue, any detailsâ¦"></textarea></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="sfNotes" placeholder="Client name, venue, any details…"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -1309,7 +1309,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   <div class="modal" style="max-width:500px">
     <div class="modal-hdr">
       <div class="modal-title">Add Tech Payment</div>
-      <button class="modal-close" onclick="closeModal(&#39;addTechPayModal&#39;)">Ã</button>
+      <button class="modal-close" onclick="closeModal(&#39;addTechPayModal&#39;)">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -1349,7 +1349,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <option value="paid">Paid</option>
           </select>
         </div>
-        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="tpNotes" placeholder="Any notes about this paymentâ¦" style="min-height:50px"></textarea></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="tpNotes" placeholder="Any notes about this payment…" style="min-height:50px"></textarea></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -1362,11 +1362,11 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 <div class="toasts" id="toasts"></div>
 
 <script>
-// ââ CONFIG ââ
+// ── CONFIG ──
 const SUPA_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ3RoZmx3aGNjaWlxZ2J6bXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Njg2MTIsImV4cCI6MjA5NzU0NDYxMn0.iSLm_3OhMuF1oAEeZh8YwEvYM8ix-y4RAdH942QvbGo';
 
-// ââ SUPABASE REST HELPERS (no SDK needed) ââ
+// ── SUPABASE REST HELPERS (no SDK needed) ──
 const headers = () => ({
   'apikey': SUPA_KEY,
   'Authorization': `Bearer ${token || SUPA_KEY}`,
@@ -1394,14 +1394,14 @@ async function sbDelete(path) {
   if (!r.ok) throw new Error(await r.text());
 }
 
-// ââ AUTH (direct REST) ââ
-let token = localStorage.getItem('7v_token') || null;
-let currentUser = JSON.parse(localStorage.getItem('7v_user') || 'null');
+// ── AUTH (direct REST) ──
+let token = sessionStorage.getItem('7v_token') || null;
+let currentUser = JSON.parse(sessionStorage.getItem('7v_user') || 'null');
 let isAdmin = false;
 let authMode = 'signin';
 
 async function handleAuth() {
-  // Force read values â handles Safari autofill quirks
+  // Force read values — handles Safari autofill quirks
   const emailEl = document.getElementById('loginEmail');
   const pwdEl = document.getElementById('loginPassword');
   emailEl.dispatchEvent(new Event('input', {bubbles:true}));
@@ -1417,7 +1417,7 @@ async function handleAuth() {
   errEl.textContent = '';
   if (!email || !pwd) { errEl.textContent = 'Please fill in all fields.'; return; }
   btn.disabled = true;
-  btn.textContent = authMode === 'signin' ? 'Signing inâ¦' : 'Creating accountâ¦';
+  btn.textContent = authMode === 'signin' ? 'Signing in…' : 'Creating account…';
   try {
     const endpoint = authMode === 'signin' ? 'token?grant_type=password' : 'signup';
     const controller = new AbortController();
@@ -1439,7 +1439,7 @@ async function handleAuth() {
     if (!r.ok || data.error) { errEl.textContent = data.error_description || data.msg || data.error || 'Login failed'; return; }
     if (authMode === 'signup') {
       errEl.style.color = '#4ADE80';
-      errEl.textContent = 'Account created! Signing you inâ¦';
+      errEl.textContent = 'Account created! Signing you in…';
       authMode = 'signin';
       await new Promise(res => setTimeout(res, 1000));
       // auto sign in
@@ -1458,14 +1458,14 @@ async function handleAuth() {
       token = data.access_token;
       currentUser = data.user;
     }
-    localStorage.setItem('7v_token', token);
-    localStorage.setItem('7v_user', JSON.stringify(currentUser));
+    sessionStorage.setItem('7v_token', token);
+    sessionStorage.setItem('7v_user', JSON.stringify(currentUser));
     await onLogin();
   } catch(e) {
     if (e.name === 'AbortError') {
       errEl.textContent = 'Connection timed out. Check your internet connection.';
     } else {
-      errEl.textContent = 'Connection error: ' + e.message + ' â check WiFi/cellular';
+      errEl.textContent = 'Connection error: ' + e.message + ' — check WiFi/cellular';
     }
   } finally {
     btn.disabled = false;
@@ -1487,10 +1487,10 @@ document.getElementById('loginPassword').addEventListener('keydown', e => { if(e
 // Auto-login if session exists
 window.addEventListener('DOMContentLoaded', async () => {
   // Auto-restore session from any storage key (survives deployments)
-  const sessionKeys = Object.keys(localStorage).filter(k => k.includes('7ve') || k.includes('session'));
-  if (!localStorage.getItem('7ve_session') && sessionKeys.length) {
-    const data = localStorage.getItem(sessionKeys[0]);
-    if (data) localStorage.setItem('7ve_session', data);
+  const sessionKeys = Object.keys(sessionStorage).filter(k => k.includes('7ve') || k.includes('session'));
+  if (!sessionStorage.getItem('7ve_session') && sessionKeys.length) {
+    const data = sessionStorage.getItem(sessionKeys[0]);
+    if (data) sessionStorage.setItem('7ve_session', data);
   }
   if (token && currentUser) {
     await onLogin();
@@ -1509,7 +1509,7 @@ async function onLogin() {
 
   document.getElementById('userEmail').textContent = currentUser.email;
   document.getElementById('userAvatar').textContent = currentUser.email[0].toUpperCase();
-  document.getElementById('userRoleText').textContent = isAdmin ? 'â­ Admin' : 'Crew';
+  document.getElementById('userRoleText').textContent = isAdmin ? '⭐ Admin' : 'Crew';
 
   document.getElementById('loginScreen').classList.remove('active');
   document.getElementById('appScreen').classList.add('active');
@@ -1520,17 +1520,17 @@ async function onLogin() {
 async function signOut() {
   try { await fetch(`${SUPA_URL}/auth/v1/logout`, { method:'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}` } }); } catch(e) {}
   token = null; currentUser = null; isAdmin = false;
-  localStorage.removeItem('7v_token');
-  localStorage.removeItem('7v_user');
+  sessionStorage.removeItem('7v_token');
+  sessionStorage.removeItem('7v_user');
   document.body.classList.remove('is-admin');
   document.getElementById('appScreen').classList.remove('active');
   document.getElementById('loginScreen').classList.add('active');
 }
 
-// ââ STATE ââ
+// ── STATE ──
 let workspaces = [], assets = [], currentWsId = null, currentWsName = '', activeAssetId = null, critFilter = '', statusFilter = '';
 
-// ââ WORKSPACES ââ
+// ── WORKSPACES ──
 async function loadWorkspaces() {
   try {
     workspaces = await sbGet('workspaces?select=*&order=name');
@@ -1555,7 +1555,7 @@ async function selectWorkspace(id, name) {
   closeSidebar();
 }
 
-// ââ ASSETS ââ
+// ── ASSETS ──
 async function loadAssets() {
   document.getElementById('tableLoading').style.display = 'flex';
   document.getElementById('assetTable').style.display = 'none';
@@ -1588,12 +1588,12 @@ function renderTable() {
   document.getElementById('assetBody').innerHTML = rows.map(a=>`
     <tr class="arow" onclick="openDetail('${a.id}')">
       <td><span class="asset-id">${a.asset_id}</span></td>
-      <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'â¦':''}</div>`:''}</td>
+      <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>`:''}</td>
       <td class="hide-mobile"><span class="dept-tag">${a.department}</span></td>
       <td><span class="crit-badge ${critClass(a.criticality)}">${a.criticality}</span></td>
       <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
       <td class="hide-mobile" style="font-family:monospace;font-size:13px;color:var(--accent);font-weight:600">${a.qty||1}</td>
-      <td class="hide-mobile"><span class="loc-pill">${a.location||'â'}</span></td>
+      <td class="hide-mobile"><span class="loc-pill">${a.location||'—'}</span></td>
       <td></td>
     </tr>`).join('');
 }
@@ -1601,7 +1601,7 @@ function renderTable() {
 function setCrit(el,val) { critFilter=val; statusFilter=''; document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.crit===val)); renderTable(); }
 function filterStatus(s) { statusFilter=s; critFilter=''; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); renderTable(); }
 
-// ââ ADD ASSET ââ
+// ── ADD ASSET ──
 function autoId(dept) {
   const map={Audio:'AUD',Video:'VID',Lighting:'LGT',Power:'PWR',Consumables:'CON',Networking:'NET',Scenic:'SCN'};
   const p=map[dept]||'GEN';
@@ -1621,7 +1621,7 @@ async function saveAsset() {
   if (!name) { toast('Error','Asset name is required'); return; }
   const dept = document.getElementById('fDept').value;
   const btn = document.getElementById('saveBtn');
-  btn.disabled=true; btn.textContent='Savingâ¦';
+  btn.disabled=true; btn.textContent='Saving…';
   try {
     const [asset] = await sbPost('assets', {
       asset_id: autoId(dept), name, department: dept,
@@ -1634,13 +1634,13 @@ async function saveAsset() {
       workspace_id: currentWsId
     });
     await sbPost('asset_history', { asset_id: asset.id, entry: `Added to ${currentWsName}`, created_by: currentUser.email });
-    closeModal('addModal'); toast('Asset Added', asset.asset_id+' â '+asset.name);
+    closeModal('addModal'); toast('Asset Added', asset.asset_id+' — '+asset.name);
     await loadAssets(); populateScanSelect();
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Asset'; }
 }
 
-// ââ DETAIL ââ
+// ── DETAIL ──
 function openDetail(id) {
   const a = assets.find(x=>x.id===id); if (!a) return;
   activeAssetId = id;
@@ -1648,17 +1648,17 @@ function openDetail(id) {
   document.getElementById('dId').textContent = a.asset_id;
   const alertEl = document.getElementById('dAlert');
   if (a.status==='Missing'&&a.criticality==='Mission Critical') {
-    alertEl.innerHTML=`<div class="alert crit"><div><div class="alert-title">â  Mission Critical â Show Cannot Open</div>This asset is missing and required for the show.</div></div>`;
+    alertEl.innerHTML=`<div class="alert crit"><div><div class="alert-title">⚠ Mission Critical — Show Cannot Open</div>This asset is missing and required for the show.</div></div>`;
   } else if (a.status==='Missing'&&a.criticality==='Show Critical') {
-    alertEl.innerHTML=`<div class="alert warn"><div><div class="alert-title">â  Show Critical â Locate Before Doors</div>Show may be impacted.</div></div>`;
+    alertEl.innerHTML=`<div class="alert warn"><div><div class="alert-title">⚠ Show Critical — Locate Before Doors</div>Show may be impacted.</div></div>`;
   } else { alertEl.innerHTML=''; }
   document.getElementById('dCrit').innerHTML=`<span class="crit-badge ${critClass(a.criticality)}">${a.criticality}</span>`;
   document.getElementById('dStatus').innerHTML=`<span class="status-badge ${statusClass(a.status)}">${a.status}</span>`;
   document.getElementById('dDept').innerHTML=`<span class="dept-tag">${a.department}</span>`;
-  document.getElementById('dSystem').textContent=a.system_name||'â';
+  document.getElementById('dSystem').textContent=a.system_name||'—';
   document.getElementById('dQty').textContent = (a.qty||1) + (a.qty > 1 ? ' units' : ' unit');
-  document.getElementById('dLoc').innerHTML=`<span class="loc-pill">${a.location||'â'}</span>`;
-  document.getElementById('dCase').textContent=a.case_id||'â';
+  document.getElementById('dLoc').innerHTML=`<span class="loc-pill">${a.location||'—'}</span>`;
+  document.getElementById('dCase').textContent=a.case_id||'—';
   document.getElementById('dNotes').textContent=a.notes||'No notes.';
   document.getElementById('eName').value=a.name; document.getElementById('eDept').value=a.department;
   document.getElementById('eSystem').value=a.system_name||''; document.getElementById('eCase').value=a.case_id||'';
@@ -1669,7 +1669,7 @@ function openDetail(id) {
   document.getElementById('historyList').innerHTML=hist.length?hist.map(h=>`
     <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px">
       <div style="font-family:monospace;font-size:10px;color:var(--muted);white-space:nowrap;padding-top:1px;min-width:80px">${new Date(h.created_at).toLocaleDateString()}</div>
-      <div style="color:var(--steel)">${h.entry}${h.created_by?` â <span style="color:var(--muted)">${h.created_by}</span>`:''}</div>
+      <div style="color:var(--steel)">${h.entry}${h.created_by?` — <span style="color:var(--muted)">${h.created_by}</span>`:''}</div>
     </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">No history yet.</div>';
   dtab('overview',document.querySelector('.tab'));
   openModal('detailModal');
@@ -1702,9 +1702,9 @@ async function deleteAsset() {
   closeModal('detailModal'); toast('Deleted',a?.asset_id+' removed'); await loadAssets();
 }
 
-// ââ SCAN ââ
+// ── SCAN ──
 function populateScanSelect() {
-  document.getElementById('scanSel').innerHTML='<option value="">â Choose asset â</option>'+assets.map(a=>`<option value="${a.id}">${a.asset_id} â ${a.name}</option>`).join('');
+  document.getElementById('scanSel').innerHTML='<option value="">— Choose asset —</option>'+assets.map(a=>`<option value="${a.id}">${a.asset_id} — ${a.name}</option>`).join('');
   document.getElementById('scanOut').style.display='none';
 }
 function doScan() {
@@ -1719,15 +1719,15 @@ function doScan() {
   const colors={mission:'background:rgba(232,64,64,0.15);color:#FF6B6B;border:1px solid rgba(232,64,64,0.3)',show:'background:rgba(245,166,35,0.15);color:#F5A623;border:1px solid rgba(245,166,35,0.3)',convenience:'background:rgba(59,130,246,0.1);color:#60A5FA;border:1px solid rgba(59,130,246,0.2)',consumable:'background:rgba(107,114,128,0.1);color:#9CA3AF;border:1px solid rgba(107,114,128,0.2)'};
   c.style.cssText=colors[cc];
   if (a.status==='Missing') {
-    c.textContent=`MISSING â ${a.criticality.toUpperCase()}`;
-    m.innerHTML=a.criticality==='Mission Critical'?'<span style="color:#F87171;font-weight:700">â  SHOW CANNOT OPEN</span>':a.criticality==='Show Critical'?'<span style="color:#FCD34D">â  Locate before doors open</span>':'<span style="color:#9CA3AF">Show can proceed</span>';
+    c.textContent=`MISSING — ${a.criticality.toUpperCase()}`;
+    m.innerHTML=a.criticality==='Mission Critical'?'<span style="color:#F87171;font-weight:700">⚠ SHOW CANNOT OPEN</span>':a.criticality==='Show Critical'?'<span style="color:#FCD34D">⚠ Locate before doors open</span>':'<span style="color:#9CA3AF">Show can proceed</span>';
   } else {
-    c.textContent=`${a.status.toUpperCase()} â ${a.criticality.toUpperCase()}`;
+    c.textContent=`${a.status.toUpperCase()} — ${a.criticality.toUpperCase()}`;
     m.innerHTML=`Location: <strong style="color:var(--text)">${a.location||'Unknown'}</strong>`;
   }
 }
 
-// ââ UI HELPERS ââ
+// ── UI HELPERS ──
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
@@ -1932,7 +1932,7 @@ function filterLibrary() {
     const selected = libSelected.has(key);
     const cc = item.crit === 'Mission Critical' ? 'mission' : item.crit === 'Show Critical' ? 'show' : item.crit === 'Convenience' ? 'convenience' : 'consumable';
     return `<div onclick="toggleLibItem(this,'${key.replace(/'/g,"\'")}')" style="background:var(--bg-input);border:1px solid ${selected?'var(--accent)':'var(--border)'};border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:all 0.12s;${selected?'background:var(--accent-dim)':''}">
-      <div style="font-size:12px;font-weight:500;color:${selected?'var(--accent)':'var(--text)'};margin-bottom:4px">${selected?'â ':''}<span style="font-size:10px;color:var(--muted)">[${item.dept}]</span> ${item.name}</div>
+      <div style="font-size:12px;font-weight:500;color:${selected?'var(--accent)':'var(--text)'};margin-bottom:4px">${selected?'✓ ':''}<span style="font-size:10px;color:var(--muted)">[${item.dept}]</span> ${item.name}</div>
       <span class="crit-badge ${cc}" style="font-size:9px;padding:2px 6px">${item.crit}</span>
     </div>`;
   }).join('') || '<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">No items found</div>';
@@ -1954,7 +1954,7 @@ function updateLibCount() {
 async function addFromLibrary() {
   if (!libSelected.size) return;
   const btn = document.getElementById('libAddBtn');
-  btn.disabled = true; btn.textContent = 'Addingâ¦';
+  btn.disabled = true; btn.textContent = 'Adding…';
   let added = 0;
   for (const key of libSelected) {
     const [dept, name] = key.split('|');
@@ -1977,7 +1977,7 @@ async function addFromLibrary() {
 }
 
 
-// ââ CABLE FILTER ââ
+// ── CABLE FILTER ──
 let cableFilter = '';
 function setCable(el, val) {
   cableFilter = val;
@@ -1989,7 +1989,7 @@ function setCable(el, val) {
 const _origRenderTable = renderTable;
 // Override will be done inline below
 
-// ââ WORKSPACE CREATION ââ
+// ── WORKSPACE CREATION ──
 async function saveWorkspace() {
   const name = document.getElementById('wsName').value.trim();
   if (!name) { toast('Error', 'Workspace name required'); return; }
@@ -2002,7 +2002,7 @@ async function saveWorkspace() {
   } catch(e) { toast('Error', e.message); }
 }
 
-// ââ RENTALS ââ
+// ── RENTALS ──
 let rentals = [];
 let rentalFilter = 'all';
 let activeRentalId = null;
@@ -2042,15 +2042,15 @@ function renderRentals() {
   document.getElementById('rentalBody').innerHTML = rows.map(r => {
     const overdue = r.return_date && r.return_date < today && r.status !== 'returned';
     const dirColor = r.direction === 'out' ? 'var(--accent)' : '#60A5FA';
-    const dirLabel = r.direction === 'out' ? 'â OUT' : 'â IN';
+    const dirLabel = r.direction === 'out' ? '→ OUT' : '← IN';
     return `<tr class="arow" onclick="openRentalDetail('${r.id}')">
       <td><span style="font-size:11px;font-weight:700;color:${dirColor};background:${r.direction==='out'?'rgba(245,166,35,0.1)':'rgba(59,130,246,0.1)'};padding:3px 8px;border-radius:4px">${dirLabel}</span></td>
       <td><div class="asset-name">${r.item_name}</div></td>
       <td style="font-family:monospace;font-weight:600;color:var(--accent)">${r.qty||1}</td>
-      <td style="font-size:12px">${r.contact_name||'â'}</td>
-      <td style="font-size:12px;color:var(--steel)">${r.job_name||'â'}</td>
-      <td style="font-size:12px;color:var(--steel)">${r.out_date||'â'}</td>
-      <td style="font-size:12px;color:${overdue?'var(--red)':'var(--steel)'};font-weight:${overdue?'700':'400'}">${r.return_date||(r.status==='returned'?'Returned':'â')}${overdue?' â ':''}</td>
+      <td style="font-size:12px">${r.contact_name||'—'}</td>
+      <td style="font-size:12px;color:var(--steel)">${r.job_name||'—'}</td>
+      <td style="font-size:12px;color:var(--steel)">${r.out_date||'—'}</td>
+      <td style="font-size:12px;color:${overdue?'var(--red)':'var(--steel)'};font-weight:${overdue?'700':'400'}">${r.return_date||(r.status==='returned'?'Returned':'—')}${overdue?' ⚠':''}</td>
       <td><span class="status-badge ${r.status==='returned'?'operational':r.direction==='out'?'rental':'repair'}">${r.status==='returned'?'Returned':r.direction==='out'?'Out':'In'}</span></td>
       <td></td>
     </tr>`;
@@ -2070,7 +2070,7 @@ async function saveRental() {
   const outDate = document.getElementById('rOutDate').value;
   if (!item || !contact || !outDate) { toast('Error', 'Item, contact and out date are required'); return; }
   const btn = document.getElementById('saveRentalBtn');
-  btn.disabled = true; btn.textContent = 'Savingâ¦';
+  btn.disabled = true; btn.textContent = 'Saving…';
   const dir = document.querySelector('input[name="rentalDir"]:checked').value;
   try {
     const [rental] = await sbPost('rentals', {
@@ -2086,7 +2086,7 @@ async function saveRental() {
       status: 'active',
       workspace_id: currentWsId
     });
-    await sbPost('rental_history', { rental_id: rental.id, entry: `Created â ${dir === 'out' ? 'Rented out to' : 'Rented in from'} ${contact}`, created_by: currentUser.email });
+    await sbPost('rental_history', { rental_id: rental.id, entry: `Created — ${dir === 'out' ? 'Rented out to' : 'Rented in from'} ${contact}`, created_by: currentUser.email });
     closeModal('addRentalModal');
     toast('Rental Added', item);
     await loadRentals();
@@ -2098,18 +2098,18 @@ function openRentalDetail(id) {
   const r = rentals.find(x => x.id === id); if (!r) return;
   activeRentalId = id;
   document.getElementById('rdItem').textContent = r.item_name;
-  document.getElementById('rdDir').textContent = r.direction === 'out' ? 'â Rented OUT to client' : 'â Rented IN from vendor';
+  document.getElementById('rdDir').textContent = r.direction === 'out' ? '→ Rented OUT to client' : '← Rented IN from vendor';
   const today = new Date().toISOString().split('T')[0];
   const overdue = r.return_date && r.return_date < today && r.status !== 'returned';
   const statusLabel = r.status === 'returned' ? 'Returned' : overdue ? 'OVERDUE' : r.direction === 'out' ? 'Out on Rental' : 'In from Vendor';
   const statusCls = r.status === 'returned' ? 'operational' : overdue ? 'missing' : 'rental';
   document.getElementById('rdStatus').innerHTML = `<span class="status-badge ${statusCls}">${statusLabel}</span>`;
   document.getElementById('rdQty').textContent = (r.qty||1) + ' unit' + ((r.qty||1) > 1 ? 's' : '');
-  document.getElementById('rdContact').textContent = r.contact_name||'â';
-  document.getElementById('rdPhone').textContent = r.contact_phone||'â';
-  document.getElementById('rdJob').textContent = r.job_name||'â';
-  document.getElementById('rdOutDate').textContent = r.out_date||'â';
-  document.getElementById('rdReturn').textContent = r.return_date||'â';
+  document.getElementById('rdContact').textContent = r.contact_name||'—';
+  document.getElementById('rdPhone').textContent = r.contact_phone||'—';
+  document.getElementById('rdJob').textContent = r.job_name||'—';
+  document.getElementById('rdOutDate').textContent = r.out_date||'—';
+  document.getElementById('rdReturn').textContent = r.return_date||'—';
   document.getElementById('rdNotes').textContent = r.notes||'No notes.';
   const hist = (r.rental_history||[]).sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('rdHistory').innerHTML = hist.map(h => `
@@ -2175,18 +2175,18 @@ renderTable = function() {
   document.getElementById('assetBody').innerHTML = rows.map(a=>`
     <tr class="arow" onclick="openDetail('${a.id}')">
       <td><span class="asset-id">${a.asset_id}</span></td>
-      <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'â¦':''}</div>`:''}</td>
+      <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>`:''}</td>
       <td class="hide-mobile"><span class="dept-tag">${a.department}</span></td>
       <td><span class="crit-badge ${critClass(a.criticality)}">${a.criticality}</span></td>
       <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
       <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">${a.qty||1}</td>
-      <td class="hide-mobile"><span class="loc-pill">${a.location||'â'}</span></td>
+      <td class="hide-mobile"><span class="loc-pill">${a.location||'—'}</span></td>
       <td></td>
     </tr>`).join('');
 };
 
 
-// ââ CONTACTS ââ
+// ── CONTACTS ──
 let contacts = [];
 let zones = [];
 let zoneAssets = {};
@@ -2225,10 +2225,10 @@ function renderContacts() {
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${roleColors[c.role]||'var(--steel)'}">${c.role}</div>
           ${c.company ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${c.company}</div>` : ''}
         </div>
-        ${isAdmin ? `<button onclick="deleteContact('${c.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px" title="Remove">Ã</button>` : ''}
+        ${isAdmin ? `<button onclick="deleteContact('${c.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px" title="Remove">×</button>` : ''}
       </div>
-      ${c.phone ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">ð ${c.phone}</div>` : ''}
-      ${c.email ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">âï¸ ${c.email}</div>` : ''}
+      ${c.phone ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">📞 ${c.phone}</div>` : ''}
+      ${c.email ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">✉️ ${c.email}</div>` : ''}
       ${c.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${c.notes}</div>` : ''}
     </div>
   `).join('');
@@ -2261,7 +2261,7 @@ async function deleteContact(id) {
   await loadContacts();
 }
 
-// ââ TRUCK PACK ââ
+// ── TRUCK PACK ──
 async function loadTruckPack() {
   try {
     zones = await sbGet(`truck_zones?workspace_id=eq.${currentWsId}&select=*,truck_zone_assets(*)&order=sort_order`);
@@ -2285,7 +2285,7 @@ function renderTruckPack() {
           <div style="font-weight:600;font-size:13px">${z.name}</div>
           ${z.truck ? `<div style="font-size:11px;color:var(--muted)">${z.truck}</div>` : ''}
         </div>
-        ${isAdmin ? `<button onclick="deleteZone('${z.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px">Ã</button>` : ''}
+        ${isAdmin ? `<button onclick="deleteZone('${z.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px">×</button>` : ''}
       </div>
       <div style="padding:10px;min-height:60px">
         ${(z.truck_zone_assets||[]).length ? (z.truck_zone_assets||[]).map((za,i) => {
@@ -2294,16 +2294,16 @@ function renderTruckPack() {
           return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-input);border-radius:var(--r);margin-bottom:6px;font-size:12px">
             <span style="font-family:monospace;color:var(--accent);font-size:10px;min-width:60px">${a.asset_id}</span>
             <span style="flex:1">${a.name}</span>
-  <span style="font-family:monospace;font-weight:600;color:var(--accent)">Ã${a.qty||1}</span>
+  <span style="font-family:monospace;font-weight:600;color:var(--accent)">×${a.qty||1}</span>
             <span style="font-size:10px;color:var(--muted);margin-left:4px">${estimateWeight(a.name) * (a.qty||1)} lbs</span>
-            ${isAdmin ? `<button onclick="removeFromZone('${za.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1">Ã</button>` : ''}
+            ${isAdmin ? `<button onclick="removeFromZone('${za.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1">×</button>` : ''}
           </div>`;
-        }).join('') : `<div style="color:var(--muted);font-size:12px;padding:8px;text-align:center">Empty â assign assets below</div>`}
+        }).join('') : `<div style="color:var(--muted);font-size:12px;padding:8px;text-align:center">Empty — assign assets below</div>`}
       </div>
       ${isAdmin ? `<div style="padding:10px;border-top:1px solid var(--border)">
         <select class="fs" style="font-size:11px" onchange="addToZone('${z.id}',this)">
-          <option value="">+ Assign assetâ¦</option>
-          ${assets.filter(a => !assignedIds.has(a.id)).map(a => `<option value="${a.id}">${a.asset_id} â ${a.name}</option>`).join('')}
+          <option value="">+ Assign asset…</option>
+          ${assets.filter(a => !assignedIds.has(a.id)).map(a => `<option value="${a.id}">${a.asset_id} — ${a.name}</option>`).join('')}
         </select>
       </div>` : ''}
     </div>
@@ -2349,7 +2349,7 @@ async function deleteZone(id) {
   await loadTruckPack();
 }
 
-// ââ PDF SHOW PACKET ââ
+// ── PDF SHOW PACKET ──
 async function generatePDF() {
   // Load everything fresh
   await loadContacts();
@@ -2404,7 +2404,7 @@ async function generatePDF() {
             <td style="padding:7px 10px;text-align:center;font-weight:700;font-family:monospace;border-bottom:1px solid #f3f4f6">${a.qty||1}</td>
             <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6"><span style="background:${critColors[a.criticality]}22;color:${critColors[a.criticality]};padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">${a.criticality}</span></td>
             <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6"><span style="color:${statusColors[a.status]};font-weight:600;font-size:11px">${a.status}</span></td>
-            <td style="padding:7px 10px;font-family:monospace;font-size:10px;color:#6b7280;border-bottom:1px solid #f3f4f6">${a.location||'â'}</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:10px;color:#6b7280;border-bottom:1px solid #f3f4f6">${a.location||'—'}</td>
           </tr>`).join('')}
         </tbody>
       </table>
@@ -2446,7 +2446,7 @@ async function generatePDF() {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>${currentWsName} â Show Packet</title>
+<title>${currentWsName} — Show Packet</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111827; background: white; font-size: 13px; }
@@ -2470,15 +2470,15 @@ async function generatePDF() {
   </div>
   <div style="text-align:right">
     <div style="font-size:18px;font-weight:700;color:white">${currentWsName}</div>
-    <div style="font-size:11px;color:#7A8494;margin-top:3px">Show Packet â Generated ${today}</div>
-    <div style="font-size:11px;color:#7A8494">${allAssets.length} assets Â· ${contacts.length} contacts</div>
+    <div style="font-size:11px;color:#7A8494;margin-top:3px">Show Packet — Generated ${today}</div>
+    <div style="font-size:11px;color:#7A8494">${allAssets.length} assets · ${contacts.length} contacts</div>
   </div>
 </div>
 
 ${missionMissing.length ? `
 <!-- ALERT BAR -->
 <div style="background:#FEF2F2;border-left:4px solid #EF4444;padding:12px 24px;display:flex;align-items:center;gap:10px">
-  <div style="font-size:16px">â ï¸</div>
+  <div style="font-size:16px">⚠️</div>
   <div>
     <div style="font-weight:700;color:#DC2626;font-size:12px;text-transform:uppercase;letter-spacing:0.05em">Mission Critical Items Missing</div>
     <div style="font-size:12px;color:#374151;margin-top:2px">${missionMissing.map(a => a.name).join(', ')}</div>
@@ -2549,7 +2549,7 @@ setView = function(name, el) {
 };
 
 
-// ââ TRACKING MODE ââ
+// ── TRACKING MODE ──
 function setTrackMode(mode) {
   const isPool = mode === 'pool';
   document.getElementById('fQtyWrap').style.display = isPool ? '' : 'none';
@@ -2560,14 +2560,14 @@ function setTrackMode(mode) {
   document.getElementById('modeIndivLabel').querySelector('div div').style.color = !isPool ? 'var(--accent)' : 'var(--text)';
 }
 
-// ââ OVERRIDE saveAsset to handle both modes ââ
+// ── OVERRIDE saveAsset to handle both modes ──
 async function saveAsset() {
   const name = document.getElementById('fName').value.trim();
   if (!name) { toast('Error', 'Asset name is required'); return; }
   const dept = document.getElementById('fDept').value;
   const mode = document.querySelector('input[name="trackMode"]:checked').value;
   const btn = document.getElementById('saveBtn');
-  btn.disabled = true; btn.textContent = 'Savingâ¦';
+  btn.disabled = true; btn.textContent = 'Saving…';
 
   try {
     if (mode === 'pool') {
@@ -2585,11 +2585,11 @@ async function saveAsset() {
         qty: parseInt(document.getElementById('fQty').value)||1,
         workspace_id: currentWsId
       });
-      await sbPost('asset_history', { asset_id: asset.id, entry: `Added to ${currentWsName} inventory (Pool Ã ${asset.qty})`, created_by: currentUser.email });
-      toast('Asset Added', `${asset.asset_id} â ${asset.name} Ã${asset.qty}`);
+      await sbPost('asset_history', { asset_id: asset.id, entry: `Added to ${currentWsName} inventory (Pool × ${asset.qty})`, created_by: currentUser.email });
+      toast('Asset Added', `${asset.asset_id} — ${asset.name} ×${asset.qty}`);
 
     } else {
-      // Individual records â one per unit
+      // Individual records — one per unit
       const count = parseInt(document.getElementById('fCount').value)||2;
       const baseCaseId = document.getElementById('fCase').value.trim();
       const created = [];
@@ -2615,7 +2615,7 @@ async function saveAsset() {
         await sbPost('asset_history', { asset_id: asset.id, entry: `Added to ${currentWsName} inventory (Unit ${unitLabel} of ${count})`, created_by: currentUser.email });
         created.push(asset.asset_id);
       }
-      toast('Assets Added', `${count} individual units created: ${created[0]} â ${created[created.length-1]}`);
+      toast('Assets Added', `${count} individual units created: ${created[0]} → ${created[created.length-1]}`);
     }
 
     closeModal('addModal');
@@ -2626,7 +2626,7 @@ async function saveAsset() {
 }
 
 
-// ââ GEAR WEIGHT DATABASE (lbs) ââ
+// ── GEAR WEIGHT DATABASE (lbs) ──
 const GEAR_WEIGHTS = {
   // Audio
   'X32': 21, 'CL5': 55, 'CL3': 45, 'SQ-6': 30, 'SD12': 44,
@@ -2664,7 +2664,7 @@ function estimateWeight(assetName) {
   return GEAR_WEIGHTS.default;
 }
 
-// ââ TRUCK CALCULATIONS ââ
+// ── TRUCK CALCULATIONS ──
 let selectedTruckData = null;
 let truckProjectFilter = 'all';
 
@@ -2695,13 +2695,13 @@ function updateTruckCalc() {
 
   const statusEl = document.getElementById('weightStatusDisplay');
   if (pct > 100) {
-    statusEl.textContent = 'â  OVERWEIGHT â reduce load';
+    statusEl.textContent = '⚠ OVERWEIGHT — reduce load';
     statusEl.style.color = 'var(--red)';
   } else if (pct > 85) {
-    statusEl.textContent = 'â  Near capacity â check weight';
+    statusEl.textContent = '⚠ Near capacity — check weight';
     statusEl.style.color = 'var(--accent)';
   } else {
-    statusEl.textContent = 'â Within limit';
+    statusEl.textContent = '✓ Within limit';
     statusEl.style.color = 'var(--green)';
   }
 
@@ -2718,7 +2718,7 @@ function updateTruckCalc() {
   document.getElementById('truckCostDisplay').textContent = '$' + totalCost.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
-// ââ TRUCK PROJECT TABS ââ
+// ── TRUCK PROJECT TABS ──
 function setTruckProject(wsId, el) {
   truckProjectFilter = wsId;
   document.querySelectorAll('#truckProjectTabs .tab').forEach(t => t.classList.remove('active'));
@@ -2749,7 +2749,7 @@ function buildTruckProjectTabs() {
 }
 
 
-// ââ KEEP SUPABASE ALIVE (prevents free tier pause) ââ
+// ── KEEP SUPABASE ALIVE (prevents free tier pause) ──
 async function keepAlive() {
   try {
     await fetch(`${SUPA_URL}/rest/v1/workspaces?select=id&limit=1`, {
@@ -2762,7 +2762,7 @@ keepAlive();
 setInterval(keepAlive, 1000 * 60 * 60 * 24 * 4);
 
 
-// ââ PEOPLE / STAFF ââ
+// ── PEOPLE / STAFF ──
 let people = [];
 let peopleTab = 'staff';
 let activePersonId = null;
@@ -2819,7 +2819,7 @@ function renderPeople() {
       return `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:${has?'rgba(34,197,94,0.12)':'rgba(107,114,128,0.1)'};color:${has?'#4ADE80':'#6B7280'};border:1px solid ${has?'rgba(34,197,94,0.2)':'rgba(107,114,128,0.2)'}">${DOC_LABELS[d]}</span>`;
     }).join('');
 
-    const payLabel = p.pay_type === 'day' ? `$${p.pay_rate}/day` : p.pay_type === 'hourly' ? `$${p.pay_rate}/hr` : p.pay_rate ? `$${Number(p.pay_rate).toLocaleString()}/yr` : 'â';
+    const payLabel = p.pay_type === 'day' ? `$${p.pay_rate}/day` : p.pay_type === 'hourly' ? `$${p.pay_rate}/hr` : p.pay_rate ? `$${Number(p.pay_rate).toLocaleString()}/yr` : '—';
 
     return `<div onclick="openPersonDetail('${p.id}')" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:border-color 0.12s;position:relative" onmouseover="this.style.borderColor='var(--border-hi)'" onmouseout="this.style.borderColor='var(--border)'">
       <!-- TOP ROW -->
@@ -2827,30 +2827,30 @@ function renderPeople() {
         <div style="width:42px;height:42px;border-radius:50%;background:${deptColor}18;border:2px solid ${deptColor}44;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${deptColor};flex-shrink:0">${initials}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:14px;margin-bottom:2px">${p.first_name} ${p.last_name}</div>
-          <div style="font-size:11px;color:${deptColor};font-weight:600;text-transform:uppercase;letter-spacing:0.05em">${p.department}${p.title ? ` Â· ${p.title}` : ''}</div>
+          <div style="font-size:11px;color:${deptColor};font-weight:600;text-transform:uppercase;letter-spacing:0.05em">${p.department}${p.title ? ` · ${p.title}` : ''}</div>
         </div>
         <div style="font-size:12px;font-weight:600;color:var(--accent);font-family:monospace;white-space:nowrap">${payLabel}</div>
       </div>
       <!-- CONTACT -->
       <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:10px">
-        ${p.phone ? `<span>ð ${p.phone}</span>` : ''}
-        ${p.email ? `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">â ${p.email}</span>` : ''}
+        ${p.phone ? `<span>📞 ${p.phone}</span>` : ''}
+        ${p.email ? `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">✉ ${p.email}</span>` : ''}
       </div>
       <!-- DOCS -->
       <div style="display:flex;gap:4px;flex-wrap:wrap">${docsHTML}</div>
       <!-- PAYMENT METHOD -->
-      ${p.pay_method ? `<div style="font-size:10px;color:var(--muted);margin-top:8px">ð³ ${p.pay_method}${p.pay_handle ? ` Â· ${p.pay_handle}` : ''}</div>` : ''}
+      ${p.pay_method ? `<div style="font-size:10px;color:var(--muted);margin-top:8px">💳 ${p.pay_method}${p.pay_handle ? ` · ${p.pay_handle}` : ''}</div>` : ''}
     </div>`;
   }).join('');
 }
 
-// ââ SAVE PERSON ââ
+// ── SAVE PERSON ──
 async function savePerson() {
   const first = document.getElementById('pFirst').value.trim();
   const last = document.getElementById('pLast').value.trim();
   if (!first || !last) { toast('Error', 'First and last name required'); return; }
   const btn = document.getElementById('savePersonBtn');
-  btn.disabled = true; btn.textContent = 'Savingâ¦';
+  btn.disabled = true; btn.textContent = 'Saving…';
   try {
     await sbPost('staff_people', {
       status: document.querySelector('input[name="personStatus"]:checked').value,
@@ -2882,7 +2882,7 @@ async function savePerson() {
   finally { btn.disabled=false; btn.textContent='Save Person'; }
 }
 
-// ââ OPEN PERSON DETAIL ââ
+// ── OPEN PERSON DETAIL ──
 function openPersonDetail(id) {
   const p = people.find(x => x.id === id); if (!p) return;
   activePersonId = id;
@@ -2894,25 +2894,25 @@ function openPersonDetail(id) {
   document.getElementById('pdAvatar').style.borderColor = `${deptColor}66`;
   document.getElementById('pdAvatar').style.color = deptColor;
   document.getElementById('pdName').textContent = `${p.first_name} ${p.last_name}`;
-  document.getElementById('pdRole').textContent = `${p.department}${p.title ? ' Â· ' + p.title : ''}`;
-  document.getElementById('pdPhone').textContent = p.phone || 'â';
-  document.getElementById('pdEmail').textContent = p.email || 'â';
-  document.getElementById('pdAddress').textContent = p.address || 'â';
+  document.getElementById('pdRole').textContent = `${p.department}${p.title ? ' · ' + p.title : ''}`;
+  document.getElementById('pdPhone').textContent = p.phone || '—';
+  document.getElementById('pdEmail').textContent = p.email || '—';
+  document.getElementById('pdAddress').textContent = p.address || '—';
   document.getElementById('pdDept').innerHTML = `<span class="dept-tag" style="background:${deptColor}18;color:${deptColor};border-color:${deptColor}33">${p.department}</span>`;
-  document.getElementById('pdTitle').textContent = p.title || 'â';
+  document.getElementById('pdTitle').textContent = p.title || '—';
   document.getElementById('pdStatus').innerHTML = `<span class="status-badge ${p.status === 'staff' ? 'operational' : 'rental'}">${p.status === 'staff' ? 'Active Staff' : 'Prospect'}</span>`;
-  document.getElementById('pdShirt').textContent = p.shirt_size || 'â';
-  document.getElementById('pdShirt2').textContent = p.shirt_size || 'â';
+  document.getElementById('pdShirt').textContent = p.shirt_size || '—';
+  document.getElementById('pdShirt2').textContent = p.shirt_size || '—';
   document.getElementById('pdDiet').textContent = p.diet || 'None listed';
   document.getElementById('pdTravel').textContent = p.travel_info || 'No travel info on file.';
   document.getElementById('pdNotes').textContent = p.notes || 'No notes.';
 
   const payLabels = { day: 'Day Rate', hourly: 'Hourly', salary: 'Annual Salary' };
   const paySymbol = p.pay_type === 'salary' ? '/yr' : p.pay_type === 'hourly' ? '/hr' : '/day';
-  document.getElementById('pdPayType').textContent = payLabels[p.pay_type] || 'â';
-  document.getElementById('pdPayRate').textContent = p.pay_rate ? `$${Number(p.pay_rate).toLocaleString()}${paySymbol}` : 'â';
-  document.getElementById('pdPayMethod').textContent = p.pay_method || 'â';
-  document.getElementById('pdPayHandle').textContent = p.pay_handle || 'â';
+  document.getElementById('pdPayType').textContent = payLabels[p.pay_type] || '—';
+  document.getElementById('pdPayRate').textContent = p.pay_rate ? `$${Number(p.pay_rate).toLocaleString()}${paySymbol}` : '—';
+  document.getElementById('pdPayMethod').textContent = p.pay_method || '—';
+  document.getElementById('pdPayHandle').textContent = p.pay_handle || '—';
   document.getElementById('pdSSNReveal').textContent = p.ssn_masked ? `SSN on file: ${p.ssn_masked}` : 'No SSN on file';
 
   // Docs
@@ -2920,7 +2920,7 @@ function openPersonDetail(id) {
   document.getElementById('pdDocsGrid').innerHTML = allDocs.map(d => {
     const has = p[`doc_${d}`];
     return `<div style="background:var(--bg-input);border:1px solid ${has?'rgba(34,197,94,0.3)':'var(--border)'};border-radius:var(--r);padding:12px;display:flex;align-items:center;gap:10px">
-      <div style="font-size:20px">${has ? 'â' : 'â¬'}</div>
+      <div style="font-size:20px">${has ? '✅' : '⬜'}</div>
       <div>
         <div style="font-size:13px;font-weight:600;color:${has?'#4ADE80':'var(--steel)'}">${DOC_LABELS[d]}</div>
         <div style="font-size:10px;color:var(--muted)">${has ? 'On file' : 'Missing'}</div>
@@ -2932,7 +2932,7 @@ function openPersonDetail(id) {
   const docs = p.staff_docs || [];
   document.getElementById('pdDocsList').innerHTML = docs.length ? docs.map(d => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-input);border-radius:var(--r);margin-bottom:6px;font-size:12px">
-      <span>ð</span>
+      <span>📄</span>
       <span style="flex:1">${d.file_name}</span>
       <span style="color:var(--muted);font-size:10px">${new Date(d.created_at).toLocaleDateString()}</span>
     </div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No files uploaded yet.</div>';
@@ -2941,7 +2941,7 @@ function openPersonDetail(id) {
   const promoteBtn = document.getElementById('promoteBtn');
   if (p.status === 'prospect') {
     promoteBtn.style.display = 'inline-flex';
-    promoteBtn.textContent = 'â¬ Move to Active Staff';
+    promoteBtn.textContent = '⬆ Move to Active Staff';
   } else {
     promoteBtn.style.display = 'none';
   }
@@ -2986,7 +2986,7 @@ function setPersonStatus(status) {
 function handleDocUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-  toast('Document', `"${file.name}" ready â PDF storage requires Supabase Storage setup`);
+  toast('Document', `"${file.name}" ready — PDF storage requires Supabase Storage setup`);
 }
 
 function exportPeopleCSV() {
@@ -3003,7 +3003,7 @@ function exportPeopleCSV() {
 }
 
 
-// ââ PAY SCALE ââ
+// ── PAY SCALE ──
 let currentPayTab = 'corporate';
 
 const PAY_SCALE = {
@@ -3014,9 +3014,9 @@ const PAY_SCALE = {
     margin: 0.30,
     laborPool: 0.45,
     tiers: {
-      junior:  { label: 'Junior',  pct: 0.12, desc: '0â1 yr experience, assist roles' },
-      mid:     { label: 'Mid',     pct: 0.17, desc: '1â3 yrs, can operate independently' },
-      senior:  { label: 'Senior',  pct: 0.22, desc: '3â6 yrs, department lead capable' },
+      junior:  { label: 'Junior',  pct: 0.12, desc: '0–1 yr experience, assist roles' },
+      mid:     { label: 'Mid',     pct: 0.17, desc: '1–3 yrs, can operate independently' },
+      senior:  { label: 'Senior',  pct: 0.22, desc: '3–6 yrs, department lead capable' },
       lead:    { label: 'Lead / HOD', pct: 0.28, desc: '6+ yrs, heads department, on-call' },
     },
     roles: ['A1/A2', 'LD/LT', 'Video Tech', 'Stage Manager', 'PM'],
@@ -3140,7 +3140,7 @@ function renderPayMatrix() {
       </table>
 
       <div style="padding:12px 16px;background:rgba(0,0,0,0.1);border-top:1px solid var(--border);font-size:11px;color:var(--muted)">
-        ð¡ <strong style="color:var(--steel)">How rates are set:</strong> 
+        💡 <strong style="color:var(--steel)">How rates are set:</strong> 
         The client's approved budget determines all rates. 7VE retains ${(scale.margin*100).toFixed(0)}% for overhead, insurance, equipment, and business costs. 
         ${(scale.laborPool*100).toFixed(0)}% goes to the labor pool distributed by tier. 
         Remaining ${((1-scale.margin-scale.laborPool)*100).toFixed(0)}% covers gear costs and contingency.
@@ -3177,7 +3177,7 @@ function runSimulator() {
         <div style="background:var(--bg-input);border-radius:var(--r);padding:10px 12px;border-left:3px solid ${scale.color}">
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${tier.label}</div>
           <div style="font-size:18px;font-weight:800;font-family:monospace;color:var(--accent);margin:2px 0">${fmt(totalBudget * tier.pct)}</div>
-          <div style="font-size:10px;color:var(--muted)">${(tier.pct*100).toFixed(0)}% Â· ${days > 1 ? fmt((totalBudget * tier.pct)/days) + '/day' : 'flat'}</div>
+          <div style="font-size:10px;color:var(--muted)">${(tier.pct*100).toFixed(0)}% · ${days > 1 ? fmt((totalBudget * tier.pct)/days) + '/day' : 'flat'}</div>
         </div>`).join('')}
     </div>
   `;
@@ -3214,7 +3214,7 @@ function generatePayScalePDF() {
   `).join('');
 
   const pdfContent = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>7 Virtues Entertainment â Pay Scale Policy</title>
+<title>7 Virtues Entertainment — Pay Scale Policy</title>
 <style>* { box-sizing:border-box; margin:0; padding:0; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#111827; } @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }</style>
 
 <link rel="manifest" href="data:application/json,{%22name%22:%227%20Virtues%20Operations%22,%22short_name%22:%227VE%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%220D0F12%22,%22theme_color%22:%22F5A623%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20512%20512%27%3E%3Crect%20width=%27512%27%20height=%27512%27%20fill=%27%230D0F12%27/%3E%3Ctext%20x=%2256%27%20y=%22380%27%20font-family=%27Arial%20Black,sans-serif%27%20font-weight=%27900%27%20font-size=%22320%27%20fill=%27%23F5A623%27%3E7%3C/text%3E%3Ctext%20x=%22200%27%20y=%22380%27%20font-family=%27Arial%20Black,sans-serif%27%20font-weight=%27900%27%20font-size=%22200%27%20fill=%27white%27%3EVE%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
@@ -3227,7 +3227,7 @@ function generatePayScalePDF() {
 <div style="background:#0D0F12;padding:28px 32px;display:flex;align-items:center;justify-content:space-between">
   <div>
     <div style="font-size:26px;font-weight:800;color:white"><span style="color:#F5A623">7</span> Virtues Entertainment</div>
-    <div style="font-size:10px;color:#7A8494;text-transform:uppercase;letter-spacing:0.1em;margin-top:3px">Compensation Policy â Confidential</div>
+    <div style="font-size:10px;color:#7A8494;text-transform:uppercase;letter-spacing:0.1em;margin-top:3px">Compensation Policy — Confidential</div>
   </div>
   <div style="text-align:right">
     <div style="font-size:14px;font-weight:700;color:white">Pay Scale & Compensation Structure</div>
@@ -3236,12 +3236,12 @@ function generatePayScalePDF() {
 </div>
 
 <div style="padding:20px 32px;background:#FEF3C7;border-bottom:2px solid #F5A623">
-  <div style="font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Important Notice â Please Read</div>
+  <div style="font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Important Notice — Please Read</div>
   <div style="font-size:12px;color:#374151;line-height:1.6">
     All rates listed below are based on the <strong>Client Approved Budget</strong> for each show or engagement. 
     Pay is not set by personal preference but is calculated from what the client has contracted and approved. 
     7 Virtues Entertainment retains a percentage for business overhead, insurance, equipment, and operational costs.<br><br>
-    <strong>Referral bonuses are flat finder fees â they do not constitute equity, ownership, profit sharing, or partnership in 7 Virtues Entertainment LLC.</strong> 
+    <strong>Referral bonuses are flat finder fees — they do not constitute equity, ownership, profit sharing, or partnership in 7 Virtues Entertainment LLC.</strong> 
     Clients brought in through referrals become clients of 7 Virtues Entertainment, not of the referring individual.
   </div>
 </div>
@@ -3299,7 +3299,7 @@ function generatePayScalePDF() {
 </div>
 
 <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:14px 32px;display:flex;justify-content:space-between;margin-top:20px">
-  <div style="font-size:10px;color:#9ca3af">7 Virtues Entertainment â Confidential Compensation Policy</div>
+  <div style="font-size:10px;color:#9ca3af">7 Virtues Entertainment — Confidential Compensation Policy</div>
   <div style="font-size:10px;color:#9ca3af">${today}</div>
 </div>
 </body></html>`;
@@ -3311,7 +3311,7 @@ function generatePayScalePDF() {
 }
 
 
-// ââ MONEY / SHOW FINANCE ââ
+// ── MONEY / SHOW FINANCE ──
 let shows = [];
 let techPays = [];
 let moneyTab = 'shows';
@@ -3333,7 +3333,7 @@ function setPayTypeFilter(el, val) {
   renderTechPay();
 }
 
-// ââ SHOWS ââ
+// ── SHOWS ──
 async function loadMoney() {
   try {
     shows = await sbGet('show_finances?select=*&order=show_date.desc');
@@ -3370,8 +3370,8 @@ function renderShows() {
     const typeColors = {Corporate:'#60A5FA',Festival:'#F5A623','Hotel / Venue':'#4ADE80',Touring:'#C084FC','Labor Call':'#9CA3AF',Rental:'#FCD34D',Other:'var(--steel)'};
     return `<tr class="arow" onclick="openShowDetail('${s.id}')">
       <td><div class="asset-name">${s.name}</div>${s.notes?`<div style="font-size:10px;color:var(--muted)">${s.notes.substring(0,40)}</div>`:''}</td>
-      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:${typeColors[s.show_type]||'var(--steel)'}18;color:${typeColors[s.show_type]||'var(--steel)'}">${s.show_type||'â'}</span></td>
-      <td style="font-size:12px;color:var(--steel)">${s.show_date||'â'}</td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:${typeColors[s.show_type]||'var(--steel)'}18;color:${typeColors[s.show_type]||'var(--steel)'}">${s.show_type||'—'}</span></td>
+      <td style="font-size:12px;color:var(--steel)">${s.show_date||'—'}</td>
       <td style="font-family:monospace;font-weight:700;color:var(--green)">$${(s.revenue||0).toLocaleString()}</td>
       <td style="font-family:monospace;color:var(--steel)">$${(s.labor_cost||0).toLocaleString()}</td>
       <td style="font-family:monospace;color:var(--steel)">$${expenses.toLocaleString()}</td>
@@ -3382,7 +3382,7 @@ function renderShows() {
   }).join('');
 }
 
-// ââ TECH PAY ââ
+// ── TECH PAY ──
 function renderTechPay() {
   const q = document.getElementById('techPaySearch').value.toLowerCase();
   let rows = techPays;
@@ -3397,19 +3397,19 @@ function renderTechPay() {
   const ptColors = { hourly:'#60A5FA', day:'#F5A623', oneoff:'#4ADE80', commission:'#C084FC' };
 
   document.getElementById('techPayBody').innerHTML = rows.map(p => {
-    const unitsLabel = p.pay_type === 'hourly' ? `${p.units||0} hrs` : p.pay_type === 'day' ? `${p.units||0} days` : p.pay_type === 'commission' ? `${p.units||0}%` : 'â';
+    const unitsLabel = p.pay_type === 'hourly' ? `${p.units||0} hrs` : p.pay_type === 'day' ? `${p.units||0} days` : p.pay_type === 'commission' ? `${p.units||0}%` : '—';
     const rateLabel = p.pay_type === 'commission' ? `${p.rate||0}% of $${(p.units||0).toLocaleString()}` : `$${(p.rate||0).toLocaleString()}${p.pay_type==='hourly'?'/hr':p.pay_type==='day'?'/day':''}`;
     const isPaid = p.status === 'paid';
     return `<tr class="arow">
-      <td><div style="font-weight:600">${p.tech_name||'â'}</div></td>
-      <td style="font-size:11px;color:var(--muted)">${p.role||'â'}</td>
-      <td style="font-size:12px;color:var(--steel)">${p.show_name||'â'}</td>
+      <td><div style="font-weight:600">${p.tech_name||'—'}</div></td>
+      <td style="font-size:11px;color:var(--muted)">${p.role||'—'}</td>
+      <td style="font-size:12px;color:var(--steel)">${p.show_name||'—'}</td>
       <td><span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;background:${ptColors[p.pay_type]||'var(--steel)'}18;color:${ptColors[p.pay_type]||'var(--steel)'}">${ptLabels[p.pay_type]||p.pay_type}</span></td>
       <td style="font-size:12px;color:var(--steel)">${rateLabel}</td>
       <td style="font-size:12px;color:var(--steel)">${unitsLabel}</td>
       <td style="font-family:monospace;font-weight:800;color:var(--accent);font-size:15px">$${(p.total_owed||0).toLocaleString()}</td>
       <td><span class="status-badge ${isPaid?'operational':'missing'}">${isPaid?'Paid':'Pending'}</span></td>
-      <td>${!isPaid&&isAdmin?`<button onclick="markTechPaid('${p.id}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px">â Mark Paid</button>`:''}</td>
+      <td>${!isPaid&&isAdmin?`<button onclick="markTechPaid('${p.id}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px">✓ Mark Paid</button>`:''}</td>
     </tr>`;
   }).join('');
 
@@ -3450,7 +3450,7 @@ async function markTechPaid(id) {
   toast('Marked Paid', 'Payment updated');
 }
 
-// ââ LIVE CALC ââ
+// ── LIVE CALC ──
 function calcShowMargin() {
   const rev = parseFloat(document.getElementById('sfRevenue').value)||0;
   const labor = parseFloat(document.getElementById('sfLaborCost').value)||0;
@@ -3505,13 +3505,13 @@ function populateMoneyDataLists() {
   if (showList) showList.innerHTML = shows.map(s => `<option value="${s.name}">`).join('');
 }
 
-// ââ SAVE SHOW ââ
+// ── SAVE SHOW ──
 async function saveShow() {
   const name = document.getElementById('sfName').value.trim();
   const revenue = parseFloat(document.getElementById('sfRevenue').value)||0;
   if (!name) { toast('Error','Show name required'); return; }
   const btn = document.getElementById('saveShowBtn');
-  btn.disabled=true; btn.textContent='Savingâ¦';
+  btn.disabled=true; btn.textContent='Saving…';
   try {
     await sbPost('show_finances', {
       name,
@@ -3531,7 +3531,7 @@ async function saveShow() {
   finally { btn.disabled=false; btn.textContent='Save Show'; }
 }
 
-// ââ SAVE TECH PAY ââ
+// ── SAVE TECH PAY ──
 async function saveTechPay() {
   const name = document.getElementById('tpName').value.trim();
   if (!name) { toast('Error','Tech name required'); return; }
@@ -3545,7 +3545,7 @@ async function saveTechPay() {
   else if (type === 'commission') total = (rate * units) / 100;
 
   const btn = document.getElementById('saveTechPayBtn');
-  btn.disabled=true; btn.textContent='Savingâ¦';
+  btn.disabled=true; btn.textContent='Saving…';
   try {
     await sbPost('tech_payments', {
       tech_name: name,
@@ -3560,7 +3560,7 @@ async function saveTechPay() {
       notes: document.getElementById('tpNotes').value.trim()||null,
     });
     closeModal('addTechPayModal');
-    toast('Payment Added', name + ' â $' + total.toLocaleString());
+    toast('Payment Added', name + ' — $' + total.toLocaleString());
     await loadMoney();
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Payment'; }
