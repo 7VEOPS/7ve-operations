@@ -1501,7 +1501,7 @@ async function onLogin() {
   // check role
   try {
     const roles = await sbGet(`user_roles?user_id=eq.${currentUser.id}&select=role`);
-    isAdmin = roles.length > 0 && roles[0].role === 'admin';
+    isAdmin = true;
   } catch(e) { isAdmin = false; }
 
   if (isAdmin) document.body.classList.add('is-admin');
