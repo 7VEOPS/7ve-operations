@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/BLKUnit1/Downloads/index_14.html -->
+<!-- saved from url=(0049)file:///C:/Users/BLKUnit1/Downloads/index_15.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -240,7 +240,25 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="section-label" style="margin-bottom:0">Workspaces</div>
         <button class="admin-only" onclick="openModal(&#39;addWsModal&#39;)" style="background:transparent;border:none;cursor:pointer;color:var(--accent);font-size:18px;line-height:1;padding:0 2px" title="Add workspace">+</button>
       </div>
-      <div id="workspaceList"></div>
+      <div id="workspaceList">
+    <div class="ws-item active" onclick="selectWorkspace(&#39;9d43e629-b3fe-4380-b3a6-ba221b18561d&#39;,&#39;7 Virtues Entertainment&#39;)">
+      <div class="ws-dot"></div>7 Virtues Entertainment
+    </div>
+    <div class="ws-item " onclick="selectWorkspace(&#39;0fa995f1-7a1f-4819-a57e-07e59629837a&#39;,&#39;Corporate Events&#39;)">
+      <div class="ws-dot"></div>Corporate Events
+    </div>
+    <div class="ws-item " onclick="selectWorkspace(&#39;9323094b-f704-40fa-aa3c-fc306f0d9d56&#39;,&#39;Festival Division&#39;)">
+      <div class="ws-dot"></div>Festival Division
+    </div>
+    <div class="ws-item " onclick="selectWorkspace(&#39;652dde30-e703-4f65-93ab-79d98de1daef&#39;,&#39;Hotel AV&#39;)">
+      <div class="ws-dot"></div>Hotel AV
+    </div>
+    <div class="ws-item " onclick="selectWorkspace(&#39;1388a32b-2e50-4ae0-afd5-b10c9ad4075d&#39;,&#39;Rodvel Tour&#39;)">
+      <div class="ws-dot"></div>Rodvel Tour
+    </div>
+    <div class="ws-item " onclick="selectWorkspace(&#39;05506f81-acb8-45dc-9c5c-9ae322fc9a40&#39;,&#39;The Fluffy Cloud&#39;)">
+      <div class="ws-dot"></div>The Fluffy Cloud
+    </div></div>
     </div>
     <div class="nav-section">
       <div class="section-label">Navigation</div>
@@ -254,6 +272,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <div class="section-label" style="color:var(--accent);letter-spacing:0.1em">LOGISTICS</div>
       <div class="nav-item" onclick="setView(&#39;people&#39;,this)">🧑‍🤝‍🧑 People</div>
       <div class="nav-item" onclick="setView(&#39;payscale&#39;,this)">💰 Pay Scale</div>
+      <div class="nav-item" onclick="setView(&#39;jobs&#39;,this)">📋 Jobs</div>
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:#4ADE80;letter-spacing:0.1em">MONEY</div>
@@ -278,7 +297,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div>
         <div class="topbar-title" id="viewTitle">Inventory</div>
-        <div class="topbar-crumb"><span id="wsCrumb">—</span> › <span id="viewCrumb">All Assets</span></div>
+        <div class="topbar-crumb"><span id="wsCrumb">7 Virtues Entertainment</span> › <span id="viewCrumb">All Assets</span></div>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-ghost admin-only" onclick="openLibrary()">📚 Library</button>
@@ -290,10 +309,10 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       <!-- INVENTORY -->
       <div class="view active" id="view-inventory">
         <div class="stats-row">
-          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Total Assets</div><div class="stat-val" id="sTot" style="color:var(--text)">—</div><div class="stat-sub">All departments</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;Missing&#39;)"><div class="stat-label">Missing</div><div class="stat-val" id="sMiss" style="color:var(--red)">—</div><div class="stat-sub">Requires attention</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;Repair&#39;)"><div class="stat-label">In Repair</div><div class="stat-val" id="sRep" style="color:var(--purple)">—</div><div class="stat-sub">Out of service</div></div>
-          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Operational</div><div class="stat-val" id="sOp" style="color:var(--green)">—</div><div class="stat-sub">Ready to deploy</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Total Assets</div><div class="stat-val" id="sTot" style="color:var(--text)">63</div><div class="stat-sub">All departments</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;Missing&#39;)"><div class="stat-label">Missing</div><div class="stat-val" id="sMiss" style="color:var(--red)">0</div><div class="stat-sub">Requires attention</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;Repair&#39;)"><div class="stat-label">In Repair</div><div class="stat-val" id="sRep" style="color:var(--purple)">0</div><div class="stat-sub">Out of service</div></div>
+          <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Operational</div><div class="stat-val" id="sOp" style="color:var(--green)">63</div><div class="stat-sub">Ready to deploy</div></div>
         </div>
         <!-- CABLE TYPE TABS -->
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;flex-shrink:0">
@@ -320,8 +339,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <button class="chip" data-crit="Consumable" onclick="setCrit(this,&#39;Consumable&#39;)">Consumable</button>
         </div>
         <div class="table-wrap">
-          <div id="tableLoading" class="loading"><div class="spinner"></div> Loading assets…</div>
-          <table id="assetTable" style="display:none">
+          <div id="tableLoading" class="loading" style="display: none;"><div class="spinner"></div> Loading assets…</div>
+          <table id="assetTable" style="display: table;">
             <thead><tr>
               <th>ID</th><th>Asset</th>
               <th class="hide-mobile">Dept</th>
@@ -330,7 +349,637 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
               <th class="hide-mobile">Location</th>
               <th></th>
             </tr></thead>
-            <tbody id="assetBody"></tbody>
+            <tbody id="assetBody">
+    <tr class="arow" onclick="openDetail(&#39;5a5e10de-8545-4f26-9593-95d30e9637c9&#39;)">
+      <td><span class="asset-id">AUD-001</span></td>
+      <td><div class="asset-name">Midas M 32 R</div><div style="font-size:11px;color:var(--muted)">No case at the moment</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;a973f6ac-8722-4f16-a493-968d0b87d9a0&#39;)">
+      <td><span class="asset-id">AUD-002</span></td>
+      <td><div class="asset-name">M 32LIVE</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;c93295dd-2ccd-421e-a438-d34367d6dbfe&#39;)">
+      <td><span class="asset-id">AUD-003</span></td>
+      <td><div class="asset-name">Presonus CDL 12 Line Array</div><div style="font-size:11px;color:var(--muted)">No case just power con.</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;1dd669c9-27d6-4197-a80f-46b8f2f82f06&#39;)">
+      <td><span class="asset-id">AUD-004</span></td>
+      <td><div class="asset-name">JBL EON 15</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">2</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;a6fb2527-6e07-42ff-8422-c33402c5bc71&#39;)">
+      <td><span class="asset-id">AUD-005</span></td>
+      <td><div class="asset-name">EON 615 SUB (Unit A)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;d5f46ceb-28d4-4775-b058-8bb7c5a75c77&#39;)">
+      <td><span class="asset-id">AUD-005</span></td>
+      <td><div class="asset-name">EON 615 SUB (Unit B)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;25b9b008-ae6e-4605-aaf5-b684ca1a199d&#39;)">
+      <td><span class="asset-id">AUD-007</span></td>
+      <td><div class="asset-name">LINE 6 Sub</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;6f89f64b-9e90-4fda-9b38-0783dd41d333&#39;)">
+      <td><span class="asset-id">AUD-008</span></td>
+      <td><div class="asset-name">XLR 25</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">10</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;c3b1fe98-148a-4759-b9d5-ca747263dcd4&#39;)">
+      <td><span class="asset-id">AUD-009</span></td>
+      <td><div class="asset-name">XLR 100 FOOT</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">16</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;d3da2638-1bf6-4655-b7a7-f734d194a080&#39;)">
+      <td><span class="asset-id">AUD-010</span></td>
+      <td><div class="asset-name">CDJ-2000 (Unit C)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;4415f7d4-3ef5-480c-bfba-4cc94fa22f50&#39;)">
+      <td><span class="asset-id">AUD-010</span></td>
+      <td><div class="asset-name">CDJ-2000 (Unit B)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;38a0fed0-7552-4823-acfc-7aca99babfb2&#39;)">
+      <td><span class="asset-id">AUD-010</span></td>
+      <td><div class="asset-name">CDJ-2000 (Unit A)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;df1a4f9a-4fe3-4a22-8fc7-4533e10df442&#39;)">
+      <td><span class="asset-id">AUD-013</span></td>
+      <td><div class="asset-name">DDJ-RX CONTROLLER</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">VA</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;c6c11fdd-0a8c-42ba-a0f7-5ff292745e67&#39;)">
+      <td><span class="asset-id">AUD-014</span></td>
+      <td><div class="asset-name">Speaker Tri-pod stands (Unit A)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;9c43f82d-35f2-449b-a70e-9e9e35011f88&#39;)">
+      <td><span class="asset-id">AUD-014</span></td>
+      <td><div class="asset-name">Speaker Tri-pod stands (Unit B)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Audio</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;492fb087-90b2-42fe-bbdf-068ca13ea4c3&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit D)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;3161a882-5485-42b0-bf47-7a32a9e63915&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit E)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;96b5f15c-f015-4eda-a74f-97a8b0f15fc2&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit F)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;c1dcd8a6-1512-473f-82c8-b0f8f31b55b2&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit G)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;b440e2d9-8401-448a-9a3f-e8f7b2ed871b&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit H)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;4d41078a-e16b-449f-8cb0-c694fd52240b&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit C)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;cc44ec2a-732a-4f76-89aa-b3cae047f83b&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit B)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;8314a4c8-876b-4c88-9c31-4c426cdf9bef&#39;)">
+      <td><span class="asset-id">LGT-001</span></td>
+      <td><div class="asset-name">Martian Mac Entour 250 (Unit A)</div><div style="font-size:11px;color:var(--muted)">6 Of the 8 Function @100%</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;0ae0f32c-3f72-4517-9bb9-7517fb223d82&#39;)">
+      <td><span class="asset-id">LGT-009</span></td>
+      <td><div class="asset-name">Shehds 12x12 Wash Mover (Unit B)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;4a1e5183-66f7-465a-9665-94ed7552bd4f&#39;)">
+      <td><span class="asset-id">LGT-009</span></td>
+      <td><div class="asset-name">Shehds 12x12 Wash Mover (Unit A)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;9912d309-944f-4337-8a5d-4fe7378e9615&#39;)">
+      <td><span class="asset-id">LGT-009</span></td>
+      <td><div class="asset-name">Shehds 12x12 Wash Mover (Unit D)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;bf338809-bcd8-4837-a94f-fc556169956e&#39;)">
+      <td><span class="asset-id">LGT-009</span></td>
+      <td><div class="asset-name">Shehds 12x12 Wash Mover (Unit C)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;2677b836-087c-4975-8a41-51ce6badd9d0&#39;)">
+      <td><span class="asset-id">LGT-013</span></td>
+      <td><div class="asset-name">Shehds 18x18 Wall Wash Bar Light (Unit C)</div><div style="font-size:11px;color:var(--muted)">8 Clamps, 4 PowerCon, 8 Feet.</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;2ceba722-cc03-4d24-a46f-d51a14855047&#39;)">
+      <td><span class="asset-id">LGT-013</span></td>
+      <td><div class="asset-name">Shehds 18x18 Wall Wash Bar Light (Unit A)</div><div style="font-size:11px;color:var(--muted)">8 Clamps, 4 PowerCon, 8 Feet.</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;768763c3-8f1d-4c85-a463-3d2a88518cf7&#39;)">
+      <td><span class="asset-id">LGT-013</span></td>
+      <td><div class="asset-name">Shehds 18x18 Wall Wash Bar Light (Unit D)</div><div style="font-size:11px;color:var(--muted)">8 Clamps, 4 PowerCon, 8 Feet.</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;da169bfa-fb93-489a-b627-da9c0612496a&#39;)">
+      <td><span class="asset-id">LGT-013</span></td>
+      <td><div class="asset-name">Shehds 18x18 Wall Wash Bar Light (Unit B)</div><div style="font-size:11px;color:var(--muted)">8 Clamps, 4 PowerCon, 8 Feet.</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;d7a4dcf5-8cf8-4449-8c83-073a63052192&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 24)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;3e942701-a26a-4864-ba4c-b4d7867d0142&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 04)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;d5339b3b-1bed-46ce-80d1-173a31513780&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 01)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;b3ca15ab-da8d-40c3-9025-c3e56bec4bca&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 02)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;623f2a41-1cae-459c-afdb-f26f4f40eea3&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 03)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;b545fab4-9b9d-489c-bf1d-0c4c3a4eb341&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 05)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;e51d0a71-7ac6-4661-bffb-f5275f7c1aea&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 06)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;f24102c9-e761-41e8-b88c-8545fadaa63a&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 07)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;daba7390-37eb-457f-8f48-12d6bf0c7c77&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 08)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;51c5fc74-0f27-43fd-9721-3979e5080cba&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 09)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;1a6e6bfb-aceb-41db-abaf-39bdbb462c4f&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 10)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;32c33dff-54b4-4e3b-ae1b-dfc75f4abbdf&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 11)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;b1314738-a73e-4647-9890-ebe40a05d33a&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 12)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;d8786e6f-c478-4271-a60f-3cb3f235ae2e&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 13)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;ad36e7d2-b068-4d9a-a3f2-f7dff3b14e04&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 14)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;820e36b3-4551-4b8e-9061-8ed47eaa9888&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 15)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;bef63fa8-14cd-458b-8938-94852609bee8&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 16)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;4b7d0c40-f8e7-4dbc-a2cd-7bc57b4d81e0&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 17)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;6975668a-15dd-4d5b-8592-578a31a8f1e3&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 18)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;36fad792-d3ed-4788-a7a1-2d88acb178c9&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 19)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;942ee2e8-d9f6-4b6a-8560-9b7c0de8bdbe&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 20)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;4540a6a6-6abd-4eac-9de1-eec4090fae57&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 21)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;82bcde81-f89d-4ac0-8310-0e3974e42276&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 22)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;77d1d659-767f-48d4-936c-1ec068c6c0cf&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 23)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;e28ee88c-18e8-45d4-bf1d-c0c55c6baf92&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 25)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;71030f82-a252-4383-b8d7-46ae26fa9396&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 26)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;c8e4ab7e-1cbe-4c35-a095-3e7f2e3c520a&#39;)">
+      <td><span class="asset-id">LGT-017</span></td>
+      <td><div class="asset-name">EZ PAR 64 (Unit 27)</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Lighting</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;623cb15e-0579-4fd1-9388-73ff74766b67&#39;)">
+      <td><span class="asset-id">PWR-001</span></td>
+      <td><div class="asset-name">Power distribution</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Power</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;7595d8f1-c5fb-4e03-960f-21d15a9de6f6&#39;)">
+      <td><span class="asset-id">PWR-002</span></td>
+      <td><div class="asset-name">IEC CABLE</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Power</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">25</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;99c666d7-5db1-4e16-93b0-569d97d92dfc&#39;)">
+      <td><span class="asset-id">SCN-001</span></td>
+      <td><div class="asset-name">DJ BOOTH</div><div style="font-size:11px;color:var(--muted)">Need to replace skims</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Scenic</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">CO</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;f39fc429-4f5b-431f-8161-7a79a4804fde&#39;)">
+      <td><span class="asset-id">VID-001</span></td>
+      <td><div class="asset-name">black magic Stream</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Video</span></td>
+      <td><span class="crit-badge mission">Mission Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr>
+    <tr class="arow" onclick="openDetail(&#39;f094e0cf-c52d-45a6-a573-c39c5854835f&#39;)">
+      <td><span class="asset-id">VID-002</span></td>
+      <td><div class="asset-name">Black Magic streaming rack</div><div style="font-size:11px;color:var(--muted)">Attachments in the case, screen mount pl…</div></td>
+      <td class="hide-mobile"><span class="dept-tag">Video</span></td>
+      <td><span class="crit-badge show">Show Critical</span></td>
+      <td><span class="status-badge operational">Operational</span></td>
+      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">1</td>
+      <td class="hide-mobile"><span class="loc-pill">—</span></td>
+      <td></td>
+    </tr></tbody>
           </table>
           <div id="tableEmpty" class="empty" style="display:none">
             <div class="empty-title">No assets yet</div>
@@ -347,7 +996,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <h2 style="font-size:18px;font-weight:600">Rentals</h2>
             <div style="font-size:12px;color:var(--muted);margin-top:2px">Track gear you rent out to clients and rent in from vendors</div>
           </div>
-          <button class="btn btn-primary admin-only" onclick="openModal(&#39;addRentalModal&#39;)">+ New Rental</button>
+          <button class="btn btn-primary admin-only" onclick="rentalEditId=null;openModal(&#39;addRentalModal&#39;)">+ New Rental</button>
         </div>
 
         <!-- RENTAL STATS -->
@@ -399,7 +1048,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-ghost" onclick="generatePDF()">📄 Generate Show Packet PDF</button>
-            <button class="btn btn-primary admin-only" onclick="openModal(&#39;addContactModal&#39;)">+ Add Contact</button>
+            <button class="btn btn-primary admin-only" onclick="contactEditId=null;openModal(&#39;addContactModal&#39;)">+ Add Contact</button>
           </div>
         </div>
         <div id="contactsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
@@ -503,8 +1152,9 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="font-size:12px;color:var(--muted);margin-top:2px">Staff roster and prospect pipeline</div>
           </div>
           <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="openModal(&#39;importCsvModal&#39;)">⬆ Import CSV</button>
             <button class="btn btn-ghost" id="peopleExportBtn" onclick="exportPeopleCSV()">⬇ Export</button>
-            <button class="btn btn-primary admin-only" onclick="openModal(&#39;addPersonModal&#39;)">+ Add Person</button>
+            <button class="btn btn-primary admin-only" onclick="personEditId=null;openModal(&#39;addPersonModal&#39;)">+ Add Person</button>
           </div>
         </div>
 
@@ -659,6 +1309,32 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       </div>
 
 
+      
+      <!-- JOBS VIEW -->
+      <div class="view" id="view-jobs">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:16px;font-weight:700">Jobs by Client</div>
+            <div style="font-size:11px;color:var(--muted)">Every show judged against the current target margin</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 10px">
+              <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Target Margin</span>
+              <input type="number" id="jobTargetMargin" min="0" max="95" style="width:52px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-weight:700;padding:4px 6px;font-size:13px;text-align:right" onchange="setTargetMargin(this.value)">
+              <span style="color:var(--accent);font-weight:700">%</span>
+            </div>
+            <button class="btn btn-primary" onclick="openJobForm()">+ Add Job</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-val" id="jobStatCount">0</div><div class="stat-sub">All clients</div></div>
+          <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val" id="jobStatRev" style="color:var(--green)">$0</div><div class="stat-sub">All jobs</div></div>
+          <div class="stat-card"><div class="stat-label">Avg Margin</div><div class="stat-val" id="jobStatMargin">0%</div><div class="stat-sub">vs target</div></div>
+          <div class="stat-card"><div class="stat-label">Under Target</div><div class="stat-val" id="jobStatUnder" style="color:var(--red)">0</div><div class="stat-sub">Jobs sold under</div></div>
+        </div>
+        <div id="jobsList"></div>
+      </div>
+
       <!-- MONEY VIEW -->
       <div class="view" id="view-money">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
@@ -667,7 +1343,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
             <div style="font-size:12px;color:var(--muted);margin-top:2px">Revenue in · Tech pay out · What the business keeps</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-primary admin-only" onclick="openModal(&#39;addShowModal&#39;)">+ Log Show</button>
+            <button class="btn btn-primary admin-only" onclick="showEditId=null;openModal(&#39;addShowModal&#39;)">+ Log Show</button>
           </div>
         </div>
 
@@ -714,7 +1390,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div id="moneyTab-techpay" style="display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
             <div style="font-size:13px;color:var(--muted)">What each tech is getting paid and how</div>
-            <button class="btn btn-primary admin-only" onclick="openModal(&#39;addTechPayModal&#39;)">+ Add Tech Payment</button>
+            <button class="btn btn-primary admin-only" onclick="techPayEditId=null;openModal(&#39;addTechPayModal&#39;)">+ Add Tech Payment</button>
           </div>
 
           <!-- PAY TYPE FILTER -->
@@ -763,7 +1439,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">QR Scanner</h2>
           <div class="fg" style="margin-bottom:16px">
             <label class="fl">Select Asset</label>
-            <select class="fs" id="scanSel" onchange="doScan()"><option value="">— Choose asset —</option></select>
+            <select class="fs" id="scanSel" onchange="doScan()"><option value="">— Choose asset —</option><option value="5a5e10de-8545-4f26-9593-95d30e9637c9">AUD-001 — Midas M 32 R</option><option value="a973f6ac-8722-4f16-a493-968d0b87d9a0">AUD-002 — M 32LIVE</option><option value="c93295dd-2ccd-421e-a438-d34367d6dbfe">AUD-003 — Presonus CDL 12 Line Array</option><option value="1dd669c9-27d6-4197-a80f-46b8f2f82f06">AUD-004 — JBL EON 15</option><option value="a6fb2527-6e07-42ff-8422-c33402c5bc71">AUD-005 — EON 615 SUB (Unit A)</option><option value="d5f46ceb-28d4-4775-b058-8bb7c5a75c77">AUD-005 — EON 615 SUB (Unit B)</option><option value="25b9b008-ae6e-4605-aaf5-b684ca1a199d">AUD-007 — LINE 6 Sub</option><option value="6f89f64b-9e90-4fda-9b38-0783dd41d333">AUD-008 — XLR 25</option><option value="c3b1fe98-148a-4759-b9d5-ca747263dcd4">AUD-009 — XLR 100 FOOT</option><option value="d3da2638-1bf6-4655-b7a7-f734d194a080">AUD-010 — CDJ-2000 (Unit C)</option><option value="4415f7d4-3ef5-480c-bfba-4cc94fa22f50">AUD-010 — CDJ-2000 (Unit B)</option><option value="38a0fed0-7552-4823-acfc-7aca99babfb2">AUD-010 — CDJ-2000 (Unit A)</option><option value="df1a4f9a-4fe3-4a22-8fc7-4533e10df442">AUD-013 — DDJ-RX CONTROLLER</option><option value="c6c11fdd-0a8c-42ba-a0f7-5ff292745e67">AUD-014 — Speaker Tri-pod stands (Unit A)</option><option value="9c43f82d-35f2-449b-a70e-9e9e35011f88">AUD-014 — Speaker Tri-pod stands (Unit B)</option><option value="492fb087-90b2-42fe-bbdf-068ca13ea4c3">LGT-001 — Martian Mac Entour 250 (Unit D)</option><option value="3161a882-5485-42b0-bf47-7a32a9e63915">LGT-001 — Martian Mac Entour 250 (Unit E)</option><option value="96b5f15c-f015-4eda-a74f-97a8b0f15fc2">LGT-001 — Martian Mac Entour 250 (Unit F)</option><option value="c1dcd8a6-1512-473f-82c8-b0f8f31b55b2">LGT-001 — Martian Mac Entour 250 (Unit G)</option><option value="b440e2d9-8401-448a-9a3f-e8f7b2ed871b">LGT-001 — Martian Mac Entour 250 (Unit H)</option><option value="4d41078a-e16b-449f-8cb0-c694fd52240b">LGT-001 — Martian Mac Entour 250 (Unit C)</option><option value="cc44ec2a-732a-4f76-89aa-b3cae047f83b">LGT-001 — Martian Mac Entour 250 (Unit B)</option><option value="8314a4c8-876b-4c88-9c31-4c426cdf9bef">LGT-001 — Martian Mac Entour 250 (Unit A)</option><option value="0ae0f32c-3f72-4517-9bb9-7517fb223d82">LGT-009 — Shehds 12x12 Wash Mover (Unit B)</option><option value="4a1e5183-66f7-465a-9665-94ed7552bd4f">LGT-009 — Shehds 12x12 Wash Mover (Unit A)</option><option value="9912d309-944f-4337-8a5d-4fe7378e9615">LGT-009 — Shehds 12x12 Wash Mover (Unit D)</option><option value="bf338809-bcd8-4837-a94f-fc556169956e">LGT-009 — Shehds 12x12 Wash Mover (Unit C)</option><option value="2677b836-087c-4975-8a41-51ce6badd9d0">LGT-013 — Shehds 18x18 Wall Wash Bar Light (Unit C)</option><option value="2ceba722-cc03-4d24-a46f-d51a14855047">LGT-013 — Shehds 18x18 Wall Wash Bar Light (Unit A)</option><option value="768763c3-8f1d-4c85-a463-3d2a88518cf7">LGT-013 — Shehds 18x18 Wall Wash Bar Light (Unit D)</option><option value="da169bfa-fb93-489a-b627-da9c0612496a">LGT-013 — Shehds 18x18 Wall Wash Bar Light (Unit B)</option><option value="d7a4dcf5-8cf8-4449-8c83-073a63052192">LGT-017 — EZ PAR 64 (Unit 24)</option><option value="3e942701-a26a-4864-ba4c-b4d7867d0142">LGT-017 — EZ PAR 64 (Unit 04)</option><option value="d5339b3b-1bed-46ce-80d1-173a31513780">LGT-017 — EZ PAR 64 (Unit 01)</option><option value="b3ca15ab-da8d-40c3-9025-c3e56bec4bca">LGT-017 — EZ PAR 64 (Unit 02)</option><option value="623f2a41-1cae-459c-afdb-f26f4f40eea3">LGT-017 — EZ PAR 64 (Unit 03)</option><option value="b545fab4-9b9d-489c-bf1d-0c4c3a4eb341">LGT-017 — EZ PAR 64 (Unit 05)</option><option value="e51d0a71-7ac6-4661-bffb-f5275f7c1aea">LGT-017 — EZ PAR 64 (Unit 06)</option><option value="f24102c9-e761-41e8-b88c-8545fadaa63a">LGT-017 — EZ PAR 64 (Unit 07)</option><option value="daba7390-37eb-457f-8f48-12d6bf0c7c77">LGT-017 — EZ PAR 64 (Unit 08)</option><option value="51c5fc74-0f27-43fd-9721-3979e5080cba">LGT-017 — EZ PAR 64 (Unit 09)</option><option value="1a6e6bfb-aceb-41db-abaf-39bdbb462c4f">LGT-017 — EZ PAR 64 (Unit 10)</option><option value="32c33dff-54b4-4e3b-ae1b-dfc75f4abbdf">LGT-017 — EZ PAR 64 (Unit 11)</option><option value="b1314738-a73e-4647-9890-ebe40a05d33a">LGT-017 — EZ PAR 64 (Unit 12)</option><option value="d8786e6f-c478-4271-a60f-3cb3f235ae2e">LGT-017 — EZ PAR 64 (Unit 13)</option><option value="ad36e7d2-b068-4d9a-a3f2-f7dff3b14e04">LGT-017 — EZ PAR 64 (Unit 14)</option><option value="820e36b3-4551-4b8e-9061-8ed47eaa9888">LGT-017 — EZ PAR 64 (Unit 15)</option><option value="bef63fa8-14cd-458b-8938-94852609bee8">LGT-017 — EZ PAR 64 (Unit 16)</option><option value="4b7d0c40-f8e7-4dbc-a2cd-7bc57b4d81e0">LGT-017 — EZ PAR 64 (Unit 17)</option><option value="6975668a-15dd-4d5b-8592-578a31a8f1e3">LGT-017 — EZ PAR 64 (Unit 18)</option><option value="36fad792-d3ed-4788-a7a1-2d88acb178c9">LGT-017 — EZ PAR 64 (Unit 19)</option><option value="942ee2e8-d9f6-4b6a-8560-9b7c0de8bdbe">LGT-017 — EZ PAR 64 (Unit 20)</option><option value="4540a6a6-6abd-4eac-9de1-eec4090fae57">LGT-017 — EZ PAR 64 (Unit 21)</option><option value="82bcde81-f89d-4ac0-8310-0e3974e42276">LGT-017 — EZ PAR 64 (Unit 22)</option><option value="77d1d659-767f-48d4-936c-1ec068c6c0cf">LGT-017 — EZ PAR 64 (Unit 23)</option><option value="e28ee88c-18e8-45d4-bf1d-c0c55c6baf92">LGT-017 — EZ PAR 64 (Unit 25)</option><option value="71030f82-a252-4383-b8d7-46ae26fa9396">LGT-017 — EZ PAR 64 (Unit 26)</option><option value="c8e4ab7e-1cbe-4c35-a095-3e7f2e3c520a">LGT-017 — EZ PAR 64 (Unit 27)</option><option value="623cb15e-0579-4fd1-9388-73ff74766b67">PWR-001 — Power distribution</option><option value="7595d8f1-c5fb-4e03-960f-21d15a9de6f6">PWR-002 — IEC CABLE</option><option value="99c666d7-5db1-4e16-93b0-569d97d92dfc">SCN-001 — DJ BOOTH</option><option value="f39fc429-4f5b-431f-8161-7a79a4804fde">VID-001 — black magic Stream</option><option value="f094e0cf-c52d-45a6-a573-c39c5854835f">VID-002 — Black Magic streaming rack</option></select>
           </div>
           <div id="scanOut" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
             <div style="padding:20px;text-align:center">
@@ -815,6 +1491,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         </div>
         <div class="fg"><label class="fl">System</label><input type="text" class="fi" id="fSystem" placeholder="e.g. Playback System"></div>
         <div class="fg"><label class="fl">Case</label><input type="text" class="fi" id="fCase" placeholder="e.g. CASE-AUD-001"></div>
+          <div class="fg"><label class="fl">Weight (lbs)</label><input type="number" step="0.1" class="fi" id="fWeight" placeholder="auto-estimate"></div>
         <div class="fg"><label class="fl">Location</label><input type="text" class="fi" id="fLoc" placeholder="e.g. SR-RACK-01"></div>
         <div class="fg"><label class="fl">Criticality *</label>
           <select class="fs" id="fCrit"><option>Mission Critical</option><option>Show Critical</option><option>Convenience</option><option>Consumable</option></select>
@@ -867,6 +1544,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
           <div class="fg"><label class="fl">Department</label><select class="fs" id="eDept"><option>Audio</option><option>Video</option><option>Lighting</option><option>Power</option><option>Scenic</option><option>Networking</option><option>Consumables</option></select></div>
           <div class="fg"><label class="fl">System</label><input type="text" class="fi" id="eSystem"></div>
           <div class="fg"><label class="fl">Case</label><input type="text" class="fi" id="eCase"></div>
+          <div class="fg"><label class="fl">Weight (lbs)</label><input type="number" step="0.1" class="fi" id="eWeight"></div>
           <div class="fg"><label class="fl">Location</label><input type="text" class="fi" id="eLoc"></div>
           <div class="fg"><label class="fl">Criticality</label><select class="fs" id="eCrit"><option>Mission Critical</option><option>Show Critical</option><option>Convenience</option><option>Consumable</option></select></div>
           <div class="fg"><label class="fl">Status</label><select class="fs" id="eStatus"><option>Operational</option><option>Repair</option><option>Missing</option><option>Rental</option></select></div>
@@ -1010,6 +1688,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <div class="modal-ftr">
       <button class="btn btn-danger admin-only" style="display:none" onclick="deleteRental()">Delete</button>
+      <button class="btn btn-ghost" onclick="editRental()">✎ Edit</button>
       <div style="flex:1"></div>
       <button class="btn btn-ghost" onclick="closeModal(&#39;rentalDetailModal&#39;)">Close</button>
       <button class="btn btn-primary admin-only" style="display:none" onclick="markReturned()">✓ Mark Returned</button>
@@ -1017,6 +1696,71 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
   </div>
 </div>
 
+
+<!-- JOB ADD/EDIT MODAL -->
+<div class="overlay" id="jobModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="jobModalTitle">Add Job</div>
+      <button class="modal-close" onclick="closeModal(&#39;jobModal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Client *</label><input type="text" class="fi" id="jClient" list="jClientList" placeholder="e.g. Groundswell One LLC"><datalist id="jClientList"></datalist></div>
+        <div class="fg"><label class="fl">Job / Show Name *</label><input type="text" class="fi" id="jName" placeholder="e.g. Outside Days 2026"></div>
+        <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="jDate"></div>
+        <div class="fg"><label class="fl">Venue</label><input type="text" class="fi" id="jVenue"></div>
+        <div class="fg"><label class="fl">Invoice #</label><input type="text" class="fi" id="jInvoice" placeholder="e.g. INV-2026-014"></div>
+        <div class="fg"><label class="fl">Revenue ($)</label><input type="number" class="fi" id="jRevenue" oninput="updateJobPreview()"></div>
+        <div class="fg"><label class="fl">Labor Cost ($)</label><input type="number" class="fi" id="jLabor" oninput="updateJobPreview()"></div>
+        <div class="fg"><label class="fl">Gear Cost ($)</label><input type="number" class="fi" id="jGear" oninput="updateJobPreview()"></div>
+        <div class="fg"><label class="fl">Transport ($)</label><input type="number" class="fi" id="jTransport" oninput="updateJobPreview()"></div>
+        <div class="fg"><label class="fl">Other ($)</label><input type="number" class="fi" id="jOther" oninput="updateJobPreview()"></div>
+        <div class="fg full"><label class="fl">Notes</label><textarea class="fi" id="jNotes" rows="2"></textarea></div>
+      </div>
+      <div id="jobMarginPreview" style="margin-top:10px;font-size:13px;color:var(--steel)"></div>
+    </div>
+    <div class="modal-ftr">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeModal(&#39;jobModal&#39;)">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJob()">Save Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOB DETAIL MODAL -->
+<div class="overlay" id="jobDetailModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="jdTitle">Job</div>
+      <button class="modal-close" onclick="closeModal(&#39;jobDetailModal&#39;)">×</button>
+    </div>
+    <div class="modal-body" id="jdBody"></div>
+    <div class="modal-ftr">
+      <button class="btn btn-danger" onclick="deleteJob()">Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="editJob()">✎ Edit</button>
+      <button class="btn btn-primary" onclick="closeModal(&#39;jobDetailModal&#39;)">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHOW DETAIL MODAL -->
+<div class="overlay" id="showDetailModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="sdTitle">Show</div>
+      <button class="modal-close" onclick="closeModal(&#39;showDetailModal&#39;)">×</button>
+    </div>
+    <div class="modal-body" id="sdBody"></div>
+    <div class="modal-ftr">
+      <button class="btn btn-danger" onclick="deleteShow()">Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="editShow()">✎ Edit</button>
+      <button class="btn btn-primary" onclick="closeModal(&#39;showDetailModal&#39;)">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- ADD CONTACT MODAL -->
 <div class="overlay" id="addContactModal">
@@ -1256,6 +2000,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <div class="modal-ftr">
       <button class="btn btn-danger admin-only" style="display:none" onclick="deletePerson()">Remove</button>
+      <button class="btn btn-ghost" onclick="editPerson()">✎ Edit</button>
       <button class="btn btn-ghost btn-sm admin-only" style="display:none" onclick="promoteProspect()" id="promoteBtn"></button>
       <div style="flex:1"></div>
       <button class="btn btn-ghost" onclick="closeModal(&#39;personDetailModal&#39;)">Close</button>
@@ -1361,6 +2106,39 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
 <div class="toasts" id="toasts"></div>
 
+
+<!-- IMPORT CSV MODAL -->
+<div class="modal-overlay" id="importCsvModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">Import People from CSV</div>
+      <button class="modal-close" onclick="closeModal(&#39;importCsvModal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--steel);margin-bottom:10px">
+        Paste CSV rows or choose a .csv file. Columns (header row optional):<br>
+        <code style="font-size:11px;color:var(--accent)">first_name, last_name, phone, email, department, title, notes</code>
+      </div>
+      <div class="field">
+        <label>Import as</label>
+        <select id="csvStatus" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-size:13px">
+          <option value="prospect">Prospect</option>
+          <option value="staff">Active Staff</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>CSV file</label>
+        <input type="file" id="csvFile" accept=".csv,text/csv" style="width:100%;color:var(--steel);font-size:12px">
+      </div>
+      <div class="field">
+        <label>Or paste CSV text</label>
+        <textarea id="csvText" rows="7" placeholder="Donna Felton, (215) 532-9495, donna@email.com, Legal, Paralegal, notes here..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical"></textarea>
+      </div>
+      <div id="csvPreview" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="runCsvImport()">Import People</button>
+    </div>
+  </div>
+</div>
 <script>
 // ── CONFIG ──
 const SUPA_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co';
@@ -1395,7 +2173,7 @@ async function sbDelete(path) {
 }
 
 // ── AUTH (direct REST) ──
-let token = localStorage.getItem('7v_token') || 'dev-bypass';
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ3RoZmx3aGNjaWlxZ2J6bXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Njg2MTIsImV4cCI6MjA5NzU0NDYxMn0.iSLm_3OhMuF1oAEeZh8YwEvYM8ix-y4RAdH942QvbGo';
 let currentUser = JSON.parse(localStorage.getItem('7v_user') || '{"email":"admin@7virtuesentertainment.com","id":"4a663d45-8f48-4341-a2b8-bd899150164d"}');
 let isAdmin = false;
 let authMode = 'signin';
@@ -1626,6 +2404,7 @@ async function saveAsset() {
       asset_id: autoId(dept), name, department: dept,
       system_name: document.getElementById('fSystem').value.trim()||null,
       case_id: document.getElementById('fCase').value.trim()||null,
+      weight_lbs: parseFloat(document.getElementById('fWeight').value) || estimateWeight(name),
       criticality: document.getElementById('fCrit').value,
       status: document.getElementById('fStatus').value,
       location: document.getElementById('fLoc').value.trim()||null,
@@ -1660,7 +2439,7 @@ function openDetail(id) {
   document.getElementById('dCase').textContent=a.case_id||'—';
   document.getElementById('dNotes').textContent=a.notes||'No notes.';
   document.getElementById('eName').value=a.name; document.getElementById('eDept').value=a.department;
-  document.getElementById('eSystem').value=a.system_name||''; document.getElementById('eCase').value=a.case_id||'';
+  document.getElementById('eSystem').value=a.system_name||''; document.getElementById('eCase').value=a.case_id||''; document.getElementById('eWeight').value = a.weight_lbs ?? '';
   document.getElementById('eLoc').value=a.location||''; document.getElementById('eCrit').value=a.criticality;
   document.getElementById('eStatus').value=a.status;
   document.getElementById('eQty').value=a.qty||1; document.getElementById('eNotes').value=a.notes||'';
@@ -1682,6 +2461,7 @@ async function updateAsset() {
       department:document.getElementById('eDept').value,
       system_name:document.getElementById('eSystem').value.trim()||null,
       case_id:document.getElementById('eCase').value.trim()||null,
+      weight_lbs:parseFloat(document.getElementById('eWeight').value)||null,
       location:document.getElementById('eLoc').value.trim()||null,
       criticality:document.getElementById('eCrit').value,
       status:document.getElementById('eStatus').value,
@@ -2004,7 +2784,7 @@ async function saveWorkspace() {
 // ── RENTALS ──
 let rentals = [];
 let rentalFilter = 'all';
-let activeRentalId = null;
+let activeRentalId = null; let rentalEditId = null;
 
 async function loadRentals() {
   document.getElementById('rentalLoading').style.display = 'flex';
@@ -2072,7 +2852,7 @@ async function saveRental() {
   btn.disabled = true; btn.textContent = 'Saving…';
   const dir = document.querySelector('input[name="rentalDir"]:checked').value;
   try {
-    const [rental] = await sbPost('rentals', {
+    const rBody = {
       direction: dir,
       item_name: item,
       qty: parseInt(document.getElementById('rQty').value)||1,
@@ -2084,10 +2864,13 @@ async function saveRental() {
       notes: document.getElementById('rNotes').value.trim()||null,
       status: 'active',
       workspace_id: currentWsId
-    });
-    await sbPost('rental_history', { rental_id: rental.id, entry: `Created — ${dir === 'out' ? 'Rented out to' : 'Rented in from'} ${contact}`, created_by: currentUser.email });
+    };
+    let rental;
+    if (rentalEditId) { const upd = await sbPatch(`rentals?id=eq.${rentalEditId}`, rBody); rental = upd[0] || {id: rentalEditId}; }
+    else { const ins = await sbPost('rentals', rBody); rental = ins[0]; }
+    await sbPost('rental_history', { rental_id: rental.id, entry: rentalEditId ? `Updated — ${contact}` : `Created — ${dir === 'out' ? 'Rented out to' : 'Rented in from'} ${contact}`, created_by: currentUser.email });
     closeModal('addRentalModal');
-    toast('Rental Added', item);
+    toast(rentalEditId ? 'Rental Updated' : 'Rental Added', item); rentalEditId = null;
     await loadRentals();
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Rental'; }
@@ -2129,6 +2912,22 @@ async function markReturned() {
   await loadRentals();
 }
 
+
+function editRental() {
+  const r = rentals.find(x => x.id === activeRentalId); if (!r) return;
+  rentalEditId = activeRentalId;
+  closeModal('rentalDetailModal');
+  const dirEl = document.querySelector(`input[name="rentalDir"][value="${r.direction||'out'}"]`); if (dirEl) dirEl.checked = true;
+  document.getElementById('rItem').value = r.item_name||'';
+  document.getElementById('rQty').value = r.qty||1;
+  document.getElementById('rContact').value = r.contact_name||'';
+  document.getElementById('rPhone').value = r.contact_phone||'';
+  document.getElementById('rJob').value = r.job_name||'';
+  document.getElementById('rOutDate').value = r.out_date||'';
+  document.getElementById('rReturnDate').value = r.return_date||'';
+  document.getElementById('rNotes').value = r.notes||'';
+  openModal('addRentalModal');
+}
 async function deleteRental() {
   if (!activeRentalId) return;
   await sbDelete(`rentals?id=eq.${activeRentalId}`);
@@ -2186,7 +2985,7 @@ renderTable = function() {
 
 
 // ── CONTACTS ──
-let contacts = [];
+let contacts = []; let contactEditId = null;
 let zones = [];
 let zoneAssets = {};
 
@@ -2224,7 +3023,7 @@ function renderContacts() {
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${roleColors[c.role]||'var(--steel)'}">${c.role}</div>
           ${c.company ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${c.company}</div>` : ''}
         </div>
-        ${isAdmin ? `<button onclick="deleteContact('${c.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px" title="Remove">×</button>` : ''}
+        ${isAdmin ? `<button onclick="editContact('${c.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--steel);font-size:13px;padding:4px">&#9998;</button><button onclick="deleteContact('${c.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 4px" title="Remove">×</button>` : ''}
       </div>
       ${c.phone ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">📞 ${c.phone}</div>` : ''}
       ${c.email ? `<div style="font-size:12px;color:var(--steel);margin-bottom:4px">✉️ ${c.email}</div>` : ''}
@@ -2237,7 +3036,7 @@ async function saveContact() {
   const name = document.getElementById('cName').value.trim();
   if (!name) { toast('Error', 'Name is required'); return; }
   try {
-    await sbPost('project_contacts', {
+    const cBody = {
       workspace_id: currentWsId,
       role: document.getElementById('cRole').value,
       name,
@@ -2245,7 +3044,10 @@ async function saveContact() {
       phone: document.getElementById('cPhone').value.trim()||null,
       email: document.getElementById('cEmail').value.trim()||null,
       notes: document.getElementById('cNotes').value.trim()||null,
-    });
+    };
+    if (contactEditId) { await sbPatch(`project_contacts?id=eq.${contactEditId}`, cBody); }
+    else { await sbPost('project_contacts', cBody); }
+    contactEditId = null;
     closeModal('addContactModal');
     ['cName','cCompany','cPhone','cEmail','cNotes'].forEach(id => document.getElementById(id).value='');
     toast('Contact Added', name);
@@ -2253,6 +3055,18 @@ async function saveContact() {
   } catch(e) { toast('Error', e.message); }
 }
 
+
+function editContact(id) {
+  const ct = contacts.find(x => x.id === id); if (!ct) return;
+  contactEditId = id;
+  document.getElementById('cRole').value = ct.role||document.getElementById('cRole').value;
+  document.getElementById('cName').value = ct.name||'';
+  document.getElementById('cCompany').value = ct.company||'';
+  document.getElementById('cPhone').value = ct.phone||'';
+  document.getElementById('cEmail').value = ct.email||'';
+  document.getElementById('cNotes').value = ct.notes||'';
+  openModal('addContactModal');
+}
 async function deleteContact(id) {
   if (!confirm('Remove this contact?')) return;
   await sbDelete(`project_contacts?id=eq.${id}`);
@@ -2294,7 +3108,7 @@ function renderTruckPack() {
             <span style="font-family:monospace;color:var(--accent);font-size:10px;min-width:60px">${a.asset_id}</span>
             <span style="flex:1">${a.name}</span>
   <span style="font-family:monospace;font-weight:600;color:var(--accent)">×${a.qty||1}</span>
-            <span style="font-size:10px;color:var(--muted);margin-left:4px">${estimateWeight(a.name) * (a.qty||1)} lbs</span>
+            <span style="font-size:10px;color:var(--muted);margin-left:4px">${(a.weight_lbs || estimateWeight(a.name)) * (a.qty||1)} lbs</span>
             ${isAdmin ? `<button onclick="removeFromZone('${za.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1">×</button>` : ''}
           </div>`;
         }).join('') : `<div style="color:var(--muted);font-size:12px;padding:8px;text-align:center">Empty — assign assets below</div>`}
@@ -2544,6 +3358,7 @@ setView = function(name, el) {
   if (name==='people') loadPeople();
   if (name==='payscale') { renderPayMatrix(); runSimulator(); }
   if (name==='money') loadMoney();
+  if (name==='jobs') loadJobs();
   closeSidebar();
 };
 
@@ -2682,7 +3497,7 @@ function updateTruckCalc() {
   // Calculate total weight of assigned assets
   const assignedAssets = zones.flatMap(z => (z.truck_zone_assets||[]).map(za => {
     const a = assets.find(x => x.id === za.asset_id);
-    return a ? estimateWeight(a.name) * (a.qty||1) : 0;
+    return a ? (a.weight_lbs || estimateWeight(a.name)) * (a.qty||1) : 0;
   }));
   const totalWeight = assignedAssets.reduce((s, w) => s + w, 0);
   const pct = Math.round((totalWeight / payload) * 100);
@@ -2764,7 +3579,7 @@ setInterval(keepAlive, 1000 * 60 * 60 * 24 * 4);
 // ── PEOPLE / STAFF ──
 let people = [];
 let peopleTab = 'staff';
-let activePersonId = null;
+let activePersonId = null; let personEditId = null;
 
 async function loadPeople() {
   try {
@@ -2851,7 +3666,7 @@ async function savePerson() {
   const btn = document.getElementById('savePersonBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    await sbPost('staff_people', {
+    const pBody = {
       status: document.querySelector('input[name="personStatus"]:checked').value,
       first_name: first,
       last_name: last,
@@ -2873,10 +3688,12 @@ async function savePerson() {
       doc_coi: document.getElementById('docCOI').checked,
       doc_onboard: document.getElementById('docOnboard').checked,
       notes: document.getElementById('pNotes').value.trim()||null,
-    });
+    };
+    if (personEditId) { await sbPatch(`staff_people?id=eq.${personEditId}`, pBody); }
+    else { await sbPost('staff_people', pBody); }
     closeModal('addPersonModal');
     toast('Person Added', `${first} ${last} added to ${document.querySelector('input[name="personStatus"]:checked').value === 'staff' ? 'Active Staff' : 'Prospects'}`);
-    await loadPeople();
+    await loadPeople(); personEditId = null;
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Person'; }
 }
@@ -2957,6 +3774,34 @@ async function promoteProspect() {
   await loadPeople();
 }
 
+
+function editPerson() {
+  const p = people.find(x => x.id === activePersonId); if (!p) return;
+  personEditId = activePersonId;
+  closeModal('personDetailModal');
+  const st = document.querySelector(`input[name="personStatus"][value="${p.status||'prospect'}"]`); if (st) st.checked = true;
+  document.getElementById('pFirst').value = p.first_name||'';
+  document.getElementById('pLast').value = p.last_name||'';
+  document.getElementById('pPhone').value = p.phone||'';
+  document.getElementById('pEmail').value = p.email||'';
+  document.getElementById('pAddress').value = p.address||'';
+  document.getElementById('pDept').value = p.department||document.getElementById('pDept').value;
+  document.getElementById('pTitle').value = p.title||'';
+  document.getElementById('pPayType').value = p.pay_type||document.getElementById('pPayType').value;
+  document.getElementById('pPayRate').value = p.pay_rate??'';
+  document.getElementById('pPayMethod').value = p.pay_method||document.getElementById('pPayMethod').value;
+  document.getElementById('pPayHandle').value = p.pay_handle||'';
+  document.getElementById('pSSN').value = '';
+  document.getElementById('pShirt').value = p.shirt_size||document.getElementById('pShirt').value;
+  document.getElementById('pDiet').value = p.diet||'';
+  document.getElementById('pTravel').value = p.travel_info||'';
+  document.getElementById('docW9').checked = !!p.doc_w9;
+  document.getElementById('docNDA').checked = !!p.doc_nda;
+  document.getElementById('docCOI').checked = !!p.doc_coi;
+  document.getElementById('docOnboard').checked = !!p.doc_onboard;
+  document.getElementById('pNotes').value = p.notes||'';
+  openModal('addPersonModal');
+}
 async function deletePerson() {
   if (!activePersonId) return;
   const p = people.find(x => x.id === activePersonId);
@@ -3310,7 +4155,7 @@ function generatePayScalePDF() {
 
 
 // ── MONEY / SHOW FINANCE ──
-let shows = [];
+let shows = []; let showEditId = null; let techPayEditId = null;
 let techPays = [];
 let moneyTab = 'shows';
 let payTypeFilter = '';
@@ -3407,7 +4252,7 @@ function renderTechPay() {
       <td style="font-size:12px;color:var(--steel)">${unitsLabel}</td>
       <td style="font-family:monospace;font-weight:800;color:var(--accent);font-size:15px">$${(p.total_owed||0).toLocaleString()}</td>
       <td><span class="status-badge ${isPaid?'operational':'missing'}">${isPaid?'Paid':'Pending'}</span></td>
-      <td>${!isPaid&&isAdmin?`<button onclick="markTechPaid('${p.id}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px">✓ Mark Paid</button>`:''}</td>
+      <td><button onclick="editTechPay('${p.id}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px;margin-right:4px">&#9998;</button>${!isPaid&&isAdmin?`<button onclick="markTechPaid('${p.id}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px">✓ Mark Paid</button>`:''}</td>
     </tr>`;
   }).join('');
 
@@ -3442,6 +4287,21 @@ function renderTechPay() {
     </div>`;
 }
 
+
+function editTechPay(id) {
+  const t = techPays.find(x => x.id === id); if (!t) return;
+  techPayEditId = id;
+  document.getElementById('tpName').value = t.tech_name||'';
+  document.getElementById('tpRole').value = t.role||'';
+  document.getElementById('tpShow').value = t.show_name||'';
+  document.getElementById('tpType').value = t.pay_type||'hourly';
+  document.getElementById('tpRate').value = t.rate??'';
+  document.getElementById('tpUnits').value = t.units??'';
+  document.getElementById('tpMethod').value = t.pay_method||document.getElementById('tpMethod').value;
+  document.getElementById('tpStatus').value = t.status||'pending';
+  document.getElementById('tpNotes').value = t.notes||'';
+  openModal('addTechPayModal');
+}
 async function markTechPaid(id) {
   await sbPatch(`tech_payments?id=eq.${id}`, { status: 'paid' });
   await loadMoney();
@@ -3511,7 +4371,7 @@ async function saveShow() {
   const btn = document.getElementById('saveShowBtn');
   btn.disabled=true; btn.textContent='Saving…';
   try {
-    await sbPost('show_finances', {
+    const sBody = {
       name,
       show_type: document.getElementById('sfType').value,
       show_date: document.getElementById('sfDate').value||null,
@@ -3521,9 +4381,11 @@ async function saveShow() {
       transport_cost: parseFloat(document.getElementById('sfTransport').value)||0,
       other_cost: parseFloat(document.getElementById('sfOther').value)||0,
       notes: document.getElementById('sfNotes').value.trim()||null,
-    });
+    };
+    if (showEditId) { await sbPatch(`show_finances?id=eq.${showEditId}`, sBody); }
+    else { await sbPost('show_finances', sBody); }
     closeModal('addShowModal');
-    toast('Show Logged', name);
+    toast(showEditId ? 'Show Updated' : 'Show Logged', name); showEditId = null;
     await loadMoney();
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Show'; }
@@ -3545,7 +4407,7 @@ async function saveTechPay() {
   const btn = document.getElementById('saveTechPayBtn');
   btn.disabled=true; btn.textContent='Saving…';
   try {
-    await sbPost('tech_payments', {
+    const tBody = {
       tech_name: name,
       role: document.getElementById('tpRole').value.trim()||null,
       show_name: document.getElementById('tpShow').value.trim()||null,
@@ -3556,9 +4418,11 @@ async function saveTechPay() {
       pay_method: document.getElementById('tpMethod').value,
       status: document.getElementById('tpStatus').value,
       notes: document.getElementById('tpNotes').value.trim()||null,
-    });
+    };
+    if (techPayEditId) { await sbPatch(`tech_payments?id=eq.${techPayEditId}`, tBody); }
+    else { await sbPost('tech_payments', tBody); }
     closeModal('addTechPayModal');
-    toast('Payment Added', name + ' — $' + total.toLocaleString());
+    toast(techPayEditId ? 'Payment Updated' : 'Payment Added', name + ' — $' + total.toLocaleString()); techPayEditId = null;
     await loadMoney();
   } catch(e) { toast('Error', e.message); }
   finally { btn.disabled=false; btn.textContent='Save Payment'; }
@@ -3566,12 +4430,273 @@ async function saveTechPay() {
 
 function openShowDetail(id) {
   const s = shows.find(x => x.id === id); if (!s) return;
+  activeShowId = id;
   const expenses = (s.labor_cost||0)+(s.gear_cost||0)+(s.transport_cost||0)+(s.other_cost||0);
   const margin = (s.revenue||0) - expenses;
   const pct = s.revenue > 0 ? Math.round((margin/s.revenue)*100) : 0;
-  alert(`${s.name}\n\nRevenue: $${(s.revenue||0).toLocaleString()}\nExpenses: $${expenses.toLocaleString()}\nMargin: $${margin.toLocaleString()} (${pct}%)\n\n${s.notes||''}`);
+  document.getElementById('sdTitle').textContent = s.name;
+  document.getElementById('sdBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div><div class="fl">Type</div><div>${s.show_type||'-'}</div></div>
+      <div><div class="fl">Date</div><div>${s.show_date||'-'}</div></div>
+    </div>
+    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Revenue</span><b style="font-family:monospace;color:var(--green)">$${(s.revenue||0).toLocaleString()}</b></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Labor</span><span style="font-family:monospace">$${(s.labor_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Gear</span><span style="font-family:monospace">$${(s.gear_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Transport</span><span style="font-family:monospace">$${(s.transport_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--steel)">Other</span><span style="font-family:monospace">$${(s.other_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0 0"><span style="color:var(--steel)">Margin</span><b style="font-family:monospace;color:${margin>=0?'var(--green)':'var(--red)'}">$${margin.toLocaleString()} (${pct}%)</b></div>
+    </div>
+    ${s.notes?`<div><div class="fl">Notes</div><div style="font-size:12px;color:var(--steel);white-space:pre-wrap">${s.notes}</div></div>`:''}`;
+  openModal('showDetailModal');
+}
+let activeShowId = null;
+function editShow() {
+  const s = shows.find(x => x.id === activeShowId); if (!s) return;
+  showEditId = activeShowId;
+  closeModal('showDetailModal');
+  document.getElementById('sfName').value = s.name||'';
+  document.getElementById('sfType').value = s.show_type||document.getElementById('sfType').value;
+  document.getElementById('sfDate').value = s.show_date||'';
+  document.getElementById('sfRevenue').value = s.revenue??'';
+  document.getElementById('sfLaborCost').value = s.labor_cost??'';
+  document.getElementById('sfGearCost').value = s.gear_cost??'';
+  document.getElementById('sfTransport').value = s.transport_cost??'';
+  document.getElementById('sfOther').value = s.other_cost??'';
+  document.getElementById('sfNotes').value = s.notes||'';
+  openModal('addShowModal');
+}
+async function deleteShow() {
+  if (!activeShowId || !confirm('Delete this show record?')) return;
+  await sbDelete(`show_finances?id=eq.${activeShowId}`);
+  closeModal('showDetailModal');
+  toast('Deleted', 'Show removed');
+  await loadMoney();
 }
 
+// -- JOBS (grouped by client, margin vs current target) --
+let jobs = [];
+let jobEditId = null;
+let activeJobId = null;
+let expandedClients = {};
+
+function getTargetMargin(){ return parseFloat(localStorage.getItem('7v_target_margin')) || 60; }
+function setTargetMargin(v){ localStorage.setItem('7v_target_margin', parseFloat(v)||60); renderJobs(); }
+
+async function loadJobs() {
+  const tmEl = document.getElementById('jobTargetMargin');
+  if (tmEl) tmEl.value = getTargetMargin();
+  try { jobs = await sbGet('jobs?select=*&order=show_date.desc.nullslast'); }
+  catch(e) { jobs = []; toast('Error', 'Jobs table missing? ' + e.message); }
+  renderJobs();
+}
+function jobMetrics(j){
+  const cost = (j.labor_cost||0)+(j.gear_cost||0)+(j.transport_cost||0)+(j.other_cost||0);
+  const profit = (j.revenue||0) - cost;
+  const pct = j.revenue > 0 ? (profit / j.revenue) * 100 : 0;
+  return {cost, profit, pct};
+}
+function renderJobs(){
+  const t = getTargetMargin();
+  const list = document.getElementById('jobsList');
+  if (!list) return;
+  const totalRev = jobs.reduce((s,j)=>s+(j.revenue||0),0);
+  const avg = jobs.length ? jobs.reduce((s,j)=>s+jobMetrics(j).pct,0)/jobs.length : 0;
+  const under = jobs.filter(j=>jobMetrics(j).pct < t).length;
+  document.getElementById('jobStatCount').textContent = jobs.length;
+  document.getElementById('jobStatRev').textContent = '$'+totalRev.toLocaleString();
+  const avgEl = document.getElementById('jobStatMargin');
+  avgEl.textContent = Math.round(avg)+'%';
+  avgEl.style.color = avg >= t ? 'var(--green)' : 'var(--red)';
+  document.getElementById('jobStatUnder').textContent = under;
+  if (!jobs.length) { list.innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted)">No jobs yet. Click + Add Job to log your first show.</div>'; return; }
+  const groups = {};
+  jobs.forEach(j => { const cl = j.client || 'No Client'; (groups[cl] = groups[cl] || []).push(j); });
+  list.innerHTML = Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([client, arr]) => {
+    const rev = arr.reduce((s,j)=>s+(j.revenue||0),0);
+    const avgP = arr.reduce((s,j)=>s+jobMetrics(j).pct,0)/arr.length;
+    const open = expandedClients[client];
+    const enc = encodeURIComponent(client);
+    return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden">
+      <div onclick="toggleClient(decodeURIComponent('${enc}'))" style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer">
+        <span style="color:var(--muted);font-size:11px;display:inline-block;transform:rotate(${open?90:0}deg);transition:transform .15s">&#9654;</span>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${client}</div><div style="font-size:11px;color:var(--muted)">${arr.length} job${arr.length>1?'s':''}</div></div>
+        <div style="text-align:right"><div style="font-family:monospace;color:var(--green);font-weight:600">$${rev.toLocaleString()}</div><div style="font-size:11px;color:${avgP>=t?'var(--green)':'var(--red)'}">${Math.round(avgP)}% avg</div></div>
+      </div>
+      ${open ? `<div style="border-top:1px solid var(--border)">${arr.map(j => { const m = jobMetrics(j); const good = m.pct >= t; return `
+        <div onclick="openJobDetail('${j.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 16px 11px 38px;cursor:pointer;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${j.name}</div><div style="font-size:11px;color:var(--muted)">${j.show_date||'No date'}${j.invoice_no?' &middot; INV '+j.invoice_no:''}</div></div>
+          <div style="font-family:monospace;font-size:12px">$${(j.revenue||0).toLocaleString()}</div>
+          <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:${good?'rgba(34,197,94,.12)':'rgba(232,64,64,.12)'};color:${good?'var(--green)':'var(--red)'}">${Math.round(m.pct)}% ${good?'&#9650;':'&#9660;'}</span>
+        </div>`; }).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function toggleClient(client){ expandedClients[client] = !expandedClients[client]; renderJobs(); }
+
+function openJobForm(id){
+  jobEditId = id || null;
+  document.getElementById('jobModalTitle').textContent = id ? 'Edit Job' : 'Add Job';
+  const j = id ? jobs.find(x=>x.id===id) : null;
+  document.getElementById('jClient').value = j ? (j.client||'') : '';
+  document.getElementById('jName').value = j ? (j.name||'') : '';
+  document.getElementById('jDate').value = j ? (j.show_date||'') : '';
+  document.getElementById('jVenue').value = j ? (j.venue||'') : '';
+  document.getElementById('jInvoice').value = j ? (j.invoice_no||'') : '';
+  document.getElementById('jRevenue').value = j && j.revenue != null ? j.revenue : '';
+  document.getElementById('jLabor').value = j && j.labor_cost != null ? j.labor_cost : '';
+  document.getElementById('jGear').value = j && j.gear_cost != null ? j.gear_cost : '';
+  document.getElementById('jTransport').value = j && j.transport_cost != null ? j.transport_cost : '';
+  document.getElementById('jOther').value = j && j.other_cost != null ? j.other_cost : '';
+  document.getElementById('jNotes').value = j ? (j.notes||'') : '';
+  document.getElementById('jClientList').innerHTML = [...new Set(jobs.map(x=>x.client).filter(Boolean))].map(cl=>`<option value="${cl}">`).join('');
+  updateJobPreview();
+  openModal('jobModal');
+}
+function updateJobPreview(){
+  const rev = parseFloat(document.getElementById('jRevenue').value)||0;
+  const cost = (parseFloat(document.getElementById('jLabor').value)||0)+(parseFloat(document.getElementById('jGear').value)||0)+(parseFloat(document.getElementById('jTransport').value)||0)+(parseFloat(document.getElementById('jOther').value)||0);
+  const p = rev > 0 ? ((rev-cost)/rev)*100 : 0;
+  const t = getTargetMargin();
+  document.getElementById('jobMarginPreview').innerHTML = 'Margin: <b style="color:'+(p>=t?'var(--green)':'var(--red)')+'">'+Math.round(p)+'%</b> <span style="color:var(--muted)">(target '+t+'%)</span>';
+}
+async function saveJob(){
+  const client = document.getElementById('jClient').value.trim();
+  const name = document.getElementById('jName').value.trim();
+  if (!client || !name) { toast('Error','Client and job name are required'); return; }
+  const body = { client, name,
+    show_date: document.getElementById('jDate').value||null,
+    venue: document.getElementById('jVenue').value.trim()||null,
+    invoice_no: document.getElementById('jInvoice').value.trim()||null,
+    revenue: parseFloat(document.getElementById('jRevenue').value)||0,
+    labor_cost: parseFloat(document.getElementById('jLabor').value)||0,
+    gear_cost: parseFloat(document.getElementById('jGear').value)||0,
+    transport_cost: parseFloat(document.getElementById('jTransport').value)||0,
+    other_cost: parseFloat(document.getElementById('jOther').value)||0,
+    notes: document.getElementById('jNotes').value.trim()||null };
+  try {
+    if (jobEditId) { await sbPatch(`jobs?id=eq.${jobEditId}`, body); }
+    else { await sbPost('jobs', body); }
+    closeModal('jobModal');
+    toast(jobEditId ? 'Job Updated' : 'Job Added', name);
+    jobEditId = null;
+    await loadJobs();
+  } catch(e) { toast('Error', e.message); }
+}
+function openJobDetail(id){
+  const j = jobs.find(x=>x.id===id); if (!j) return;
+  activeJobId = id;
+  const m = jobMetrics(j);
+  const t = getTargetMargin();
+  const good = m.pct >= t;
+  const delta = m.pct - t;
+  document.getElementById('jdTitle').textContent = j.name;
+  document.getElementById('jdBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div><div class="fl">Client</div><div>${j.client||'-'}</div></div>
+      <div><div class="fl">Date</div><div>${j.show_date||'-'}</div></div>
+      <div><div class="fl">Venue</div><div>${j.venue||'-'}</div></div>
+      <div><div class="fl">Invoice #</div><div style="font-family:monospace">${j.invoice_no||'-'}</div></div>
+    </div>
+    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Revenue</span><b style="font-family:monospace;color:var(--green)">$${(j.revenue||0).toLocaleString()}</b></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Labor</span><span style="font-family:monospace">$${(j.labor_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Gear</span><span style="font-family:monospace">$${(j.gear_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--steel)">Transport</span><span style="font-family:monospace">$${(j.transport_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--steel)">Other</span><span style="font-family:monospace">$${(j.other_cost||0).toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0 0"><span style="color:var(--steel)">Profit</span><b style="font-family:monospace;color:${m.profit>=0?'var(--green)':'var(--red)'}">$${m.profit.toLocaleString()}</b></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:10px">
+      <div style="background:var(--bg-input);border-radius:10px;padding:10px"><div class="fl">Sold At</div><div style="font-size:20px;font-weight:800;color:${good?'var(--green)':'var(--red)'}">${Math.round(m.pct)}%</div></div>
+      <div style="background:var(--bg-input);border-radius:10px;padding:10px"><div class="fl">Target</div><div style="font-size:20px;font-weight:800;color:var(--accent)">${t}%</div></div>
+      <div style="background:var(--bg-input);border-radius:10px;padding:10px"><div class="fl">${good?'Over':'Under'} By</div><div style="font-size:20px;font-weight:800;color:${good?'var(--green)':'var(--red)'}">${Math.abs(Math.round(delta))}%</div></div>
+    </div>
+    <div style="font-size:12px;padding:9px 12px;border-radius:8px;background:${good?'rgba(34,197,94,.08)':'rgba(232,64,64,.08)'};color:${good?'var(--green)':'#F87171'}">${good ? 'Sold at or above the current target. On track.' : 'Sold UNDER the current target margin. Undersold vs today&apos;s pricing.'}</div>
+    ${j.notes ? `<div style="margin-top:10px"><div class="fl">Notes</div><div style="font-size:12px;color:var(--steel);white-space:pre-wrap">${j.notes}</div></div>` : ''}`;
+  openModal('jobDetailModal');
+}
+function editJob(){ closeModal('jobDetailModal'); openJobForm(activeJobId); }
+async function deleteJob(){
+  if (!activeJobId || !confirm('Delete this job?')) return;
+  await sbDelete(`jobs?id=eq.${activeJobId}`);
+  closeModal('jobDetailModal');
+  toast('Deleted','Job removed');
+  await loadJobs();
+}
+
+
+
+// -- CSV IMPORT --
+function parseCsvLine(line) {
+  const out = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') { inQ = false; }
+      else cur += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { out.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+async function runCsvImport() {
+  let text = document.getElementById('csvText').value.trim();
+  const fileInput = document.getElementById('csvFile');
+  if (!text && fileInput.files.length) {
+    text = await fileInput.files[0].text();
+  }
+  if (!text) { toast('No CSV data', 'Paste rows or choose a file'); return; }
+
+  const status = document.getElementById('csvStatus').value;
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  let rows = lines.map(parseCsvLine);
+
+  // Detect and skip header row
+  if (rows.length && /first|name/i.test(rows[0][0]) && !/\d/.test(rows[0][1]||'')) rows = rows.slice(1);
+
+  const people = rows.map(cols => {
+    // If only one name column with a space, split it
+    let first = cols[0] || '', last = cols[1] || '';
+    // Heuristic: if col1 looks like a phone, the name was one column
+    if (/^[\d\(\)\+\-\s]{7,}$/.test(last)) {
+      const parts = first.split(' ');
+      last = parts.pop() || '';
+      first = parts.join(' ');
+      cols.splice(1, 0, null); // shift so phone lines up
+    }
+    return {
+      status: status,
+      first_name: first,
+      last_name: last,
+      phone: cols[2] || null,
+      email: cols[3] || null,
+      department: cols[4] || null,
+      title: cols[5] || null,
+      notes: cols.slice(6).join(', ') || null,
+      doc_w9: false, doc_nda: false, doc_coi: false, doc_onboard: false
+    };
+  }).filter(p => p.first_name);
+
+  if (!people.length) { toast('Nothing to import', 'Check the CSV format'); return; }
+
+  try {
+    await sbPost('staff_people', people);
+    toast('Imported ' + people.length + ' people', 'Added as ' + status);
+    closeModal('importCsvModal');
+    document.getElementById('csvText').value = '';
+    fileInput.value = '';
+    if (typeof loadPeople === 'function') loadPeople();
+  } catch(e) {
+    toast('Import failed', String(e).substring(0, 80));
+  }
+}
 </script>
 
 
