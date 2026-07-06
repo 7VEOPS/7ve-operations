@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/BLKUnit1/Downloads/index_15.html -->
+<!-- saved from url=(0072)file:///C:/Users/BLKUnit1/Downloads/7_Virtues_Operations_Platform_1.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -262,7 +262,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <div class="nav-section">
       <div class="section-label">Navigation</div>
-      <div class="nav-item active" onclick="setView(&#39;inventory&#39;,this)">📦 Inventory</div>
+      <div class="nav-item" onclick="setView(&#39;inventory&#39;,this)">📦 Inventory</div>
       <div class="nav-item" onclick="setView(&#39;scan&#39;,this)">📷 Scan / QR</div>
       <div class="nav-item" onclick="setView(&#39;rentals&#39;,this)">🔄 Rentals</div>
       <div class="nav-item" onclick="setView(&#39;contacts&#39;,this)">👥 Contacts</div>
@@ -276,7 +276,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:#4ADE80;letter-spacing:0.1em">MONEY</div>
-      <div class="nav-item" onclick="setView(&#39;money&#39;,this)">💵 Show Finance</div>
+      <div class="nav-item active" onclick="setView(&#39;money&#39;,this)">💵 Show Finance</div>
     </div>
 
 
@@ -296,8 +296,8 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     <div class="topbar">
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div>
-        <div class="topbar-title" id="viewTitle">Inventory</div>
-        <div class="topbar-crumb"><span id="wsCrumb">7 Virtues Entertainment</span> › <span id="viewCrumb">All Assets</span></div>
+        <div class="topbar-title" id="viewTitle">money</div>
+        <div class="topbar-crumb"><span id="wsCrumb">7 Virtues Entertainment</span> › <span id="viewCrumb">money</span></div>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-ghost admin-only" onclick="openLibrary()">📚 Library</button>
@@ -307,7 +307,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
     <div class="content">
       <!-- INVENTORY -->
-      <div class="view active" id="view-inventory">
+      <div class="view" id="view-inventory">
         <div class="stats-row">
           <div class="stat-card" onclick="filterStatus(&#39;&#39;)"><div class="stat-label">Total Assets</div><div class="stat-val" id="sTot" style="color:var(--text)">63</div><div class="stat-sub">All departments</div></div>
           <div class="stat-card" onclick="filterStatus(&#39;Missing&#39;)"><div class="stat-label">Missing</div><div class="stat-val" id="sMiss" style="color:var(--red)">0</div><div class="stat-sub">Requires attention</div></div>
@@ -1336,7 +1336,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
       </div>
 
       <!-- MONEY VIEW -->
-      <div class="view" id="view-money">
+      <div class="view active" id="view-money">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div>
             <h2 style="font-size:18px;font-weight:600">Show Finance</h2>
@@ -1349,23 +1349,24 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
         <!-- MONEY TABS -->
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
-          <div class="tab active" onclick="setMoneyTab(&#39;shows&#39;,this)">📋 Show Costs</div>
+          <div class="tab" onclick="setMoneyTab(&#39;shows&#39;,this)">📋 Show Costs</div>
           <div class="tab" onclick="setMoneyTab(&#39;techpay&#39;,this)">👷 Tech Pay</div>
+          <div class="tab active" onclick="setMoneyTab(&#39;invoices&#39;,this)">📄 Invoices</div>
         </div>
 
         <!-- SHOW COSTS TAB -->
-        <div id="moneyTab-shows">
+        <div id="moneyTab-shows" style="display: none;">
           <!-- SUMMARY STATS -->
           <div class="stats-row" style="margin-bottom:20px">
-            <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val" id="mTotalRev" style="color:var(--green)">$0</div><div class="stat-sub">All shows</div></div>
-            <div class="stat-card"><div class="stat-label">Total Tech Cost</div><div class="stat-val" id="mTotalCost" style="color:var(--red)">$0</div><div class="stat-sub">Paid out</div></div>
-            <div class="stat-card"><div class="stat-label">7VE Margin</div><div class="stat-val" id="mTotalMargin" style="color:var(--accent)">$0</div><div class="stat-sub">What we keep</div></div>
-            <div class="stat-card"><div class="stat-label">Avg Margin %</div><div class="stat-val" id="mAvgMarginPct" style="color:var(--text)">0%</div><div class="stat-sub">Across all shows</div></div>
+            <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val" id="mTotalRev" style="color:var(--green)">$31,620</div><div class="stat-sub">All shows</div></div>
+            <div class="stat-card"><div class="stat-label">Total Tech Cost</div><div class="stat-val" id="mTotalCost" style="color:var(--red)">$11,180</div><div class="stat-sub">Paid out</div></div>
+            <div class="stat-card"><div class="stat-label">7VE Margin</div><div class="stat-val" id="mTotalMargin" style="color: var(--green);">$20,440</div><div class="stat-sub">What we keep</div></div>
+            <div class="stat-card"><div class="stat-label">Avg Margin %</div><div class="stat-val" id="mAvgMarginPct" style="color: var(--green);">65%</div><div class="stat-sub">Across all shows</div></div>
           </div>
 
           <div class="table-wrap">
-            <div id="showsLoading" class="loading"><div class="spinner"></div> Loading shows…</div>
-            <table id="showsTable" style="display:none">
+            <div id="showsLoading" class="loading" style="display: none;"><div class="spinner"></div> Loading shows…</div>
+            <table id="showsTable" style="display: table;">
               <thead><tr>
                 <th>Show / Event</th>
                 <th>Type</th>
@@ -1377,7 +1378,127 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
                 <th>Margin %</th>
                 <th></th>
               </tr></thead>
-              <tbody id="showsBody"></tbody>
+              <tbody id="showsBody"><tr class="arow" onclick="openShowDetail(&#39;764868f0-47d5-4885-bb5e-e857b3f2a85c&#39;)">
+      <td><div class="asset-name">DNVR</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#FCD34D18;color:#FCD34D">Rental</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-28</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$800</td>
+      <td style="font-family:monospace;color:var(--steel)">$580</td>
+      <td style="font-family:monospace;color:var(--steel)">$580</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$220</td>
+      <td style="font-weight:700;color:var(--green)">28%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;ee1b7360-43f9-46d3-938e-91eba9320935&#39;)">
+      <td><div class="asset-name">Charlie mac Wedding</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:var(--steel)18;color:var(--steel)">Other</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-26</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,500</td>
+      <td style="font-family:monospace;color:var(--steel)">$800</td>
+      <td style="font-family:monospace;color:var(--steel)">$880</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$620</td>
+      <td style="font-weight:700;color:var(--green)">41%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;1e004675-b22f-4a01-bdd9-1aa41fd84a99&#39;)">
+      <td><div class="asset-name">The Fluffy Cloud Cloud Activation</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-20</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$400</td>
+      <td style="font-family:monospace;color:var(--steel)">$280</td>
+      <td style="font-family:monospace;color:var(--steel)">$280</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$120</td>
+      <td style="font-weight:700;color:var(--green)">30%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;e1118564-b347-4980-8f81-0b252f9af910&#39;)">
+      <td><div class="asset-name">The Fluffy Cloud Sound Bath</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-15</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$875</td>
+      <td style="font-family:monospace;color:var(--steel)">$610</td>
+      <td style="font-family:monospace;color:var(--steel)">$610</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$265</td>
+      <td style="font-weight:700;color:var(--green)">30%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;feac848d-9a89-4931-9cdb-1467db33cacd&#39;)">
+      <td><div class="asset-name">The Fluffy Cloud Joezi</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#C084FC18;color:#C084FC">Touring</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-13</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$732.57</td>
+      <td style="font-family:monospace;color:var(--steel)">$600</td>
+      <td style="font-family:monospace;color:var(--steel)">$600</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$132.57</td>
+      <td style="font-weight:700;color:var(--accent)">18%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;82f6ccf2-50d2-424a-b5c8-7a30f74ef9b1&#39;)">
+      <td><div class="asset-name">Inspire (Danny Garton)</div><div style="font-size:10px;color:var(--muted)">I need to revisit this with the correct </div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-11</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$2,274.48</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$2,274.48</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;8910400a-f28a-4f97-977e-6b4235ee9f14&#39;)">
+      <td><div class="asset-name">Inspire (Danny Garton)</div><div style="font-size:10px;color:var(--muted)">I need to revisit this with the correct </div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-06-09</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,492.62</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,492.62</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;69139995-dac9-4ddc-b723-2d7282594ff5&#39;)">
+      <td><div class="asset-name">SNS IJM band rental</div><div style="font-size:10px;color:var(--muted)">I need to revisit this with the correct </div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#FCD34D18;color:#FCD34D">Rental</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-05-31</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,574.24</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,574.24</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;0b2f6978-74ce-46a2-bdad-65910cc31440&#39;)">
+      <td><div class="asset-name">Outsidedays Lighting</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#60A5FA18;color:#60A5FA">Corporate</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-05-29</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$9,800</td>
+      <td style="font-family:monospace;color:var(--steel)">$3,850</td>
+      <td style="font-family:monospace;color:var(--steel)">$8,230</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,570</td>
+      <td style="font-weight:700;color:var(--accent)">16%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;46e4b58e-e846-4edb-9e54-bc6ae79df326&#39;)">
+      <td><div class="asset-name">SNS IJM band Sara Grooves</div><div style="font-size:10px;color:var(--muted)">I need to revisit this with the correct </div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#FCD34D18;color:#FCD34D">Rental</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-05-05</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$975</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$975</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;1b93c2ef-6379-4f9a-ae21-521fc9afc5bf&#39;)">
+      <td><div class="asset-name">SNS In Room Op 4/12-4/15</div><div style="font-size:10px;color:var(--muted)">I need to revisit this with the correct </div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-04-27</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,350</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$1,350</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr><tr class="arow" onclick="openShowDetail(&#39;a0697834-28f8-479a-98d8-665ac8fbc59e&#39;)">
+      <td><div class="asset-name">AKUS 2026 Tour</div><div style="font-size:10px;color:var(--muted)">paid 5 times</div></td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#9CA3AF18;color:#9CA3AF">Labor Call</span></td>
+      <td style="font-size:12px;color:var(--steel)">2026-04-06</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$9,846.09</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;color:var(--steel)">$0</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--green)">$9,846.09</td>
+      <td style="font-weight:700;color:var(--green)">100%</td>
+      <td></td>
+    </tr></tbody>
             </table>
             <div id="showsEmpty" class="empty" style="display:none">
               <div class="empty-title">No shows logged yet</div>
@@ -1430,6 +1551,249 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
 
           <!-- TOTALS BY PERSON -->
           <div style="margin-top:20px" id="techPayTotals"></div>
+        </div>
+
+        <!-- INVOICES TAB -->
+        <div id="moneyTab-invoices" style="display: block;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            <div style="font-size:13px;color:var(--muted);max-width:640px">7VE-issued invoices — labor billed out &amp; crew paid out · seeded from historical PDFs. Revenue counts client invoices only; duplicates &amp; conflict twins excluded.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary admin-only" onclick="openNewInvoice()">+ New Invoice</button><button class="btn btn-ghost admin-only" onclick="openInvoiceImport()">⬆ Import</button><button class="btn btn-ghost admin-only" onclick="syncInvoicesToDb()" title="Save all invoices to the database so they persist on refresh">⭱ Sync to DB</button></div>
+          </div>
+
+          <div class="filter-bar" style="margin-bottom:12px">
+            <div class="search-wrap" style="flex:1">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="invSearch" placeholder="Search client, project, invoice #…" oninput="renderInvoices()">
+            </div>
+            <div id="invYearChips" style="display:flex;gap:6px;flex-wrap:wrap"><button class="chip active" data-iy="ALL" onclick="setInvoiceYear(this,&#39;ALL&#39;)">ALL <span style="opacity:.5">27</span></button><button class="chip" data-iy="2019" onclick="setInvoiceYear(this,&#39;2019&#39;)">2019 <span style="opacity:.5">9</span></button><button class="chip" data-iy="2020" onclick="setInvoiceYear(this,&#39;2020&#39;)">2020 <span style="opacity:.5">3</span></button><button class="chip" data-iy="2021" onclick="setInvoiceYear(this,&#39;2021&#39;)">2021 <span style="opacity:.5">1</span></button><button class="chip" data-iy="2022" onclick="setInvoiceYear(this,&#39;2022&#39;)">2022 <span style="opacity:.5">6</span></button><button class="chip" data-iy="2023" onclick="setInvoiceYear(this,&#39;2023&#39;)">2023 <span style="opacity:.5">1</span></button><button class="chip" data-iy="2026" onclick="setInvoiceYear(this,&#39;2026&#39;)">2026 <span style="opacity:.5">7</span></button></div>
+          </div>
+
+          <div class="filter-bar" style="margin-bottom:16px">
+            <button class="chip active" data-it="all" onclick="setInvoiceType(this,&#39;all&#39;)">All</button>
+            <button class="chip" data-it="Client Invoice" onclick="setInvoiceType(this,&#39;Client Invoice&#39;)">Invoices</button>
+            <button class="chip" data-it="Employee Payout" onclick="setInvoiceType(this,&#39;Employee Payout&#39;)">Payouts</button>
+            <button class="chip" data-it="Quote" onclick="setInvoiceType(this,&#39;Quote&#39;)">Quotes</button>
+            <button class="chip" data-it="flagged" onclick="setInvoiceType(this,&#39;flagged&#39;)">⚑ Flagged</button>
+          </div>
+
+          <div class="stats-row" style="margin-bottom:20px">
+            <div class="stat-card"><div class="stat-label">Client Revenue</div><div class="stat-val" id="invRev" style="color:var(--green)">$29,524.67</div><div class="stat-sub" id="invRevSub">22 billable invoices</div></div>
+            <div class="stat-card"><div class="stat-label">Invoices</div><div class="stat-val" id="invCount" style="color:var(--text)">22</div><div class="stat-sub" id="invCountSub">3 dup excluded</div></div>
+            <div class="stat-card"><div class="stat-label">Clients</div><div class="stat-val" id="invClients" style="color:var(--text)">15</div><div class="stat-sub">unique</div></div>
+            <div class="stat-card"><div class="stat-label">Payouts</div><div class="stat-val" id="invPay" style="color:var(--red)">$2,980.00</div><div class="stat-sub">crew cost</div></div>
+            <div class="stat-card"><div class="stat-label">Flagged</div><div class="stat-val" id="invFlag" style="color: var(--red);">9</div><div class="stat-sub" id="invFlagSub">$15,879.94 to verify</div></div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="invTable" style="display: table;">
+              <thead><tr>
+                <th>Invoice</th>
+                <th>Client / Project</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th style="text-align:right">Total</th>
+              </tr></thead>
+              <tbody id="invBody"><tr class="arow" onclick="toggleInvoice(20)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">529302026</td>
+        <td><div class="asset-name">Spencer Smith (Allcity Network)</div><div style="font-size:10px;color:var(--muted)">Tailgate</div></td>
+        <td style="font-size:12px;color:var(--steel)">5/30/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$837.23</td>
+      </tr><tr class="arow" onclick="toggleInvoice(8)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">42426</td>
+        <td><div class="asset-name">SNS Staging</div><div style="font-size:10px;color:var(--muted)">UPLANS</div></td>
+        <td style="font-size:12px;color:var(--steel)">4/27/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$300.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(22)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">412131415</td>
+        <td><div class="asset-name">SNS Staging</div><div style="font-size:10px;color:var(--muted)">UPLANS</div></td>
+        <td style="font-size:12px;color:var(--steel)">4/27/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$1,350.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(21)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">33026</td>
+        <td><div class="asset-name">SNS Staging</div><div style="font-size:10px;color:var(--muted)">DO DAY / SOMA</div></td>
+        <td style="font-size:12px;color:var(--steel)">3/30/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$2,425.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(16)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">SNSIJM A1</td>
+        <td><div class="asset-name">SNS Stagging<span title="CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_invoice_A1 with Thu=10.5h ($1,825 vs $1,800)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span><span style="font-size:10px;color:var(--muted);margin-left:6px">excl.</span></div><div style="font-size:10px;color:var(--muted)">IJM IN ROOM A1</div></td>
+        <td style="font-size:12px;color:var(--steel)">2/28/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$1,800.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(17)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">SNSIJM A1</td>
+        <td><div class="asset-name">SNS Stagging<span title="CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_-_invoice_A1 with Thu=10h ($1,800 vs $1,825)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">IJM IN ROOM A1</div></td>
+        <td style="font-size:12px;color:var(--steel)">2/28/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$1,825.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(18)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">SNSIJM A2</td>
+        <td><div class="asset-name">SNS Stagging</div><div style="font-size:10px;color:var(--muted)">IJM IN ROOM A2</div></td>
+        <td style="font-size:12px;color:var(--steel)">2/28/2026</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$472.50</td>
+      </tr><tr class="arow" onclick="toggleInvoice(24)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">11023</td>
+        <td><div class="asset-name">7 Virtues Employee Payout<span title="EMPLOYEE PAYOUT (internal cost) — pairs with client invoice(s) for the same Cap Hilton Jan job. invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Cap Hilton</div></td>
+        <td style="font-size:12px;color:var(--steel)">1/10/2023</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#22C55E18;color:var(--green)">PAYOUT</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--red)">$2,980.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(23)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">Quote 111322</td>
+        <td><div class="asset-name">Inspire<span title="This is a QUOTE, not a final invoice. Filename says &#39;Nov28-Dec1&#39; but line dates are 12/5 &amp; 12/16 (filename unreliable)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">A1, A2, Gav</div></td>
+        <td style="font-size:12px;color:var(--steel)">12/17/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#7A849418;color:var(--steel)">QUOTE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$1,070.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(19)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">102222</td>
+        <td><div class="asset-name">JSAV Inspire</div><div style="font-size:10px;color:var(--muted)">Diocese of Virginia</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/22/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$420.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(9)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">11023</td>
+        <td><div class="asset-name">Inspire Solution<span title="invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Turing Rooms</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/16/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$3,080.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(10)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">11023</td>
+        <td><div class="asset-name">Inspire Solution<span title="invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Turing Rooms</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/16/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$3,760.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(11)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">101022</td>
+        <td><div class="asset-name">JSAV Inspire</div><div style="font-size:10px;color:var(--muted)">NSF NAEP TUDA Mathematics &amp; Reading Workshop, CSFDC</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/16/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$4,600.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(26)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">11023</td>
+        <td><div class="asset-name">Inspire Solution<span title="invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Turing Rooms</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/16/2022</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$4,550.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(12)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">91721</td>
+        <td><div class="asset-name">Techcon<span title="REVIEW: printed subtotal ($1,261.44) equals only the 4 day-rate lines; OT/deductions not reflected in printed total | RECONCILE: line items sum to 543.10 vs printed total 1,261.44" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Zoom Meeting (We are home)</div></td>
+        <td style="font-size:12px;color:var(--steel)">9/17/2021</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$1,261.44</td>
+      </tr><tr class="arow" onclick="toggleInvoice(14)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">121820</td>
+        <td><div class="asset-name">AV Lancer</div><div style="font-size:10px;color:var(--muted)">Walmart drone show</div></td>
+        <td style="font-size:12px;color:var(--steel)">12/18/2020</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$270.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(7)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">3620</td>
+        <td><div class="asset-name">JSAV / BAV</div><div style="font-size:10px;color:var(--muted)">Aviation 2020 set/strike</div></td>
+        <td style="font-size:12px;color:var(--steel)">3/14/2020</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$495.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(6)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">22120</td>
+        <td><div class="asset-name">JSAV</div><div style="font-size:10px;color:var(--muted)">set &amp; Strike</div></td>
+        <td style="font-size:12px;color:var(--steel)">2/21/2020</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$750.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(15)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">111219</td>
+        <td><div class="asset-name">BTS</div><div style="font-size:10px;color:var(--muted)">A2</div></td>
+        <td style="font-size:12px;color:var(--steel)">11/12/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$840.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(4)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">103019</td>
+        <td><div class="asset-name">Vision Creative<span title="DUPLICATE: identical to capitol_crewing_1__-_Invoice.pdf" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">set</div></td>
+        <td style="font-size:12px;color:var(--steel)">11/3/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$148.50</td>
+      </tr><tr class="arow" onclick="toggleInvoice(5)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">103019</td>
+        <td><div class="asset-name">Vision Creative<span title="DUPLICATE: identical to capitol_crewing__-_Invoice.pdf" style="color:var(--red);margin-left:6px;cursor:help">⚑</span><span style="font-size:10px;color:var(--muted);margin-left:6px">excl.</span></div><div style="font-size:10px;color:var(--muted)">set</div></td>
+        <td style="font-size:12px;color:var(--steel)">11/3/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$148.50</td>
+      </tr><tr class="arow" onclick="toggleInvoice(0)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">102319</td>
+        <td><div class="asset-name">BTS<span title="CONFLICT: inv 102319 also in BTS_Invoice with different amount ($405 vs $330)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">set</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/26/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$405.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(1)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">102319</td>
+        <td><div class="asset-name">BTS<span title="CONFLICT: inv 102319 also in BTS_mayflower_invoice with different amount ($330 vs $405)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span><span style="font-size:10px;color:var(--muted);margin-left:6px">excl.</span></div><div style="font-size:10px;color:var(--muted)">set</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/26/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$330.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(25)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">102219</td>
+        <td><div class="asset-name">Event Tech Solutions</div><div style="font-size:10px;color:var(--muted)">General Labor</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/22/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$135.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(2)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">101719</td>
+        <td><div class="asset-name">Capitol Crew<span title="DUPLICATE: same invoice also inside Capitol_Crew_invoice_.pdf" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Set</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/17/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$250.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(3)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">101519</td>
+        <td><div class="asset-name">BAV<span title="This PDF also contains a duplicate of Capitol Crew inv 101719 (captured above)" style="color:var(--red);margin-left:6px;cursor:help">⚑</span></div><div style="font-size:10px;color:var(--muted)">Set &amp; Strike</div></td>
+        <td style="font-size:12px;color:var(--steel)">10/15/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$600.00</td>
+      </tr><tr class="arow" onclick="toggleInvoice(13)">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">81219</td>
+        <td><div class="asset-name">AV Concepts</div><div style="font-size:10px;color:var(--muted)">General AV</div></td>
+        <td style="font-size:12px;color:var(--steel)">8/15/2019</td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span></td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:var(--text)">$750.00</td>
+      </tr></tbody>
+            </table>
+            <div id="invEmpty" class="empty" style="display:none">
+              <div class="empty-title">No invoices match</div>
+              <div style="font-size:12px">Try a different year or filter.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px" id="invTotals"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Billable by client — ALL</div><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Inspire Solution <span style="color:var(--muted);font-size:11px">· 3 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$11,390.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">JSAV Inspire <span style="color:var(--muted);font-size:11px">· 2 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$5,020.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">SNS Staging <span style="color:var(--muted);font-size:11px">· 3 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$4,075.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">SNS Stagging <span style="color:var(--muted);font-size:11px">· 2 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$2,297.50</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Techcon <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$1,261.44</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">BTS <span style="color:var(--muted);font-size:11px">· 2 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$1,245.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Spencer Smith (Allcity Network) <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$837.23</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">JSAV <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$750.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">AV Concepts <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$750.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">BAV <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$600.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">JSAV / BAV <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$495.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">AV Lancer <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$270.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Capitol Crew <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$250.00</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Vision Creative <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$148.50</span></div><div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">Event Tech Solutions <span style="color:var(--muted);font-size:11px">· 1 inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">$135.00</span></div></div></div>
         </div>
       </div>
 
@@ -2065,7 +2429,7 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
         <div class="fg"><label class="fl">Role / Department</label><input type="text" class="fi" id="tpRole" placeholder="e.g. A1, LD, Stage Manager"></div>
         <div class="fg"><label class="fl">Show / Event</label>
           <input type="text" class="fi" id="tpShow" placeholder="Which show" list="showNameList">
-          <datalist id="showNameList"></datalist>
+          <datalist id="showNameList"><option value="DNVR"></option><option value="Charlie mac Wedding"></option><option value="The Fluffy Cloud Cloud Activation"></option><option value="The Fluffy Cloud Sound Bath"></option><option value="The Fluffy Cloud Joezi"></option><option value="Inspire (Danny Garton)"></option><option value="Inspire (Danny Garton)"></option><option value="SNS IJM band rental"></option><option value="Outsidedays Lighting"></option><option value="SNS IJM band Sara Grooves"></option><option value="SNS In Room Op 4/12-4/15"></option><option value="AKUS 2026 Tour"></option></datalist>
         </div>
         <div class="fg"><label class="fl">Pay Type *</label>
           <select class="fs" id="tpType" onchange="updateTechPayFields()">
@@ -2139,6 +2503,91 @@ tr.arow:hover td { background: rgba(255,255,255,0.02); }
     </div>
   </div>
 </div>
+
+<!-- IMPORT INVOICES MODAL -->
+<div class="modal-overlay" id="importInvoiceModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">Import Invoices</div>
+      <button class="modal-close" onclick="closeModal(&#39;importInvoiceModal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--steel);margin-bottom:8px">
+        Add invoice PDFs or a ledger <code style="font-size:11px;color:var(--accent)">.csv</code>. PDFs are read best-effort and flagged for review; CSV rows merge straight in. Duplicate invoice #s are skipped or excluded from revenue.
+      </div>
+      <div style="background:var(--accent-dim);border:1px solid var(--border-hi);border-radius:var(--r);padding:9px 11px;margin-bottom:12px;font-size:12px;color:var(--text)">
+        <span id="invImportLimitLabel">Select files to begin.</span>
+      </div>
+      <label style="display:block;margin-bottom:12px">
+        <span style="display:block;font-size:12px;color:var(--muted);margin-bottom:5px">Choose files — PDF or CSV</span>
+        <input type="file" id="invImportFiles" accept=".pdf,.csv,application/pdf,text/csv" multiple="" onchange="onInvFilesPicked(this)" style="width:100%;color:var(--steel);font-size:12px">
+      </label>
+      <div id="invImportCounter" style="font-family:monospace;font-size:13px;margin-bottom:6px"></div>
+      <div style="height:6px;background:var(--bg-input);border-radius:3px;overflow:hidden;margin-bottom:6px"><div id="invImportBar" style="height:100%;width:0;background:var(--accent);transition:width .15s"></div></div>
+      <div id="invImportWarn" style="font-size:11px;color:var(--red);min-height:14px;margin-bottom:8px"></div>
+      <div id="invImportList" style="max-height:150px;overflow-y:auto;margin-bottom:12px"></div>
+      <details style="margin-bottom:12px">
+        <summary style="font-size:12px;color:var(--muted);cursor:pointer">Or paste CSV text</summary>
+        <textarea id="invImportText" rows="5" oninput="renderInvImportState()" placeholder="source_file,record_type,invoice_number,client,submitted_date,invoice_total,line_item,line_total,..." style="width:100%;margin-top:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical"></textarea>
+      </details>
+      <button class="btn btn-primary" id="invImportBtn" style="width:100%" onclick="runInvoiceImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW INVOICE MODAL -->
+<div class="modal-overlay" id="newInvoiceModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div class="modal-title">New Invoice</div>
+      <button class="modal-close" onclick="closeModal(&#39;newInvoiceModal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg"><label class="fl">Client / Bill To *</label><input class="fi" id="niClient" placeholder="Inspire Solution / JSAV"></div>
+        <div class="fg"><label class="fl">Record type</label>
+          <select class="fi" id="niType"><option>Client Invoice</option><option>Employee Payout</option><option>Quote</option></select></div>
+        <div class="fg"><label class="fl">Bill-to address</label><input class="fi" id="niBillTo" placeholder="Attn, street, city"></div>
+        <div class="fg"><label class="fl">Project / Event</label><input class="fi" id="niProject" placeholder="NSF NAEP Workshop"></div>
+        <div class="fg"><label class="fl">Venue / Location</label><input class="fi" id="niVenue" placeholder="Crystal Gateway Marriott"></div>
+        <div class="fg"><label class="fl">Service dates</label><input class="fi" id="niDates" placeholder="Apr 20–23, 2026"></div>
+        <div class="fg"><label class="fl">Invoice # *</label><input class="fi" id="niNumber" placeholder="2026-0142"></div>
+        <div class="fg"><label class="fl">Invoice date *</label><input class="fi" id="niDate" placeholder="mm/dd/yyyy"></div>
+        <div class="fg"><label class="fl">Terms</label><input class="fi" id="niTerms" placeholder="Net 30" value="Net 30"></div>
+        <div class="fg"><label class="fl">Due date</label><input class="fi" id="niDue" placeholder="mm/dd/yyyy"></div>
+        <div class="fg"><label class="fl">P.O. / Job #</label><input class="fi" id="niPo" placeholder="optional"></div>
+        <div class="fg"><label class="fl">Rep</label><input class="fi" id="niRep" placeholder="R. Rodriguez"></div>
+      </div>
+
+      <div class="fl" style="margin:14px 0 6px">Line items</div>
+      <div id="niLines"></div>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="addInvLineRow()">+ Add line</button>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+        <div class="fg"><label class="fl">Adjustment label</label><input class="fi" id="niAdjLbl" placeholder="Returning-client courtesy"></div>
+        <div class="fg"><label class="fl">Adjustment amount (− for discount)</label><input class="fi" id="niAdj" placeholder="-90" oninput="recalcNewInvoice()"></div>
+        <div class="fg"><label class="fl">Tax label</label><input class="fi" id="niTaxLbl" placeholder="Sales Tax (6%)"></div>
+        <div class="fg"><label class="fl">Tax amount</label><input class="fi" id="niTax" placeholder="9.00" oninput="recalcNewInvoice()"></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fi" id="niStatus" onchange="recalcNewInvoice()"><option value="unpaid">Unpaid — Balance Due</option><option value="paid">Paid in Full</option></select></div>
+        <div class="fg"><label class="fl">Paid date · method</label><input class="fi" id="niPaid" placeholder="May 20, 2026 · ACH"></div>
+      </div>
+      <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="niNotes" rows="2" style="resize:vertical" placeholder="Crew called 6am load-in through strike…"></textarea></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin:10px 0 4px;padding:12px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px">
+        <div style="font-size:12px;color:var(--muted)" id="niBreakdown">Subtotal $0.00</div>
+        <div style="font-family:monospace;font-weight:700;font-size:18px" id="niTotal">$0.00</div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1;min-width:150px" onclick="saveNewInvoice()">Save Invoice</button>
+        <button class="btn btn-ghost" onclick="exportNewInvoicePdf()">⬇ Export PDF</button>
+        <button class="btn btn-ghost" onclick="exportNewInvoiceCsv()">⬇ Export CSV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── CONFIG ──
 const SUPA_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co';
@@ -4166,8 +4615,10 @@ function setMoneyTab(tab, el) {
   el.classList.add('active');
   document.getElementById('moneyTab-shows').style.display = tab === 'shows' ? 'block' : 'none';
   document.getElementById('moneyTab-techpay').style.display = tab === 'techpay' ? 'block' : 'none';
+  document.getElementById('moneyTab-invoices').style.display = tab === 'invoices' ? 'block' : 'none';
   if (tab === 'shows') renderShows();
   if (tab === 'techpay') renderTechPay();
+  if (tab === 'invoices') ensureInvoicesLoaded();
 }
 
 function setPayTypeFilter(el, val) {
@@ -4697,6 +5148,668 @@ async function runCsvImport() {
     toast('Import failed', String(e).substring(0, 80));
   }
 }
+
+/* ===== INVOICES (Money section) — seeded ledger from historical 7VE PDFs ===== */
+const INVOICE_DATA = [{"invoice_number":"102319","client":"BTS","project":"set","submitted_date":"10/26/2019","year":"2019","record_type":"Client Invoice","invoice_total":"405.00","include_in_revenue":"Y","data_flag":"CONFLICT: inv 102319 also in BTS_Invoice with different amount ($405 vs $330)","event_location":"Mayflower","due_date":"11/1/2019","source_file":"BTS_mayflower_invoice_-_Invoice.pdf","line_items":[{"technician":"","line_item":"labor set/Assist","qty_hours":"10","unit_price":"31.50","line_total":"315.00"},{"technician":"","line_item":"Overtime","qty_hours":"2","unit_price":"45.00","line_total":"90.00"}]},{"invoice_number":"102319","client":"BTS","project":"set","submitted_date":"10/26/2019","year":"2019","record_type":"Client Invoice","invoice_total":"330.00","include_in_revenue":"N","data_flag":"CONFLICT: inv 102319 also in BTS_mayflower_invoice with different amount ($330 vs $405)","event_location":"Mayflower","due_date":"11/1/2019","source_file":"BTS_Invoice__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Labor set","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"","line_item":"Overtime","qty_hours":"2","unit_price":"45.00","line_total":"90.00"}]},{"invoice_number":"101719","client":"Capitol Crew","project":"Set","submitted_date":"10/17/2019","year":"2019","record_type":"Client Invoice","invoice_total":"250.00","include_in_revenue":"Y","data_flag":"DUPLICATE: same invoice also inside Capitol_Crew_invoice_.pdf","event_location":"Wardmen Park","due_date":"11/17/2019","source_file":"Capitol_Crew_invoice__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Labor Tech GAV","qty_hours":"1","unit_price":"250.00","line_total":"250.00"}]},{"invoice_number":"101519","client":"BAV","project":"Set & Strike","submitted_date":"10/15/2019","year":"2019","record_type":"Client Invoice","invoice_total":"600.00","include_in_revenue":"Y","data_flag":"This PDF also contains a duplicate of Capitol Crew inv 101719 (captured above)","event_location":"201 Waterfront St, National Harbor, MD 20745","due_date":"11/15/2019","source_file":"Capitol_Crew_invoice_.pdf","line_items":[{"technician":"","line_item":"Labor Tech GAV","qty_hours":"2","unit_price":"300.00","line_total":"600.00"},{"technician":"","line_item":"Parking","qty_hours":"2","unit_price":"30.00","line_total":"60.00"},{"technician":"","line_item":"Parking adjustment (removed)","qty_hours":"","unit_price":"","line_total":"-60.00"}]},{"invoice_number":"103019","client":"Vision Creative","project":"set","submitted_date":"11/3/2019","year":"2019","record_type":"Client Invoice","invoice_total":"148.50","include_in_revenue":"Y","data_flag":"DUPLICATE: identical to capitol_crewing_1__-_Invoice.pdf","event_location":"Marriott Marquis","due_date":"12/3/2019","source_file":"capitol_crewing__-_Invoice.pdf","line_items":[{"technician":"","line_item":"set","qty_hours":"5.5","unit_price":"27.00","line_total":"148.50"}]},{"invoice_number":"103019","client":"Vision Creative","project":"set","submitted_date":"11/3/2019","year":"2019","record_type":"Client Invoice","invoice_total":"148.50","include_in_revenue":"N","data_flag":"DUPLICATE: identical to capitol_crewing__-_Invoice.pdf","event_location":"Marriott Marquis","due_date":"12/3/2019","source_file":"capitol_crewing_1__-_Invoice.pdf","line_items":[{"technician":"","line_item":"set","qty_hours":"5.5","unit_price":"27.00","line_total":"148.50"}]},{"invoice_number":"22120","client":"JSAV","project":"set & Strike","submitted_date":"2/21/2020","year":"2020","record_type":"Client Invoice","invoice_total":"750.00","include_in_revenue":"Y","data_flag":"","event_location":"Gaylord Convention Center / Marriott","due_date":"3/21/2020","source_file":"cc_2020_invoice_-_Invoice.pdf","line_items":[{"technician":"","line_item":"2/6","qty_hours":"1","unit_price":"150.00","line_total":"150.00"},{"technician":"","line_item":"2/17","qty_hours":"1","unit_price":"300.00","line_total":"300.00"},{"technician":"","line_item":"2/18","qty_hours":"1","unit_price":"300.00","line_total":"300.00"}]},{"invoice_number":"3620","client":"JSAV / BAV","project":"Aviation 2020 set/strike","submitted_date":"3/14/2020","year":"2020","record_type":"Client Invoice","invoice_total":"495.00","include_in_revenue":"Y","data_flag":"","event_location":"Reagan International Trade Center","due_date":"4/6/2020","source_file":"cc_reissue__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Gav day rate","qty_hours":"1","unit_price":"300.00","line_total":"300.00"},{"technician":"","line_item":"Gav Half day","qty_hours":"1","unit_price":"150.00","line_total":"150.00"},{"technician":"","line_item":"Gav Over time","qty_hours":"1","unit_price":"45.00","line_total":"45.00"}]},{"invoice_number":"42426","client":"SNS Staging","project":"UPLANS","submitted_date":"4/27/2026","year":"2026","record_type":"Client Invoice","invoice_total":"300.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St, Arlington, VA 22203","due_date":"Net 30","source_file":"Christian_invoice_in_room_A1_-_Invoice.pdf","line_items":[{"technician":"Christian Lumsden","line_item":"IN Room Op 7:00-1:00pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"3080.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"1700 Richmond Hwy / 1401 Okie St NE, Washington DC","due_date":"1/30/2023","source_file":"Copy_of_freelance_labor_4-7_-_Invoice.pdf","line_items":[{"technician":"","line_item":"2/4/23 8am-4pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/5 8am-4pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/6 6am-6pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/6 6am-6pm OT","qty_hours":"4","unit_price":"105.00","line_total":"420.00"},{"technician":"","line_item":"2/7 6am-6pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/7 6am-6pm OT","qty_hours":"4","unit_price":"105.00","line_total":"420.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"3760.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"Capitol Hilton, 1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"Copy_of_Invoice_for_Week_of_1_15-16_27-28_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/15 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Chris Smoot","line_item":"1/16 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Darrius Malone","line_item":"1/15 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Darrius Malone","line_item":"1/16 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Roberto Rodriguez","line_item":"1/27 8-4","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"Roberto Rodriguez","line_item":"1/28 12-12","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"Roberto Rodriguez","line_item":"OT on the day","qty_hours":"4","unit_price":"110.00","line_total":"440.00"}]},{"invoice_number":"101022","client":"JSAV Inspire","project":"NSF NAEP TUDA Mathematics & Reading Workshop, CSFDC","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"4600.00","include_in_revenue":"Y","data_flag":"","event_location":"Hyatt Regency Crystal City / Crystal Gateway Marriott, 1700 Richmond Hwy, Arlington VA","due_date":"10/28/2022","source_file":"Copy_of_Invoice_for_Week_of_10_10_-_Invoice.pdf","line_items":[{"technician":"Roberto Rodriguez","line_item":"10/10 12pm-10pm","qty_hours":"10","unit_price":"80.00","line_total":"800.00"},{"technician":"Roberto Rodriguez","line_item":"10/11 9am-5pm","qty_hours":"8","unit_price":"80.00","line_total":"640.00"},{"technician":"Roberto Rodriguez","line_item":"10/12 7am-7pm","qty_hours":"12","unit_price":"80.00","line_total":"960.00"},{"technician":"Roberto Rodriguez","line_item":"10/13 7am-3pm","qty_hours":"8","unit_price":"80.00","line_total":"640.00"},{"technician":"Darrius Malone","line_item":"12pm-10pm","qty_hours":"10","unit_price":"60.00","line_total":"600.00"},{"technician":"Darrius Malone","line_item":"2pm-10pm","qty_hours":"8","unit_price":"60.00","line_total":"480.00"},{"technician":"Kevin Little","line_item":"2pm-10pm","qty_hours":"8","unit_price":"60.00","line_total":"480.00"}]},{"invoice_number":"91721","client":"Techcon","project":"Zoom Meeting (We are home)","submitted_date":"9/17/2021","year":"2021","record_type":"Client Invoice","invoice_total":"1261.44","include_in_revenue":"Y","data_flag":"REVIEW: printed subtotal ($1,261.44) equals only the 4 day-rate lines; OT/deductions not reflected in printed total | RECONCILE: line items sum to 543.10 vs printed total 1,261.44","event_location":"801 N Glebe Road","due_date":"10/1/2021","source_file":"9_23_2021_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Mon Day Rate 9am-5pm","qty_hours":"7.87","unit_price":"32.00","line_total":"251.84"},{"technician":"","line_item":"Tue 6:30am-5:30pm (incl 1.7 OT @$48)","qty_hours":"11.7","unit_price":"32.00","line_total":"374.40"},{"technician":"","line_item":"Wed 6:50am-6:00pm (incl 1 OT @$48)","qty_hours":"11","unit_price":"32.00","line_total":"352.00"},{"technician":"","line_item":"Thu 7:30am-4:30pm","qty_hours":"8.85","unit_price":"32.00","line_total":"283.20"},{"technician":"","line_item":"Overtime","qty_hours":"2.17","unit_price":"","line_total":"96.00"},{"technician":"","line_item":"Housing (not included)","qty_hours":"","unit_price":"","line_total":"-180.00"},{"technician":"","line_item":"Food Per Diem (not included)","qty_hours":"","unit_price":"","line_total":"-250.00"},{"technician":"","line_item":"Travel - tech booked 1 way","qty_hours":"","unit_price":"","line_total":"-263.93"},{"technician":"","line_item":"Uber","qty_hours":"5","unit_price":"","line_total":"-120.41"}]},{"invoice_number":"81219","client":"AV Concepts","project":"General AV","submitted_date":"8/15/2019","year":"2019","record_type":"Client Invoice","invoice_total":"750.00","include_in_revenue":"Y","data_flag":"","event_location":"Baltimore Convention Center","due_date":"8/30/2019","source_file":"av_concepts_88-815_-_Invoice.pdf","line_items":[{"technician":"","line_item":"8/8 8am-7pm","qty_hours":"10","unit_price":"25.00","line_total":"250.00"},{"technician":"","line_item":"8/10 8am-7pm","qty_hours":"10","unit_price":"25.00","line_total":"250.00"},{"technician":"","line_item":"8/13 4pm-9pm","qty_hours":"5","unit_price":"25.00","line_total":"125.00"},{"technician":"","line_item":"8/15 8am-1pm","qty_hours":"5","unit_price":"25.00","line_total":"125.00"}]},{"invoice_number":"121820","client":"AV Lancer","project":"Walmart drone show","submitted_date":"12/18/2020","year":"2020","record_type":"Client Invoice","invoice_total":"270.00","include_in_revenue":"Y","data_flag":"","event_location":"Doswell / Kings Dominion","due_date":"1/18/2021","source_file":"Av_lancer_drone_show_8_10_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Gav day rate split shift","qty_hours":"1","unit_price":"270.00","line_total":"270.00"}]},{"invoice_number":"111219","client":"BTS","project":"A2","submitted_date":"11/12/2019","year":"2019","record_type":"Client Invoice","invoice_total":"840.00","include_in_revenue":"Y","data_flag":"","event_location":"Renaissance Arlington Capitol View","due_date":"11/22/2019","source_file":"bts_invoice_11_12_-_Invoice.pdf","line_items":[{"technician":"","line_item":"A2","qty_hours":"10","unit_price":"30.00","line_total":"300.00"},{"technician":"","line_item":"A1","qty_hours":"9","unit_price":"30.00","line_total":"270.00"},{"technician":"","line_item":"A1","qty_hours":"9","unit_price":"30.00","line_total":"270.00"}]},{"invoice_number":"SNSIJM A1","client":"SNS Stagging","project":"IJM IN ROOM A1","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1800.00","include_in_revenue":"N","data_flag":"CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_invoice_A1 with Thu=10.5h ($1,825 vs $1,800)","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_conference_-_invoice_A1.pdf","line_items":[{"technician":"Roberto Rodriguez Velez","line_item":"Mon 23rd 9:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Tue 24th 7:00am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Wed 10:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Thu 6:30am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"}]},{"invoice_number":"SNSIJM A1","client":"SNS Stagging","project":"IJM IN ROOM A1","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1825.00","include_in_revenue":"Y","data_flag":"CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_-_invoice_A1 with Thu=10h ($1,800 vs $1,825)","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_conference_invoice_A1.pdf","line_items":[{"technician":"Roberto Rodriguez Velez","line_item":"Mon 23rd 9:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Tue 24th 7:00am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Wed 10:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Thu 6:30am-5:00pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"}]},{"invoice_number":"SNSIJM A2","client":"SNS Stagging","project":"IJM IN ROOM A2","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"472.50","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_In_room_A2_-_Invoice.pdf","line_items":[{"technician":"Roberto Rodriguez Velez / Luis Figueroa","line_item":"Thu 6:30am-5:00pm","qty_hours":"10.5","unit_price":"45.00","line_total":"472.50"}]},{"invoice_number":"102222","client":"JSAV Inspire","project":"Diocese of Virginia","submitted_date":"10/22/2022","year":"2022","record_type":"Client Invoice","invoice_total":"420.00","include_in_revenue":"Y","data_flag":"","event_location":"Hyatt Regency Crystal City / Crystal Gateway Marriott, 1700 Richmond Hwy, Arlington VA","due_date":"10/28/2022","source_file":"Diocese_of_Virginia_Labor_strike_10_6__-_Invoice.pdf","line_items":[{"technician":"Darrius Malone","line_item":"10/17 10am-6pm strike","qty_hours":"7","unit_price":"30.00","line_total":"210.00"},{"technician":"Chris Smoot","line_item":"10/18 10am-4pm strike","qty_hours":"7","unit_price":"30.00","line_total":"210.00"}]},{"invoice_number":"529302026","client":"Spencer Smith (Allcity Network)","project":"Tailgate","submitted_date":"5/30/2026","year":"2026","record_type":"Client Invoice","invoice_total":"837.23","include_in_revenue":"Y","data_flag":"","event_location":"Spencer@allcitynetwork.com / 303-325-1462","due_date":"6/7/2026","source_file":"DNVR_Morgan_Wallen.pdf","line_items":[{"technician":"","line_item":"Morgan Wallen Tailgate","qty_hours":"1","unit_price":"800.00","line_total":"800.00"},{"technician":"","line_item":"Saturday Tailgate","qty_hours":"1","unit_price":"800.00","line_total":"800.00"},{"technician":"","line_item":"JBL Speakers (included)","qty_hours":"2","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Subwoofer (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"All-in-one Audio controller (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Cables package (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"In-room technician / show talent (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Friends and family discount","qty_hours":"","unit_price":"","line_total":"-800.00"},{"technician":"","line_item":"Sales tax","qty_hours":"","unit_price":"","line_total":"37.23"}]},{"invoice_number":"33026","client":"SNS Staging","project":"DO DAY / SOMA","submitted_date":"3/30/2026","year":"2026","record_type":"Client Invoice","invoice_total":"2425.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St","due_date":"NET DEPOSIT","source_file":"DO_DAY_SOMA_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Tue Do Day 24th 9am-3pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"","line_item":"Wed Do Day 25th 11am-6:30pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"","line_item":"Thu Soma 26th 6am-12:00","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"","line_item":"Fri Soma 27th 7am-6:30","qty_hours":"11.5","unit_price":"50.00","line_total":"575.00"},{"technician":"","line_item":"Sat Soma 28th 7am-5:00","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"","line_item":"Sun Soma 29th 7am-2:00pm","qty_hours":"7","unit_price":"50.00","line_total":"350.00"}]},{"invoice_number":"412131415","client":"SNS Staging","project":"UPLANS","submitted_date":"4/27/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1350.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St, Arlington, VA 22203","due_date":"Net 30","source_file":"Doug_Cry__-_Invoice__1_.pdf","line_items":[{"technician":"Doug Cry","line_item":"IN room A1 4/20/26 10:00-3:15pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"Doug Cry","line_item":"IN room A1 4/21/26 10:00-8:45pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"},{"technician":"Doug Cry","line_item":"IN room A1 4/22/26 8:00-6:15pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"}]},{"invoice_number":"Quote 111322","client":"Inspire","project":"A1, A2, Gav","submitted_date":"12/17/2022","year":"2022","record_type":"Quote","invoice_total":"1070.00","include_in_revenue":"N","data_flag":"This is a QUOTE, not a final invoice. Filename says 'Nov28-Dec1' but line dates are 12/5 & 12/16 (filename unreliable)","event_location":"1700 Richmond Highway","due_date":"December 28, 2022","source_file":"Employee_pay_out_For_dates_of_Nov28-Dec1__-_Invoice.pdf","line_items":[{"technician":"Trey Hamilton","line_item":"A1 12/16 12noon-11pm","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"Trey Hamilton","line_item":"A1 OT on the day","qty_hours":"3","unit_price":"45.00","line_total":"135.00"},{"technician":"Chris Smoot","line_item":"A2 12/5 7am-8pm","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"D'andre Bynum","line_item":"Gav","qty_hours":"5","unit_price":"35.00","line_total":"175.00"},{"technician":"D'andre Bynum","line_item":"Gav","qty_hours":"8","unit_price":"35.00","line_total":"280.00"}]},{"invoice_number":"11023","client":"7 Virtues Employee Payout","project":"Cap Hilton","submitted_date":"1/10/2023","year":"2023","record_type":"Employee Payout","invoice_total":"2980.00","include_in_revenue":"N","data_flag":"EMPLOYEE PAYOUT (internal cost) \u2014 pairs with client invoice(s) for the same Cap Hilton Jan job. invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"Employee_pay_out_For_dates_of_14-16_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/15-1/16","qty_hours":"16","unit_price":"30.00","line_total":"480.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"4","unit_price":"45.00","line_total":"180.00"},{"technician":"Darrius Malone","line_item":"1/15-1/16","qty_hours":"16","unit_price":"30.00","line_total":"480.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"4","unit_price":"45.00","line_total":"180.00"},{"technician":"Roberto Rodriguez","line_item":"1/27-1/28","qty_hours":"16","unit_price":"70.00","line_total":"1120.00"},{"technician":"Roberto Rodriguez","line_item":"OT on the day","qty_hours":"4","unit_price":"135.00","line_total":"540.00"}]},{"invoice_number":"102219","client":"Event Tech Solutions","project":"General Labor","submitted_date":"10/22/2019","year":"2019","record_type":"Client Invoice","invoice_total":"135.00","include_in_revenue":"Y","data_flag":"","event_location":"Gaylord National","due_date":"11/22/2019","source_file":"Event_Tech_Solutions__-_Invoice.pdf","line_items":[{"technician":"","line_item":"General Labor","qty_hours":"5","unit_price":"27.00","line_total":"135.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"4550.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"Capitol Hilton, 1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"freelance_labor_27-31_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/27 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/27 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"1/28 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/28 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/29 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/29 2-10","qty_hours":"8","unit_price":"75.00","line_total":"600.00"},{"technician":"Trey Hamilton","line_item":"1/30 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/30 2-10","qty_hours":"8","unit_price":"75.00","line_total":"600.00"},{"technician":"Trey Hamilton","line_item":"1/31 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/31 2-10","qty_hours":"8","unit_price":"50.00","line_total":"400.00"}]}];
+let invYear = 'ALL', invType = 'all', invExpanded = {};
+const invMoney = n => '$' + (Number(n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const invNum = d => parseFloat(d.invoice_total||'0')||0;
+const invIsRev = d => d.record_type==='Client Invoice' && d.include_in_revenue==='Y';
+const invYearsList = () => [...new Set(INVOICE_DATA.map(d=>d.year))].filter(Boolean).sort();
+const invPool = () => invYear==='ALL' ? INVOICE_DATA : INVOICE_DATA.filter(d=>d.year===invYear);
+
+function buildInvYearChips(){
+  const el = document.getElementById('invYearChips'); if(!el) return;
+  const chips = [['ALL',INVOICE_DATA.length], ...invYearsList().map(y=>[y, INVOICE_DATA.filter(d=>d.year===y).length])];
+  el.innerHTML = chips.map(([y,c])=>`<button class="chip${y===invYear?' active':''}" data-iy="${y}" onclick="setInvoiceYear(this,'${y}')">${y} <span style="opacity:.5">${c}</span></button>`).join('');
+}
+function setInvoiceYear(el,y){ invYear=y; invExpanded={}; renderInvoices(); }
+function setInvoiceType(el,t){ invType=t; document.querySelectorAll('[data-it]').forEach(c=>c.classList.toggle('active',c.dataset.it===t)); renderInvoices(); }
+function toggleInvoice(i){ invExpanded[i]=!invExpanded[i]; renderInvoices(); }
+function invTypeTag(t){
+  if(t==='Employee Payout') return '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#22C55E18;color:var(--green)">PAYOUT</span>';
+  if(t==='Quote') return '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#7A849418;color:var(--steel)">QUOTE</span>';
+  return '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#F5A62318;color:var(--accent)">INVOICE</span>';
+}
+function renderInvoices(){
+  buildInvYearChips();
+  const p = invPool();
+  const rev = p.filter(invIsRev), revSum = rev.reduce((s,d)=>s+invNum(d),0);
+  const flagged = rev.filter(d=>d.data_flag), flagSum = flagged.reduce((s,d)=>s+invNum(d),0);
+  const pay = p.filter(d=>d.record_type==='Employee Payout'), paySum = pay.reduce((s,d)=>s+invNum(d),0);
+  const dupExcl = p.filter(d=>d.record_type==='Client Invoice'&&d.include_in_revenue==='N').length;
+  const clients = new Set(rev.map(d=>d.client)).size;
+  document.getElementById('invRev').textContent = invMoney(revSum);
+  document.getElementById('invRevSub').textContent = rev.length+' billable invoice'+(rev.length===1?'':'s');
+  document.getElementById('invCount').textContent = rev.length;
+  document.getElementById('invCountSub').textContent = dupExcl ? (dupExcl+' dup excluded') : 'counted';
+  document.getElementById('invClients').textContent = clients;
+  document.getElementById('invPay').textContent = pay.length ? invMoney(paySum) : '$0';
+  const fEl = document.getElementById('invFlag');
+  fEl.textContent = flagged.length; fEl.style.color = flagged.length ? 'var(--red)' : 'var(--green)';
+  document.getElementById('invFlagSub').textContent = flagged.length ? invMoney(flagSum)+' to verify' : 'clean';
+
+  let rows = p.slice();
+  if(invType==='flagged') rows = rows.filter(d=>d.data_flag);
+  else if(invType!=='all') rows = rows.filter(d=>d.record_type===invType);
+  const q = (document.getElementById('invSearch').value||'').toLowerCase();
+  if(q) rows = rows.filter(d=>((d.client||'')+' '+(d.project||'')+' '+(d.invoice_number||'')+' '+(d.event_location||'')).toLowerCase().includes(q));
+  rows.sort((a,b)=> new Date(b.submitted_date) - new Date(a.submitted_date));
+
+  const body=document.getElementById('invBody'), empty=document.getElementById('invEmpty'), tbl=document.getElementById('invTable');
+  if(!rows.length){ tbl.style.display='none'; empty.style.display='block'; body.innerHTML=''; }
+  else {
+    tbl.style.display='table'; empty.style.display='none';
+    body.innerHTML = rows.map(d=>{
+      const idx = INVOICE_DATA.indexOf(d);
+      const warn = d.data_flag ? `<span title="${(d.data_flag||'').replace(/"/g,'&quot;')}" style="color:var(--red);margin-left:6px;cursor:help">⚑</span>` : '';
+      const excl = (d.record_type==='Client Invoice'&&d.include_in_revenue==='N') ? `<span style="font-size:10px;color:var(--muted);margin-left:6px">excl.</span>` : '';
+      const main = `<tr class="arow" onclick="toggleInvoice(${idx})">
+        <td style="font-family:monospace;font-size:12px;color:var(--steel)">${d.invoice_number||'—'}</td>
+        <td><div class="asset-name">${d.client}${warn}${excl}</div>${d.project?`<div style="font-size:10px;color:var(--muted)">${d.project}</div>`:''}</td>
+        <td style="font-size:12px;color:var(--steel)">${d.submitted_date||'—'}</td>
+        <td>${invTypeTag(d.record_type)}</td>
+        <td style="font-family:monospace;font-weight:700;text-align:right;color:${d.record_type==='Employee Payout'?'var(--red)':'var(--text)'}">${invMoney(d.invoice_total)}</td>
+      </tr>`;
+      let det='';
+      if(invExpanded[idx]){
+        const li = (d.line_items||[]).map(l=>`<tr>
+          <td style="padding:5px 8px;font-size:12px;color:var(--steel)">${l.technician||'—'}</td>
+          <td style="padding:5px 8px;font-size:12px">${l.line_item}</td>
+          <td style="padding:5px 8px;font-size:12px;font-family:monospace;text-align:right;color:var(--muted)">${l.qty_hours||''}</td>
+          <td style="padding:5px 8px;font-size:12px;font-family:monospace;text-align:right;color:var(--muted)">${l.unit_price?invMoney(l.unit_price):''}</td>
+          <td style="padding:5px 8px;font-size:12px;font-family:monospace;text-align:right">${invMoney(l.line_total)}</td></tr>`).join('');
+        const flagLine = d.data_flag ? `<div style="margin-top:8px;color:var(--red);font-size:12px">⚑ ${d.data_flag}</div>` : '';
+        const meta = (d.event_location||'') + (d.due_date?` · due ${d.due_date}`:'');
+        det = `<tr><td colspan="5" style="background:var(--bg-input);padding:12px 14px">
+          ${meta?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${meta}</div>`:''}
+          <table style="width:100%;border-collapse:collapse"><thead><tr>
+            <th style="text-align:left;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Technician</th>
+            <th style="text-align:left;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Line item</th>
+            <th style="text-align:right;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Qty/Hrs</th>
+            <th style="text-align:right;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Rate</th>
+            <th style="text-align:right;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Amount</th>
+          </tr></thead><tbody>${li}</tbody></table>${flagLine}
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();exportInvoicePdf(INVOICE_DATA[${idx}])">⬇ PDF</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();exportInvoiceCsv(INVOICE_DATA[${idx}])">⬇ CSV</button></div><div style="font-size:10px;color:var(--muted);margin-top:8px">Source: ${d.source_file||''}</div></td></tr>`;
+      }
+      return main+det;
+    }).join('');
+  }
+
+  const byc={};
+  rev.forEach(d=>{ (byc[d.client]=byc[d.client]||{n:0,t:0}); byc[d.client].n++; byc[d.client].t+=invNum(d); });
+  const arr = Object.entries(byc).sort((a,b)=>b[1].t-a[1].t);
+  document.getElementById('invTotals').innerHTML = arr.length ? (
+    `<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Billable by client — ${invYear}</div>` +
+    `<div style="display:flex;flex-direction:column;gap:4px">` +
+    arr.map(([c,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:13px">${c} <span style="color:var(--muted);font-size:11px">· ${v.n} inv</span></span>
+      <span style="font-family:monospace;font-size:13px;font-weight:700">${invMoney(v.t)}</span></div>`).join('') + `</div>`
+  ) : '';
+}
+
+
+/* ===== INVOICE IMPORT (Money -> Invoices) — file-count + size guard ===== */
+const MAX_IMPORT_FILES = 20;
+const MAX_IMPORT_MB = 25;
+let pendingInvFiles = [];
+
+function openInvoiceImport(){
+  pendingInvFiles = [];
+  const fi = document.getElementById('invImportFiles'); if(fi) fi.value='';
+  const tx = document.getElementById('invImportText'); if(tx) tx.value='';
+  renderInvImportState();
+  openModal('importInvoiceModal');
+}
+function onInvFilesPicked(input){
+  for(const f of Array.from(input.files||[])){
+    if(!pendingInvFiles.some(x=>x.name===f.name && x.size===f.size)) pendingInvFiles.push(f);
+  }
+  input.value='';
+  renderInvImportState();
+}
+function removeInvFile(i){ pendingInvFiles.splice(i,1); renderInvImportState(); }
+const fmtMB = b => (b/1048576).toFixed(1);
+
+function renderInvImportState(){
+  const n = pendingInvFiles.length;
+  const bytes = pendingInvFiles.reduce((s,f)=>s+f.size,0);
+  const mb = bytes/1048576;
+  const overCount = n > MAX_IMPORT_FILES;
+  const overSize  = mb > MAX_IMPORT_MB;
+  const over = overCount || overSize;
+
+  const lbl = document.getElementById('invImportLimitLabel');
+  if(lbl) lbl.innerHTML = 'Select up to <b>'+MAX_IMPORT_FILES+' files</b> · <b>'+MAX_IMPORT_MB+' MB</b> total per import.';
+
+  document.getElementById('invImportCounter').innerHTML =
+    '<span style="color:'+(overCount?'var(--red)':'var(--text)')+'">'+n+' of '+MAX_IMPORT_FILES+' files</span>'
+    +' <span style="color:var(--muted)">·</span> '
+    +'<span style="color:'+(overSize?'var(--red)':'var(--muted)')+'">'+fmtMB(bytes)+' of '+MAX_IMPORT_MB+' MB</span>';
+
+  const bar = document.getElementById('invImportBar');
+  bar.style.width = Math.min(100,(n/MAX_IMPORT_FILES)*100)+'%';
+  bar.style.background = over ? 'var(--red)' : 'var(--accent)';
+
+  document.getElementById('invImportWarn').textContent = overCount
+    ? ('Remove '+(n-MAX_IMPORT_FILES)+' file'+(n-MAX_IMPORT_FILES===1?'':'s')+' — over the '+MAX_IMPORT_FILES+'-file limit.')
+    : overSize ? ('Over the '+MAX_IMPORT_MB+' MB limit — remove some files.') : '';
+
+  document.getElementById('invImportList').innerHTML = n ? pendingInvFiles.map((f,i)=>{
+    const bad = i>=MAX_IMPORT_FILES;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;background:var(--bg-input);border:1px solid '+(bad?'var(--red)':'var(--border)')+';border-radius:6px;margin-bottom:4px">'
+      +'<span style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(bad?'⚠ ':'')+f.name+'</span>'
+      +'<span style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+      +'<span style="font-size:11px;color:var(--muted);font-family:monospace">'+fmtMB(f.size)+'MB</span>'
+      +'<button onclick="removeInvFile('+i+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1">×</button>'
+      +'</span></div>';
+  }).join('') : '<div style="font-size:12px;color:var(--muted);padding:8px 0">No files selected yet.</div>';
+
+  const pasted = ((document.getElementById('invImportText')||{}).value||'').trim().length>0;
+  const btn = document.getElementById('invImportBtn');
+  btn.disabled = over || (n===0 && !pasted);
+  btn.style.opacity = btn.disabled ? .5 : 1;
+  btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer';
+  btn.textContent = over ? 'Over limit — remove files' : (n||pasted ? ('Import'+(n?' '+n+' file'+(n===1?'':'s'):' pasted CSV')) : 'Import');
+}
+
+function mergeInvoice(rec){
+  if(!rec) return 'fail';
+  if(rec.source_file && INVOICE_DATA.some(d=>d.source_file===rec.source_file)) return 'dup';
+  if(rec.invoice_number && INVOICE_DATA.some(d=>d.invoice_number===rec.invoice_number)){
+    rec.data_flag = (rec.data_flag?rec.data_flag+' | ':'')+'Possible duplicate: invoice # already exists — excluded from revenue until verified';
+    rec.include_in_revenue='N';
+  }
+  if(!rec.year && rec.submitted_date){ const y=rec.submitted_date.split('/').pop(); rec.year=(y&&y.length===2)?('20'+y):y; }
+  INVOICE_DATA.push(rec);
+  return 'added';
+}
+
+function parseCsvRows(text){
+  const rows=[]; let i=0,field='',row=[],inq=false;
+  while(i<text.length){ const ch=text[i];
+    if(inq){ if(ch==='"'){ if(text[i+1]==='"'){field+='"';i++;} else inq=false; } else field+=ch; }
+    else { if(ch==='"') inq=true;
+      else if(ch===','){ row.push(field); field=''; }
+      else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&text[i+1]==='\n')i++; row.push(field); if(row.some(x=>x!=='')) rows.push(row); row=[]; field=''; }
+      else field+=ch; }
+    i++;
+  }
+  if(field.length||row.length){ row.push(field); if(row.some(x=>x!=='')) rows.push(row); }
+  return rows;
+}
+
+function importInvoiceCsv(text){
+  const rows=parseCsvRows(text); let added=0,flagged=0,dups=0;
+  if(rows.length<2) return {added,flagged,dups};
+  const hdr=rows[0].map(h=>h.trim().toLowerCase());
+  const H=n=>hdr.indexOf(n);
+  const groups={}, order=[];
+  for(let r=1;r<rows.length;r++){
+    const c=rows[r]; const get=n=>{const idx=H(n); return idx>=0?(c[idx]||'').trim():'';};
+    const key=get('source_file')||get('invoice_number')||('row'+r);
+    if(!groups[key]){
+      groups[key]={ source_file:get('source_file')||key, record_type:get('record_type')||'Client Invoice',
+        invoice_number:get('invoice_number'), submitted_date:get('submitted_date'),
+        year:get('year'), client:get('client'), project:get('project'),
+        event_location:get('event_location'), due_date:get('due_date'),
+        invoice_total:get('invoice_total'), include_in_revenue:get('include_in_revenue')||'Y',
+        data_flag:get('data_flag'), line_items:[] };
+      order.push(key);
+    }
+    const li=get('line_item');
+    if(li) groups[key].line_items.push({technician:get('technician'),line_item:li,qty_hours:get('qty_hours'),unit_price:get('unit_price'),line_total:get('line_total')});
+  }
+  for(const k of order){ const rec=groups[k];
+    if(!rec.invoice_total) rec.invoice_total=String(rec.line_items.reduce((s,l)=>s+(parseFloat(l.line_total)||0),0));
+    const res=mergeInvoice(rec); if(res==='dup')dups++; else{added++; if(rec.data_flag)flagged++;}
+  }
+  return {added,flagged,dups};
+}
+
+let _pdfjs=null;
+function ensurePdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(_pdfjs) return _pdfjs;
+  _pdfjs=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib);}catch(e){rej(e);} };
+    s.onerror=()=>rej(new Error('Could not load PDF reader'));
+    document.head.appendChild(s);
+  });
+  return _pdfjs;
+}
+async function parsePdfInvoice(file){
+  const lib=await ensurePdfJs();
+  const buf=await file.arrayBuffer();
+  const pdf=await lib.getDocument({data:buf}).promise;
+  let text='';
+  for(let p=1;p<=pdf.numPages;p++){ const pg=await pdf.getPage(p); const c=await pg.getTextContent(); text+=c.items.map(x=>x.str).join(' ')+' '; }
+  return parseInvoiceText(text, file.name);
+}
+function parseInvoiceText(text, name){
+  const t=text.replace(/\s+/g,' ').trim();
+  const dm=t.match(/Submitted on\s*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4})/i);
+  const submitted=dm?dm[1]:'';
+  let year=''; if(submitted){ year=submitted.split('/').pop(); if(year.length===2) year='20'+year; }
+  let client=''; const cm=t.match(/Invoice for\s+(.*?)\s+(?:Payable to|7 Virtues)/i); if(cm) client=cm[1].trim().slice(0,40);
+  let invNo=''; const im=t.match(/Invoice #\s*([A-Za-z0-9][A-Za-z0-9\- ]{2,14})/i); if(im) invNo=im[1].trim();
+  const due=(t.match(/Due date\s*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4}|Net\s*\d+|Upon Rece?ipt)/i)||[])[1]||'';
+  const amts=(t.match(/\$\s?[0-9,]+\.[0-9]{2}/g)||[]).map(a=>a.replace(/[^0-9.]/g,''));
+  const total=amts.length?amts[amts.length-1]:'';
+  return {
+    source_file:name, record_type:'Client Invoice', invoice_number:invNo||'(parse)',
+    submitted_date:submitted, year:year, client:client||'(review client)', project:'',
+    event_location:'', due_date:due, invoice_total:total||'0', include_in_revenue:'Y',
+    data_flag:'IMPORTED FROM PDF — verify parse (client, total & line items)', line_items:[]
+  };
+}
+
+async function runInvoiceImport(){
+  const btn=document.getElementById('invImportBtn');
+  btn.disabled=true; btn.textContent='Importing…';
+  let added=0,flagged=0,dups=0,failed=0;
+  try{
+    const pasted=((document.getElementById('invImportText')||{}).value||'').trim();
+    if(pasted){ const r=importInvoiceCsv(pasted); added+=r.added; flagged+=r.flagged; dups+=r.dups; }
+    for(const f of pendingInvFiles.slice(0,MAX_IMPORT_FILES)){
+      const nm=f.name.toLowerCase();
+      try{
+        if(nm.endsWith('.csv')){ const r=importInvoiceCsv(await f.text()); added+=r.added; flagged+=r.flagged; dups+=r.dups; }
+        else if(nm.endsWith('.pdf')){ const rec=await parsePdfInvoice(f); const res=mergeInvoice(rec); if(res==='dup')dups++; else{added++; if(rec.data_flag)flagged++;} }
+        else failed++;
+      }catch(e){ failed++; }
+    }
+    renderInvoices();
+    if(typeof toast==='function') toast('Import complete', added+' added · '+flagged+' to review · '+dups+' dup skipped'+(failed?' · '+failed+' failed':''));
+    closeModal('importInvoiceModal');
+  }catch(e){ if(typeof toast==='function') toast('Import failed', String(e).substring(0,80)); }
+  finally{ renderInvImportState(); }
+}
+
+
+/* ===== INVOICE CREATE / EXPORT / PERSISTENCE ===== */
+const INV_PDF_CSS = `
+  :root{
+    --ink:#16181D;          /* near-black text */
+    --ink-2:#3D434E;        /* secondary */
+    --ink-3:#6B7280;        /* muted labels */
+    --line:#E3E6EC;         /* hairlines */
+    --line-2:#CDD2DB;
+    --band:#12141A;         /* dark header band / table head */
+    --gold:#E70B0E;         /* 7VE brand red */
+    --gold-deep:#B00810;    /* deep red */
+    --paper:#FFFFFF;
+    --wash:#F7F8FA;         /* faint fills */
+    --gold-wash:#FDECEC;    /* light red wash */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:#5B6070;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color:var(--ink); font-size:13px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:26px 16px 60px;
+  }
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+  .preview-note{
+    max-width:816px;margin:0 auto 16px;color:#E8EBF0;font-size:12px;
+    display:flex;gap:8px;align-items:center;letter-spacing:.01em;
+  }
+  .preview-note b{color:#fff}
+
+  /* ---- the sheet ---- */
+  .sheet{
+    max-width:816px;margin:0 auto;background:var(--paper);
+    box-shadow:0 24px 60px rgba(0,0,0,.32);
+    padding:0; overflow:hidden;
+    border-radius:2px;
+  }
+  .pad{padding:44px 52px}
+
+  /* ---- masthead ---- */
+  .masthead{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+  .brand{display:flex;gap:16px;align-items:flex-start}
+  .badge{width:76px;height:76px;flex-shrink:0;display:block}
+  .brand-txt .name{font-family:'Saira',sans-serif;font-weight:800;font-size:27px;line-height:.98;letter-spacing:.005em;text-transform:uppercase;color:#2D2D2D}
+  .brand-txt .name .rd{color:var(--red)}
+  .mark{
+    width:64px;height:64px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(155deg,#1B1E25,#0C0D11);
+    color:var(--gold);display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:23px;letter-spacing:-.02em;
+    box-shadow:inset 0 0 0 1px rgba(231,11,14,.45);
+    position:relative;
+  }
+  .mark::after{content:"";position:absolute;inset:7px;border:1px solid rgba(231,11,14,.30);border-radius:7px}
+  .brand-txt .name{font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1;text-transform:uppercase}
+  .brand-txt .name span{color:var(--gold-deep)}
+  .brand-txt .tag{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.16em;margin-top:6px;font-weight:600}
+  .brand-txt .contact{font-size:11.5px;color:var(--ink-2);margin-top:9px;line-height:1.65}
+
+  .doc{text-align:right;min-width:210px}
+  .doc h1{font-size:34px;font-weight:800;letter-spacing:.12em;margin:0;color:var(--ink);line-height:.9}
+  .doc .accent{height:3px;width:64px;background:var(--gold);margin:10px 0 10px auto;border-radius:2px}
+  .doc .num{font-size:13px;color:var(--ink-2);font-weight:600}
+  .doc .num b{color:var(--ink)}
+  .doc .status.paid{color:#177C43;border-color:#2FB56E;background:#E7F7EE}
+  .doc .status{
+    display:inline-block;margin-top:11px;font-size:10px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold-deep);border:1px solid var(--gold);
+    background:var(--gold-wash);padding:4px 11px;border-radius:20px;
+  }
+
+  .rule{height:1px;background:var(--line);margin:30px 0}
+  .rule.strong{height:2px;background:var(--band)}
+
+  /* ---- meta blocks ---- */
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  .label{font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+  .party .co{font-weight:700;font-size:15px}
+  .party .ln{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+  .facts{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:baseline}
+  .facts .k{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;white-space:nowrap}
+  .facts .v{text-align:right;font-size:12.5px;font-weight:600;color:var(--ink)}
+  .facts .v.due{color:var(--gold-deep)}
+
+  /* ---- event strip ---- */
+  .eventstrip{
+    margin-top:26px;background:var(--wash);border:1px solid var(--line);
+    border-left:3px solid var(--gold);border-radius:6px;
+    padding:12px 16px;display:flex;gap:32px;flex-wrap:wrap;
+  }
+  .eventstrip .cell .k{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+  .eventstrip .cell .val{font-size:13px;font-weight:600;margin-top:3px}
+
+  /* ---- line items ---- */
+  table{width:100%;border-collapse:collapse;margin-top:26px}
+  thead th{
+    background:var(--band);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.11em;
+    text-transform:uppercase;text-align:left;padding:11px 12px;
+  }
+  thead th.r{text-align:right}
+  thead th:first-child{border-radius:5px 0 0 5px;text-align:center;width:34px}
+  thead th:last-child{border-radius:0 5px 5px 0}
+  tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:12.5px}
+  tbody td.n{text-align:center;color:var(--ink-3);font-size:11px}
+  tbody td.r{text-align:right}
+  tbody tr:nth-child(even) td{background:#FBFBFC}
+  .desc .d1{font-weight:600}
+  .desc .d2{font-size:11px;color:var(--ink-3);margin-top:2px}
+  .cat{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:1.5px 6px;border-radius:3px;margin-left:7px;vertical-align:1px}
+  .cat.lab{background:#EAF0FB;color:#2C5AA6}
+  .cat.ot{background:#FBEDE9;color:#B4472B}
+  .cat.gear{background:#EAF6EE;color:#2C7A46}
+  .cat.exp{background:#F0EEF6;color:#6A4CA0}
+
+  /* ---- totals ---- */
+  .totals-wrap{display:flex;justify-content:space-between;gap:40px;margin-top:22px}
+  .notes{flex:1;max-width:360px}
+  .notes .box{background:var(--wash);border:1px solid var(--line);border-radius:6px;padding:13px 15px}
+  .notes .box .k{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+  .notes .box p{margin:0;font-size:11.5px;color:var(--ink-2);line-height:1.65}
+  .totals{width:300px;flex-shrink:0}
+  .trow{display:flex;justify-content:space-between;padding:8px 2px;font-size:12.5px}
+  .trow .lbl{color:var(--ink-2)}
+  .trow.sub{border-top:1px solid var(--line)}
+  .trow .neg{color:var(--gold-deep)}
+  .grand{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:8px;background:var(--band);color:#fff;border-radius:7px;padding:15px 18px;
+  }
+  .grand .g-lbl{font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#C9CCD4}
+  .grand .g-amt{font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .grand .g-amt .cur{color:var(--gold);font-size:15px;font-weight:700;margin-right:4px;vertical-align:2px}
+  .grand.paid{background:#0E1A13;box-shadow:inset 0 0 0 1px rgba(47,181,110,.35)}
+  .grand .g-amt .cur.ok{color:#43C77D}
+  .trow .pay{color:#177C43}
+  .paid-stamp{display:inline-block;transform:rotate(-11deg);border:3px solid #1F9D57;box-shadow:inset 0 0 0 2px #1F9D57;
+    color:#1F9D57;border-radius:9px;padding:7px 20px 6px;margin:0 0 16px 4px;text-align:center;opacity:.9}
+  .paid-stamp{font-family:'Saira',sans-serif;font-weight:800;font-size:33px;letter-spacing:.14em;text-transform:uppercase;line-height:1}
+  .paid-stamp small{display:block;font-size:9.5px;letter-spacing:.13em;font-weight:600;margin-top:3px;opacity:.9}
+
+  /* ---- footer ---- */
+  .foot{margin-top:34px;border-top:2px solid var(--band);padding-top:18px;display:grid;grid-template-columns:1.3fr 1fr;gap:30px}
+  .foot .k{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+  .foot p{margin:0;font-size:11px;color:var(--ink-2);line-height:1.7}
+  .foot .remit b{color:var(--ink)}
+  .thanks{text-align:center;margin-top:26px;font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+  .thanks b{color:var(--gold-deep);font-weight:700}
+  .terms{font-size:9.5px;color:var(--ink-3);line-height:1.6;margin-top:16px;text-align:justify}
+
+  @media print{
+    body{background:#fff;padding:0}
+    .preview-note{display:none}
+    .sheet{box-shadow:none;max-width:none;border-radius:0}
+    .pad{padding:34px 40px}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:letter;margin:0}
+  }
+  @media (max-width:680px){
+    .pad{padding:28px 22px}
+    .masthead{flex-direction:column}
+    .doc{text-align:left}.doc .accent{margin-left:0}
+    .meta{grid-template-columns:1fr;gap:22px}
+    .totals-wrap{flex-direction:column-reverse}.totals{width:100%}
+    .foot{grid-template-columns:1fr}
+  }
+`;
+let invoicesLoaded = false;
+
+function ensureInvoicesLoaded(){
+  if(invoicesLoaded){ renderInvoices(); return; }
+  invoicesLoaded = true;
+  loadInvoices().then(()=>renderInvoices()).catch(()=>renderInvoices());
+}
+function rowToInvoice(r){
+  let li = r.line_items;
+  if(typeof li==='string'){ try{ li=JSON.parse(li);}catch(e){ li=[]; } }
+  return {
+    invoice_number:r.invoice_number||'', client:r.client||'', project:r.project||'',
+    submitted_date:r.submitted_date||'', year:r.year||((r.submitted_date||'').split('/').pop()||''),
+    record_type:r.record_type||'Client Invoice', invoice_total:String(r.invoice_total??''),
+    include_in_revenue:r.include_in_revenue||'Y', data_flag:r.data_flag||'',
+    event_location:r.event_location||'', due_date:r.due_date||'', source_file:r.source_file||'',
+    bill_to:r.bill_to||'', venue:r.venue||'', service_dates:r.service_dates||'', terms:r.terms||'',
+    po_number:r.po_number||'', rep:r.rep||'', subtotal:r.subtotal, adjustment_label:r.adjustment_label||'',
+    adjustment_amount:r.adjustment_amount, tax_label:r.tax_label||'', tax_amount:r.tax_amount,
+    status:r.status||'unpaid', paid_info:r.paid_info||'', notes:r.notes||'', line_items:Array.isArray(li)?li:[]
+  };
+}
+function invoiceToRow(rec){
+  return {
+    invoice_number:rec.invoice_number, record_type:rec.record_type, client:rec.client, project:rec.project,
+    event_location:rec.event_location, submitted_date:rec.submitted_date, due_date:rec.due_date,
+    year:rec.year, invoice_total:parseFloat(rec.invoice_total)||0, include_in_revenue:rec.include_in_revenue,
+    data_flag:rec.data_flag||'', source_file:rec.source_file||'', bill_to:rec.bill_to||'', venue:rec.venue||'',
+    service_dates:rec.service_dates||'', terms:rec.terms||'', po_number:rec.po_number||'', rep:rec.rep||'',
+    subtotal:parseFloat(rec.subtotal)||null, adjustment_label:rec.adjustment_label||'',
+    adjustment_amount:parseFloat(rec.adjustment_amount)||0, tax_label:rec.tax_label||'',
+    tax_amount:parseFloat(rec.tax_amount)||0, status:rec.status||'unpaid', paid_info:rec.paid_info||'',
+    notes:rec.notes||'', line_items:rec.line_items||[]
+  };
+}
+async function loadInvoices(){
+  try{
+    const rows = await sbGet('invoices?select=*&order=submitted_date.desc');
+    if(Array.isArray(rows) && rows.length){
+      INVOICE_DATA.length=0; rows.forEach(r=>INVOICE_DATA.push(rowToInvoice(r)));
+    }
+  }catch(e){ /* no invoices table yet -> keep embedded seed */ }
+}
+async function syncInvoicesToDb(){
+  try{
+    let existing=[]; try{ existing = await sbGet('invoices?select=invoice_number'); }catch(e){
+      toast('No invoices table','Create the invoices table in Supabase first — ask Claude for the SQL.'); return;
+    }
+    if(existing.length){ toast('Already synced', existing.length+' invoices already in the database.'); return; }
+    let ok=0;
+    for(const rec of INVOICE_DATA){ try{ await sbPost('invoices', invoiceToRow(rec)); ok++; }catch(e){} }
+    toast('Synced to database', ok+' invoices saved — they will now persist on refresh.');
+  }catch(e){ toast('Sync failed', String(e).substring(0,80)); }
+}
+
+/* ---------- New-invoice form ---------- */
+let niLineData=[];
+function openNewInvoice(){
+  niLineData=[{desc:'',cat:'Labor',tech:'',qty:'',rate:''}];
+  ['niClient','niBillTo','niProject','niVenue','niDates','niNumber','niDate','niDue','niPo','niRep','niAdjLbl','niAdj','niTaxLbl','niTax','niPaid','niNotes'].forEach(id=>{const e=document.getElementById(id); if(e)e.value= id==='niTerms'?'Net 30':'';});
+  document.getElementById('niTerms').value='Net 30';
+  document.getElementById('niType').value='Client Invoice';
+  document.getElementById('niStatus').value='unpaid';
+  renderInvLines(); recalcNewInvoice();
+  openModal('newInvoiceModal');
+}
+function addInvLineRow(){ niLineData.push({desc:'',cat:'Labor',tech:'',qty:'',rate:''}); renderInvLines(); }
+function removeInvLineRow(i){ niLineData.splice(i,1); if(!niLineData.length) addInvLineRow(); else {renderInvLines(); recalcNewInvoice();} }
+function renderInvLines(){
+  const cats=['Labor','OT','Rental','Expense'];
+  document.getElementById('niLines').innerHTML = niLineData.map((l,i)=>`
+    <div style="display:grid;grid-template-columns:2.4fr 1fr 1.4fr .8fr .9fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center">
+      <input class="fi" placeholder="Description" value="${(l.desc||'').replace(/"/g,'&quot;')}" oninput="niLineData[${i}].desc=this.value">
+      <select class="fi" onchange="niLineData[${i}].cat=this.value">${cats.map(c=>`<option${c===l.cat?' selected':''}>${c}</option>`).join('')}</select>
+      <input class="fi" placeholder="Technician" value="${(l.tech||'').replace(/"/g,'&quot;')}" oninput="niLineData[${i}].tech=this.value">
+      <input class="fi" placeholder="Qty" value="${l.qty}" oninput="niLineData[${i}].qty=this.value;recalcNewInvoice()">
+      <input class="fi" placeholder="Rate" value="${l.rate}" oninput="niLineData[${i}].rate=this.value;recalcNewInvoice()">
+      <div style="font-family:monospace;font-size:12px;text-align:right;color:var(--steel)">$${((parseFloat(l.qty)||0)*(parseFloat(l.rate)||0)).toFixed(2)}</div>
+      <button onclick="removeInvLineRow(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px">×</button>
+    </div>`).join('');
+}
+function niSubtotal(){ return niLineData.reduce((s,l)=>s+(parseFloat(l.qty)||0)*(parseFloat(l.rate)||0),0); }
+function recalcNewInvoice(){
+  const sub=niSubtotal();
+  const adj=parseFloat(document.getElementById('niAdj').value)||0;
+  const tax=parseFloat(document.getElementById('niTax').value)||0;
+  const total=sub+adj+tax;
+  document.getElementById('niBreakdown').textContent=`Subtotal $${sub.toFixed(2)}`+(adj?`  ·  Adj ${adj<0?'-':''}$${Math.abs(adj).toFixed(2)}`:'')+(tax?`  ·  Tax $${tax.toFixed(2)}`:'');
+  const paid=document.getElementById('niStatus').value==='paid';
+  document.getElementById('niTotal').innerHTML = paid ? `<span style="color:var(--green)">PAID</span> · $${total.toFixed(2)}` : `$${total.toFixed(2)}`;
+}
+function collectNewInvoice(){
+  const g=id=>document.getElementById(id).value.trim();
+  const sub=niSubtotal(); const adj=parseFloat(g('niAdj'))||0; const tax=parseFloat(g('niTax'))||0;
+  const total=sub+adj+tax;
+  const items=niLineData.filter(l=>l.desc||l.qty||l.rate).map(l=>({
+    technician:l.tech||'', line_item:(l.cat&&l.cat!=='Labor'?`[${l.cat}] `:'')+ (l.desc||''),
+    qty_hours:l.qty||'', unit_price:l.rate||'', line_total:((parseFloat(l.qty)||0)*(parseFloat(l.rate)||0)).toFixed(2)
+  }));
+  return {
+    invoice_number:g('niNumber')||'(unnumbered)', record_type:g('niType')||'Client Invoice',
+    client:g('niClient'), project:g('niProject'), event_location:g('niVenue')||g('niBillTo'),
+    submitted_date:g('niDate'), due_date:g('niDue'), year:(g('niDate').split('/').pop()||''),
+    invoice_total:total.toFixed(2), include_in_revenue: g('niType')==='Client Invoice'?'Y':'N',
+    data_flag:'', source_file:'created-in-app', bill_to:g('niBillTo'), venue:g('niVenue'),
+    service_dates:g('niDates'), terms:g('niTerms'), po_number:g('niPo'), rep:g('niRep'),
+    subtotal:sub.toFixed(2), adjustment_label:g('niAdjLbl'), adjustment_amount:adj,
+    tax_label:g('niTaxLbl'), tax_amount:tax, status:g('niStatus'), paid_info:g('niPaid'),
+    notes:g('niNotes'), line_items:items
+  };
+}
+async function saveNewInvoice(){
+  const rec=collectNewInvoice();
+  if(!rec.client){ toast('Missing client','Enter a client / bill-to name.'); return; }
+  INVOICE_DATA.unshift(rec);
+  renderInvoices();
+  try{ await sbPost('invoices', invoiceToRow(rec)); toast('Invoice saved', rec.invoice_number+' · $'+rec.invoice_total+' — saved & persisted.'); }
+  catch(e){ toast('Saved locally', 'Shown now, but not persisted — create the invoices table to keep it on refresh.'); }
+  closeModal('newInvoiceModal');
+}
+function exportNewInvoiceCsv(){ exportInvoiceCsv(collectNewInvoice()); }
+function exportNewInvoicePdf(){ exportInvoicePdf(collectNewInvoice()); }
+
+/* ---------- CSV export (ledger schema) ---------- */
+function csvCell(v){ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function exportInvoiceCsv(rec){
+  const cols=['source_file','record_type','invoice_number','submitted_date','client','project','event_location','due_date','year','include_in_revenue','invoice_total','technician','line_item','qty_hours','unit_price','line_total','data_flag'];
+  const rows=[cols.join(',')];
+  (rec.line_items||[]).forEach((l,i)=>{
+    rows.push(cols.map(c=>{
+      if(c==='technician')return csvCell(l.technician);
+      if(c==='line_item')return csvCell(l.line_item);
+      if(c==='qty_hours')return csvCell(l.qty_hours);
+      if(c==='unit_price')return csvCell(l.unit_price);
+      if(c==='line_total')return csvCell(l.line_total);
+      return i===0?csvCell(rec[c]):'';
+    }).join(','));
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='invoice_'+(rec.invoice_number||'new').replace(/[^\w-]/g,'_')+'.csv'; a.click();
+}
+
+/* ---------- PDF export (renders approved template) ---------- */
+function invMoneyD(n){ return '$'+(Number(n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function buildInvoiceDoc(rec){
+  const li=rec.line_items||[];
+  const liSum=li.reduce((s,l)=>s+(parseFloat(l.line_total)||0),0);
+  const sub=(rec.subtotal!=null&&rec.subtotal!=='')?parseFloat(rec.subtotal):liSum;
+  const adj=parseFloat(rec.adjustment_amount)||0, tax=parseFloat(rec.tax_amount)||0;
+  const total=(rec.invoice_total!=null&&rec.invoice_total!=='')?parseFloat(rec.invoice_total):(sub+adj+tax);
+  const paid=(rec.status==='paid');
+  const catClass=t=>({'[Labor]':'lab','[OT]':'ot','[Rental]':'gear','[Expense]':'exp'})[t]||'lab';
+  const rows=li.map((l,i)=>{
+    const m=(l.line_item||'').match(/^\[(Labor|OT|Rental|Expense)\]\s*/);
+    const cat=m?m[1]:''; const desc=(l.line_item||'').replace(/^\[[^\]]+\]\s*/,'');
+    const chip=cat?`<span class="cat ${{Labor:'lab',OT:'ot',Rental:'gear',Expense:'exp'}[cat]}">${cat}</span>`:'';
+    return `<tr><td class="n">${i+1}</td><td class="desc"><div class="d1">${desc}${chip}</div>${l.technician?`<div class="d2">${l.technician}</div>`:''}</td>
+      <td class="r">${l.qty_hours||''}</td><td class="r">${l.unit_price?invMoneyD(l.unit_price):''}</td><td class="r">${invMoneyD(l.line_total)}</td></tr>`;
+  }).join('');
+  let totRows=`<div class="trow"><span class="lbl">Subtotal</span><span>${invMoneyD(sub)}</span></div>`;
+  if(adj) totRows+=`<div class="trow sub"><span class="lbl">${rec.adjustment_label||'Adjustment'}</span><span class="neg">${adj<0?'−':''}${invMoneyD(Math.abs(adj))}</span></div>`;
+  if(tax) totRows+=`<div class="trow sub"><span class="lbl">${rec.tax_label||'Sales Tax'}</span><span>${invMoneyD(tax)}</span></div>`;
+  let grand;
+  if(paid){
+    totRows+=`<div class="trow sub"><span class="lbl">Total</span><span>${invMoneyD(total)}</span></div>`;
+    totRows+=`<div class="trow"><span class="lbl">Payment received${rec.paid_info?' · '+rec.paid_info:''}</span><span class="pay">−${invMoneyD(total)}</span></div>`;
+    grand=`<div class="grand paid"><span class="g-lbl">Balance Due</span><span class="g-amt"><span class="cur ok">$</span>0.00</span></div>`;
+  } else {
+    grand=`<div class="grand"><span class="g-lbl">Total Due</span><span class="g-amt"><span class="cur">$</span>${Number(total).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>`;
+  }
+  const stamp = paid ? `<div class="paid-stamp">Paid${rec.paid_info?`<small>${rec.paid_info}</small>`:''}</div>` : '';
+  const statusPill = paid ? '<div class="status paid">Paid in Full</div>' : '<div class="status">Balance Due</div>';
+  const badge='<div class="mark">7V</div>';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${rec.invoice_number||''}</title>`
+   +`<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Saira:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">`
+   +`<style>${INV_PDF_CSS}</style></head><body onload="setTimeout(function(){window.print()},450)">`
+   +`<div class="sheet"><div class="pad">`
+   +`<div class="masthead"><div class="brand">${badge}<div class="brand-txt">`
+   +`<div class="name"><span class="rd">7&nbsp;Virtues</span> Entertainment</div>`
+   +`<div class="tag">Live Event Production &amp; Technical Labor</div>`
+   +`<div class="contact">DC · Maryland · Virginia · 202-306-4375<br>admin@7virtuesentertainment.com</div></div></div>`
+   +`<div class="doc"><h1>INVOICE</h1><div class="accent"></div><div class="num mono">No. <b>${rec.invoice_number||'—'}</b></div>${statusPill}</div></div>`
+   +`<div class="rule"></div>`
+   +`<div class="meta"><div class="party"><div class="label">Bill To</div><div class="co">${rec.client||''}</div><div class="ln">${(rec.bill_to||'').replace(/\n/g,'<br>')}</div></div>`
+   +`<div><div class="label">Invoice Details</div><div class="facts mono">`
+   +`<div class="k">Invoice Date</div><div class="v">${rec.submitted_date||'—'}</div>`
+   +`<div class="k">Terms</div><div class="v">${rec.terms||'—'}</div>`
+   +`<div class="k">Due Date</div><div class="v due">${rec.due_date||'—'}</div>`
+   +`<div class="k">P.O. / Job #</div><div class="v">${rec.po_number||'—'}</div>`
+   +`<div class="k">Rep</div><div class="v">${rec.rep||'—'}</div></div></div></div>`
+   +((rec.project||rec.venue||rec.service_dates)?`<div class="eventstrip">`
+       +(rec.project?`<div class="cell"><div class="k">Project / Event</div><div class="val">${rec.project}</div></div>`:'')
+       +((rec.venue||rec.event_location)?`<div class="cell"><div class="k">Venue</div><div class="val">${rec.venue||rec.event_location}</div></div>`:'')
+       +(rec.service_dates?`<div class="cell"><div class="k">Service Dates</div><div class="val">${rec.service_dates}</div></div>`:'')
+     +`</div>`:'')
+   +`<table><thead><tr><th>#</th><th>Description</th><th class="r">Qty / Hrs</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody class="mono">${rows}</tbody></table>`
+   +`<div class="totals-wrap"><div class="notes">${stamp}${rec.notes?`<div class="box"><div class="k">Notes</div><p>${rec.notes}</p></div>`:''}</div>`
+   +`<div class="totals mono">${totRows}${grand}</div></div>`
+   +`<div class="foot"><div class="remit"><div class="k">Remit Payment To</div><p><b>7 Virtues Entertainment</b><br>Make checks payable to 7 Virtues Entertainment · Zelle / ACH available on request<br>admin@7virtuesentertainment.com · 202-306-4375</p></div>`
+   +`<div><div class="k">Payment</div><p>${rec.terms||'Net 30'} from invoice date. Please reference invoice <b>No. ${rec.invoice_number||''}</b> with payment.</p></div></div>`
+   +`<div class="thanks">Thank you for choosing <b>7 Virtues Entertainment</b>.</div>`
+   +`</div></div></body></html>`;
+}
+function exportInvoicePdf(rec){
+  const w=window.open('','_blank');
+  if(!w){ toast('Popup blocked','Allow popups to export the PDF.'); return; }
+  w.document.write(buildInvoiceDoc(rec)); w.document.close();
+}
+/* expose a print/export action from a ledger row */
+function invoiceActions(idx){ const rec=INVOICE_DATA[idx]; if(rec) exportInvoicePdf(rec); }
+
 </script>
 
 
