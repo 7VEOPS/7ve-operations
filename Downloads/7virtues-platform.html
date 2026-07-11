@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7 Virtues Operations Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0D0F12;
+    --bg-card: #1E2329;
+    --bg-card-hover: #252B33;
+    --bg-input: #161A1F;
+    --accent: #F5A623;
+    --accent-dim: rgba(245,166,35,0.12);
+    --accent-hover: #F7B84B;
+    --steel: #8B95A1;
+    --text: #E8EBF0;
+    --text-muted: #5A6475;
+    --border: #2A3040;
+    --border-bright: #3A4558;
+    --critical-mission: #E84040;
+    --critical-show: #F5A623;
+    --critical-convenience: #3B82F6;
+    --critical-consumable: #6B7280;
+    --status-good: #22C55E;
+    --status-warn: #F59E0B;
+    --status-bad: #EF4444;
+    --status-repair: #A855F7;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg-base);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #111418;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .logo {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .logo-mark span { color: var(--accent); }
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* WORKSPACE SWITCHER */
+  .workspace-switcher {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ws-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 6px;
+    margin-bottom: 6px;
+  }
+  .ws-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--steel);
+  }
+  .ws-item:hover { background: var(--bg-card); color: var(--text); }
+  .ws-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+  .ws-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .ws-item.active .ws-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  /* NAV */
+  .nav-section {
+    padding: 12px 10px 6px;
+  }
+  .nav-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 6px;
+    margin-bottom: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--steel);
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg-card); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.8; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--critical-mission);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 10px;
+    line-height: 1.4;
+  }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    background: #111418;
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .topbar-breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .topbar-breadcrumb span { color: var(--steel); }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-primary { background: var(--accent); color: #0D0F12; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--steel); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg-card); color: var(--text); border-color: var(--border-bright); }
+  .btn-danger { background: rgba(232,64,64,0.12); color: var(--critical-mission); border: 1px solid rgba(232,64,64,0.2); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* CONTENT */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .stat-card:hover { border-color: var(--border-bright); }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-sub { font-size: 11px; color: var(--text-muted); }
+  .stat-card.critical .stat-value { color: var(--critical-mission); }
+  .stat-card.warn .stat-value { color: var(--critical-show); }
+  .stat-card.good .stat-value { color: var(--status-good); }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px 8px 36px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--steel);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover { border-color: var(--border-bright); color: var(--text); }
+  .filter-chip.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+  .filter-chip .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ASSET TABLE */
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.2);
+  }
+  td { padding: 13px 16px; border-bottom: 1px solid rgba(42,48,64,0.6); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.asset-row { cursor: pointer; transition: background 0.12s; }
+  tr.asset-row:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ASSET ID */
+  .asset-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+
+  /* ASSET NAME */
+  .asset-name { font-weight: 500; font-size: 13px; }
+  .asset-category { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* CRITICALITY BADGE */
+  .crit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .crit-badge.mission { background: rgba(232,64,64,0.15); color: #FF6B6B; border: 1px solid rgba(232,64,64,0.25); }
+  .crit-badge.show { background: rgba(245,166,35,0.15); color: var(--accent); border: 1px solid rgba(245,166,35,0.25); }
+  .crit-badge.convenience { background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.2); }
+  .crit-badge.consumable { background: rgba(107,114,128,0.15); color: #9CA3AF; border: 1px solid rgba(107,114,128,0.2); }
+  .crit-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* STATUS BADGE */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .status-badge.operational { background: rgba(34,197,94,0.1); color: #4ADE80; }
+  .status-badge.repair { background: rgba(168,85,247,0.12); color: #C084FC; }
+  .status-badge.missing { background: rgba(232,64,64,0.12); color: #F87171; }
+  .status-badge.rental { background: rgba(245,158,11,0.1); color: #FCD34D; }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* LOCATION PILL */
+  .location-pill {
+    font-size: 11px;
+    color: var(--steel);
+    background: rgba(255,255,255,0.04);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ACTION MENU */
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  tr.asset-row:hover .row-actions { opacity: 1; }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 7px;
+    cursor: pointer;
+    color: var(--steel);
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.12s;
+  }
+  .icon-btn:hover { background: var(--bg-card-hover); border-color: var(--border-bright); color: var(--text); }
+  .icon-btn svg { width: 13px; height: 13px; }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .modal-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .modal-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+  .modal-close {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--steel);
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.12s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* FORM FIELDS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 11px; color: var(--steel); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .form-input, .form-select, .form-textarea {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 72px; }
+  .form-select option { background: var(--bg-card); }
+
+  /* QR CODE DISPLAY */
+  .qr-section {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .qr-placeholder {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 6px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #0D0F12;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+  }
+  .qr-code-svg { width: 100%; height: 100%; }
+  .qr-code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+  }
+  .qr-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* DETAIL TABS */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--steel);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* SECTION HEADERS */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 13px;
+    border: 1px solid;
+  }
+  .alert-banner.critical {
+    background: rgba(232,64,64,0.08);
+    border-color: rgba(232,64,64,0.2);
+    color: #FCA5A5;
+  }
+  .alert-banner.critical .alert-title {
+    font-weight: 700;
+    color: #F87171;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .alert-banner svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* DEPARTMENT TAGS */
+  .dept-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(245,166,35,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(245,166,35,0.15);
+    white-space: nowrap;
+  }
+
+  /* SCAN SIMULATION */
+  .scan-panel {
+    background: #060809;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .scan-header {
+    background: rgba(245,166,35,0.06);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .scan-result {
+    padding: 20px;
+    text-align: center;
+  }
+  .scan-result-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .scan-result-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .scan-crit-display {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .scan-crit-display.mission {
+    background: rgba(232,64,64,0.15);
+    color: #FF6B6B;
+    border: 1px solid rgba(232,64,64,0.3);
+  }
+  .scan-crit-display.show {
+    background: rgba(245,166,35,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(245,166,35,0.3);
+  }
+  .scan-status-msg {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ADD ASSET FORM */
+  .add-form { display: none; }
+  .add-form.open { display: block; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+  .empty-title { font-size: 15px; color: var(--steel); margin-bottom: 6px; }
+
+  /* HIERARCHY PATH */
+  .hier-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .hier-path span { color: var(--steel); }
+  .hier-path .sep { color: var(--border-bright); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--steel); }
+
+  /* TOAST */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    animation: slideUp 0.25s ease;
+    max-width: 280px;
+    pointer-events: all;
+  }
+  .toast.success { border-color: rgba(34,197,94,0.3); }
+  .toast-title { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .toast-sub { color: var(--steel); font-size: 12px; }
+  @keyframes slideUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .sidebar { width: 56px; min-width: 56px; }
+    .sidebar .logo-mark, .sidebar .logo-sub, .sidebar .ws-label, .sidebar .nav-label { display: none; }
+    .ws-item span, .nav-item span { display: none; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  /* PHASE CHIPS */
+  .phase-chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .phase-chip {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .phase-chip.active-phase { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(245,166,35,0.3); }
+  .phase-chip.future-phase { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark"><span>7</span> Virtues</div>
+      <div class="logo-sub">Operations Platform</div>
+    </div>
+
+    <div class="workspace-switcher">
+      <div class="ws-label">Workspaces</div>
+      <div class="ws-item active" onclick="switchWorkspace(this, 'The Fluffy Cloud')">
+        <div class="ws-dot"></div>
+        <span>The Fluffy Cloud</span>
+      </div>
+      <div class="ws-item" onclick="switchWorkspace(this, 'Rodvel Tour')">
+        <div class="ws-dot"></div>
+        <span>Rodvel Tour</span>
+      </div>
+      <div class="ws-item" onclick="switchWorkspace(this, 'Corporate Events')">
+        <div class="ws-dot"></div>
+        <span>Corporate Events</span>
+      </div>
+      <div class="ws-item" onclick="switchWorkspace(this, 'Hotel AV')">
+        <div class="ws-dot"></div>
+        <span>Hotel AV</span>
+      </div>
+      <div class="ws-item" onclick="switchWorkspace(this, 'Festival Division')">
+        <div class="ws-dot"></div>
+        <span>Festival Division</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Platform</div>
+
+      <div class="nav-item active" onclick="setView('inventory', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Inventory</span>
+      </div>
+
+      <div class="nav-item" onclick="setView('scan', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M17 3h2a2 2 0 012 2v2M17 21h2a2 2 0 002-2v-2M7 12h10"/></svg>
+        <span>Scan / QR</span>
+      </div>
+
+      <div class="nav-item" onclick="setView('systems', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        <span>Systems</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Coming Soon</div>
+      <div class="nav-item" style="opacity:0.4; cursor:default">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        <span>Truck Pack</span>
+      </div>
+      <div class="nav-item" style="opacity:0.4; cursor:default">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Repairs</span>
+      </div>
+      <div class="nav-item" style="opacity:0.4; cursor:default">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Crew</span>
+      </div>
+      <div class="nav-item" style="opacity:0.4; cursor:default">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        <span>Rentals</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="viewTitle">Inventory</div>
+        <div class="topbar-breadcrumb">
+          <span id="workspaceName">The Fluffy Cloud</span>
+          <span class="sep">›</span>
+          <span id="viewName">All Assets</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('importModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>
+          Import CSV
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addAssetModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Asset
+        </button>
+      </div>
+    </div>
+
+    <!-- INVENTORY VIEW -->
+    <div class="content" id="view-inventory">
+
+      <!-- PHASE ROADMAP -->
+      <div class="phase-chips">
+        <span class="phase-chip active-phase">✓ Phase 1: Inventory</span>
+        <span class="phase-chip future-phase">Phase 2: Truck Pack</span>
+        <span class="phase-chip future-phase">Phase 3: Repairs</span>
+        <span class="phase-chip future-phase">Phase 4: Crew</span>
+        <span class="phase-chip future-phase">Phase 5: Projects</span>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card" onclick="filterByCrit('')">
+          <div class="stat-label">Total Assets</div>
+          <div class="stat-value" style="color:var(--text)" id="totalCount">0</div>
+          <div class="stat-sub">Across all departments</div>
+        </div>
+        <div class="stat-card critical" onclick="filterByStatus('missing')">
+          <div class="stat-label">Missing / Alert</div>
+          <div class="stat-value" id="missingCount">0</div>
+          <div class="stat-sub">Requires attention</div>
+        </div>
+        <div class="stat-card warn" onclick="filterByStatus('repair')">
+          <div class="stat-label">In Repair</div>
+          <div class="stat-value" id="repairCount">0</div>
+          <div class="stat-sub">Out of service</div>
+        </div>
+        <div class="stat-card good" onclick="filterByCrit('')">
+          <div class="stat-label">Operational</div>
+          <div class="stat-value" id="operationalCount">0</div>
+          <div class="stat-sub">Ready to deploy</div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search assets, IDs, systems…" oninput="filterAssets()">
+        </div>
+        <button class="filter-chip active" data-crit="" onclick="filterByCrit('')">All</button>
+        <button class="filter-chip" data-crit="Mission Critical" onclick="filterByCrit('Mission Critical')">
+          <span class="dot" style="color:#FF6B6B"></span> Mission Critical
+        </button>
+        <button class="filter-chip" data-crit="Show Critical" onclick="filterByCrit('Show Critical')">
+          <span class="dot" style="color:var(--accent)"></span> Show Critical
+        </button>
+        <button class="filter-chip" data-crit="Convenience" onclick="filterByCrit('Convenience')">
+          <span class="dot" style="color:#60A5FA"></span> Convenience
+        </button>
+        <button class="filter-chip" data-crit="Consumable" onclick="filterByCrit('Consumable')">
+          <span class="dot" style="color:#9CA3AF"></span> Consumable
+        </button>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Asset ID</th>
+              <th>Asset Name</th>
+              <th>Department</th>
+              <th>System</th>
+              <th>Criticality</th>
+              <th>Status</th>
+              <th>Location</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="assetTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SCAN / QR VIEW -->
+    <div class="content" id="view-scan" style="display:none">
+      <div style="max-width:500px;margin:0 auto">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:20px;margin-bottom:6px">QR Scanner Simulator</h2>
+        <p style="color:var(--steel);font-size:13px;margin-bottom:24px">Simulate scanning a QR code by selecting an asset below. In production, this would use device camera.</p>
+
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Select Asset to Scan</label>
+          <select class="form-select" id="scanSelect" onchange="simulateScan()">
+            <option value="">— Select Asset —</option>
+          </select>
+        </div>
+
+        <div class="scan-panel" id="scanResult" style="display:none">
+          <div class="scan-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M17 3h2a2 2 0 012 2v2M17 21h2a2 2 0 002-2v-2M7 12h10"/></svg>
+            SCAN RESULT
+          </div>
+          <div class="scan-result">
+            <div class="scan-result-id" id="scanId"></div>
+            <div class="scan-result-name" id="scanName"></div>
+            <div id="scanCrit" class="scan-crit-display"></div>
+            <div id="scanStatusMsg" class="scan-status-msg"></div>
+          </div>
+          <!-- QR Code visual -->
+          <div style="padding:16px;border-top:1px solid var(--border)">
+            <div class="qr-section">
+              <div class="qr-placeholder">
+                <svg class="qr-code-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="qrCodeSvg"></svg>
+              </div>
+              <div class="qr-code-label" id="qrLabel"></div>
+              <div class="qr-sub">Scan to view full asset record</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="showToast('QR Code', 'Printed to label printer')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print QR Label
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEMS VIEW -->
+    <div class="content" id="view-systems" style="display:none">
+      <div style="max-width:700px">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:20px;margin-bottom:6px">Systems Overview</h2>
+        <p style="color:var(--steel);font-size:13px;margin-bottom:20px">Grouped views by system. Each system gets its own QR code for deployment checks.</p>
+        <div id="systemsGrid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD ASSET MODAL -->
+<div class="modal-overlay" id="addAssetModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Add New Asset</div>
+        <div class="modal-id">AUTO-GENERATED ID</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('addAssetModal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Asset Name *</label>
+          <input type="text" class="form-input" id="newName" placeholder="e.g. X32 Rack">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department *</label>
+          <select class="form-select" id="newDept">
+            <option value="Audio">Audio</option>
+            <option value="Video">Video</option>
+            <option value="Lighting">Lighting</option>
+            <option value="Power">Power</option>
+            <option value="Scenic">Scenic</option>
+            <option value="Networking">Networking</option>
+            <option value="Consumables">Consumables</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">System</label>
+          <input type="text" class="form-input" id="newSystem" placeholder="e.g. Playback System">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Case / Container</label>
+          <input type="text" class="form-input" id="newCase" placeholder="e.g. CASE-AUD-001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Criticality *</label>
+          <select class="form-select" id="newCrit">
+            <option value="Mission Critical">Mission Critical</option>
+            <option value="Show Critical">Show Critical</option>
+            <option value="Convenience">Convenience</option>
+            <option value="Consumable">Consumable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="newStatus">
+            <option value="Operational">Operational</option>
+            <option value="Repair">In Repair</option>
+            <option value="Missing">Missing</option>
+            <option value="Rental">Out on Rental</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location / Zone</label>
+          <input type="text" class="form-input" id="newLocation" placeholder="e.g. SL-RACK-03">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Serial / Model #</label>
+          <input type="text" class="form-input" id="newSerial" placeholder="e.g. SN-293847">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="newNotes" placeholder="Condition notes, special handling, known issues…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addAssetModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addAsset()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+        Add Asset & Generate QR
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET DETAIL MODAL -->
+<div class="modal-overlay" id="assetDetailModal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detailName">—</div>
+        <div class="modal-id" id="detailId">—</div>
+        <div class="hier-path" id="detailHier" style="margin-top:4px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('assetDetailModal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="detailAlert"></div>
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('overview', this)">Overview</div>
+        <div class="tab" onclick="switchTab('qr', this)">QR Code</div>
+        <div class="tab" onclick="switchTab('history', this)">History</div>
+      </div>
+      <div id="tab-overview">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div>
+            <div class="form-label" style="margin-bottom:4px">Criticality</div>
+            <div id="detailCrit"></div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">Status</div>
+            <div id="detailStatus"></div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">Department</div>
+            <div id="detailDept" style="font-size:13px"></div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">System</div>
+            <div id="detailSystem" style="font-size:13px;color:var(--steel)"></div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">Location / Zone</div>
+            <div id="detailLocation"></div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">Case</div>
+            <div id="detailCase" style="font-size:13px;color:var(--steel);font-family:'JetBrains Mono',monospace"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label" style="margin-bottom:4px">Notes</div>
+          <div id="detailNotes" style="font-size:13px;color:var(--steel);background:var(--bg-input);padding:10px;border-radius:6px;min-height:50px"></div>
+        </div>
+      </div>
+      <div id="tab-qr" style="display:none;text-align:center">
+        <div class="qr-section">
+          <div class="qr-placeholder">
+            <svg class="qr-code-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="detailQrSvg"></svg>
+          </div>
+          <div class="qr-code-label" id="detailQrLabel"></div>
+          <div class="qr-sub">Scan to pull up this asset record</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+          <button class="btn btn-ghost btn-sm" onclick="showToast('QR Code', 'Copied to clipboard')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy ID
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('QR Label', 'Sent to printer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Label
+          </button>
+        </div>
+      </div>
+      <div id="tab-history" style="display:none">
+        <div id="detailHistory"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteAsset()">Remove Asset</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeModal('assetDetailModal')">Close</button>
+      <button class="btn btn-primary" onclick="showToast('Asset Updated', 'Changes saved to inventory')">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Import Assets via CSV</div>
+      <button class="modal-close" onclick="closeModal('importModal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--steel);margin-bottom:14px">Upload a CSV with columns: Name, Department, System, Case, Criticality, Status, Location, Notes</p>
+      <div style="background:var(--bg-input);border:2px dashed var(--border-bright);border-radius:var(--radius-lg);padding:32px;text-align:center;cursor:pointer;transition:border-color 0.15s" onclick="showToast('CSV Import', 'Feature ready — connect your file picker')">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom:10px"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>
+        <div style="font-size:13px;color:var(--steel)">Click to select CSV file</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">or drag and drop</div>
+      </div>
+      <div style="margin-top:14px;padding:12px;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);border-radius:var(--radius);font-size:12px;color:var(--steel)">
+        <strong style="color:var(--accent)">Tip:</strong> Download the template to see the exact format expected. QR codes are auto-generated on import.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="showToast('Template', 'CSV template downloaded')">Download Template</button>
+      <button class="btn btn-primary" onclick="closeModal('importModal');showToast('Import', 'Ready when you upload a file')">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+let currentWorkspace = 'The Fluffy Cloud';
+let currentFilter = '';
+let currentStatusFilter = '';
+let activeDetailId = null;
+
+const workspaceData = {
+  'The Fluffy Cloud': [
+    { id:'AUD-001', name:'X32 Rack (Main)', dept:'Audio', system:'Playback System', caseId:'CASE-AUD-001', crit:'Mission Critical', status:'Operational', location:'SR-RACK-01', notes:'Primary house console. Handle with care — encoder replaced 2024-11.', history:['2024-11-15: Encoder replaced by tech team','2024-08-02: Firmware updated to 4.06','2024-03-10: Added to inventory'] },
+    { id:'AUD-002', name:'Audio Power Distribution', dept:'Audio', system:'Playback System', caseId:'CASE-PWR-001', crit:'Mission Critical', status:'Operational', location:'SR-RACK-01', notes:'60A spider. Test breakers before every show.', history:['2025-01-03: All breakers tested OK','2024-06-10: Added to inventory'] },
+    { id:'AUD-003', name:'CDJ-3000 (Left)', dept:'Audio', system:'DJ System', caseId:'CASE-AUD-002', crit:'Show Critical', status:'Operational', location:'FOH-CART', notes:'', history:['2025-02-01: Added to inventory'] },
+    { id:'AUD-004', name:'CDJ-3000 (Right)', dept:'Audio', system:'DJ System', caseId:'CASE-AUD-002', crit:'Show Critical', status:'Operational', location:'FOH-CART', notes:'', history:['2025-02-01: Added to inventory'] },
+    { id:'AUD-005', name:'DJM-A9 Mixer', dept:'Audio', system:'DJ System', caseId:'CASE-AUD-002', crit:'Show Critical', status:'Repair', location:'SHOP', notes:'Channel 3 fader scratchy. Needs service.', history:['2025-03-12: Sent to repair shop','2025-02-28: Fader issue first noted'] },
+    { id:'AUD-006', name:'Bubble Machine', dept:'Audio', system:'Bubble System', caseId:'CASE-FX-001', crit:'Convenience', status:'Operational', location:'CASE-FX-001', notes:'Fill with bubble fluid before show.', history:['2024-09-15: Added to inventory'] },
+    { id:'AUD-007', name:'Manta LED Array', dept:'Lighting', system:'Manta System', caseId:'CASE-LGT-001', crit:'Show Critical', status:'Operational', location:'CASE-LGT-001', notes:'', history:['2024-10-01: Added to inventory'] },
+    { id:'VID-001', name:'Resolume Server', dept:'Video', system:'Playback System', caseId:'CASE-VID-001', crit:'Mission Critical', status:'Operational', location:'SR-RACK-02', notes:'i9 / RTX 4090. Keep cool.', history:['2025-01-10: GPU driver updated','2024-12-01: Added to inventory'] },
+    { id:'VID-002', name:'Barco E2 Processor', dept:'Video', system:'Playback System', caseId:'CASE-VID-001', crit:'Mission Critical', status:'Missing', location:'UNKNOWN', notes:'Last seen Festival Feb 2025. Check with Rodriguez crew.', history:['2025-02-20: Flagged as missing after load-out','2024-11-01: Added to inventory'] },
+    { id:'LGT-001', name:'MA Lighting Dot2', dept:'Lighting', system:'Playback System', caseId:'CASE-LGT-002', crit:'Mission Critical', status:'Operational', location:'FOH-DESK', notes:'', history:['2025-01-15: Added to inventory'] },
+    { id:'PWR-001', name:'Gaff Tape (Black, 4-pack)', dept:'Consumables', system:'', caseId:'SUPPLY-CART', crit:'Consumable', status:'Operational', location:'SUPPLY-CART', notes:'Re-order when below 2 rolls.', history:['2025-03-01: Stock replenished'] },
+    { id:'PWR-002', name:'PowerCon True1 25ft', dept:'Power', system:'', caseId:'CASE-PWR-002', crit:'Show Critical', status:'Operational', location:'CASE-PWR-002', notes:'', history:['2024-08-15: Added to inventory'] },
+  ],
+  'Rodvel Tour': [
+    { id:'RT-AUD-001', name:'Avid S6L-32D', dept:'Audio', system:'FOH System', caseId:'CASE-RT-AUD-001', crit:'Mission Critical', status:'Operational', location:'FOH-TRUCK-A1', notes:'Tour console. Serial #847291.', history:['2025-01-05: Pre-tour check complete'] },
+    { id:'RT-AUD-002', name:'d&b J8 Speaker Array (L)', dept:'Audio', system:'PA System', caseId:'', crit:'Mission Critical', status:'Operational', location:'TRUCK-A-ZONE-1', notes:'', history:['2025-01-05: Added'] },
+    { id:'RT-LGT-001', name:'Robe BMFL FollowSpot', dept:'Lighting', system:'Spot System', caseId:'CASE-RT-LGT-001', crit:'Show Critical', status:'Repair', location:'SHOP', notes:'Lamp housing cracked. Replacement ordered.', history:['2025-03-08: Sent for repair'] },
+  ],
+  'Corporate Events': [],
+  'Hotel AV': [],
+  'Festival Division': [],
+};
+
+// ============================================================
+// QR CODE GENERATOR (pure SVG, no external lib)
+// ============================================================
+function generateQRSVG(text) {
+  // Simple deterministic pattern based on text (visual simulation)
+  const seed = text.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const size = 21;
+  const cells = [];
+  
+  // Fixed patterns (finder squares)
+  const fixed = new Set();
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) fixed.add(`${r},${c}`);
+  for (let r = 0; r < 7; r++) for (let c = size-7; c < size; c++) fixed.add(`${r},${c}`);
+  for (let r = size-7; r < size; r++) for (let c = 0; c < 7; c++) fixed.add(`${r},${c}`);
+  
+  let rng = seed;
+  const rand = () => { rng = (rng * 1664525 + 1013904223) & 0xFFFFFFFF; return (rng >>> 0) / 0xFFFFFFFF; };
+  
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const key = `${r},${c}`;
+      if (fixed.has(key)) {
+        // Finder pattern
+        const inR = r < 7 ? r : r - (size-7);
+        const inC = c < 7 ? c : c - (size-7);
+        const mr = Math.min(inR, 6-inR), mc = Math.min(inC, 6-inC);
+        const m = Math.min(mr, mc);
+        cells.push({ r, c, on: m === 0 || m === 2 || (m === 3 && mr > 1 && mc > 1) });
+      } else {
+        cells.push({ r, c, on: rand() > 0.45 });
+      }
+    }
+  }
+  
+  const cellSize = 100 / size;
+  const rects = cells
+    .filter(x => x.on)
+    .map(x => `<rect x="${(x.c * cellSize).toFixed(1)}" y="${(x.r * cellSize).toFixed(1)}" width="${cellSize.toFixed(1)}" height="${cellSize.toFixed(1)}" fill="#000"/>`)
+    .join('');
+  return `<rect width="100" height="100" fill="white"/>${rects}`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function getAssets() {
+  return workspaceData[currentWorkspace] || [];
+}
+
+function critClass(crit) {
+  if (crit === 'Mission Critical') return 'mission';
+  if (crit === 'Show Critical') return 'show';
+  if (crit === 'Convenience') return 'convenience';
+  return 'consumable';
+}
+
+function statusClass(s) {
+  if (s === 'Operational') return 'operational';
+  if (s === 'Repair') return 'repair';
+  if (s === 'Missing') return 'missing';
+  return 'rental';
+}
+
+function renderTable(assets) {
+  const tbody = document.getElementById('assetTableBody');
+  if (!assets.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <div class="empty-title">No assets yet</div>
+      <div style="font-size:13px">Add your first asset or import a CSV to get started.</div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = assets.map(a => `
+    <tr class="asset-row" onclick="openDetail('${a.id}')">
+      <td><span class="asset-id">${a.id}</span></td>
+      <td>
+        <div class="asset-name">${a.name}</div>
+        ${a.notes ? `<div class="asset-category">${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>` : ''}
+      </td>
+      <td><span class="dept-tag">${a.dept}</span></td>
+      <td style="font-size:12px;color:var(--steel)">${a.system || '—'}</td>
+      <td><span class="crit-badge ${critClass(a.crit)}"><span class="crit-dot"></span>${a.crit}</span></td>
+      <td><span class="status-badge ${statusClass(a.status)}"><span class="status-dot"></span>${a.status}</span></td>
+      <td><span class="location-pill">${a.location || '—'}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();showQR('${a.id}')" title="QR Code">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M17 3h2a2 2 0 012 2v2M17 21h2a2 2 0 002-2v-2M7 12h10"/></svg>
+          </button>
+          <button class="icon-btn" onclick="event.stopPropagation();openDetail('${a.id}')" title="Edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function updateStats(assets) {
+  document.getElementById('totalCount').textContent = assets.length;
+  document.getElementById('missingCount').textContent = assets.filter(a => a.status === 'Missing').length;
+  document.getElementById('repairCount').textContent = assets.filter(a => a.status === 'Repair').length;
+  document.getElementById('operationalCount').textContent = assets.filter(a => a.status === 'Operational').length;
+}
+
+function filterAssets() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let assets = getAssets();
+  if (currentFilter) assets = assets.filter(a => a.crit === currentFilter);
+  if (currentStatusFilter) assets = assets.filter(a => a.status === currentStatusFilter);
+  if (q) assets = assets.filter(a =>
+    a.name.toLowerCase().includes(q) ||
+    a.id.toLowerCase().includes(q) ||
+    a.dept.toLowerCase().includes(q) ||
+    (a.system||'').toLowerCase().includes(q)
+  );
+  renderTable(assets);
+  updateStats(getAssets());
+}
+
+function filterByCrit(crit) {
+  currentFilter = crit;
+  currentStatusFilter = '';
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.crit === crit);
+  });
+  filterAssets();
+}
+
+function filterByStatus(status) {
+  currentStatusFilter = status;
+  currentFilter = '';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  filterAssets();
+}
+
+// ============================================================
+// WORKSPACE SWITCHING
+// ============================================================
+function switchWorkspace(el, name) {
+  currentWorkspace = name;
+  currentFilter = '';
+  currentStatusFilter = '';
+  document.querySelectorAll('.ws-item').forEach(w => w.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('workspaceName').textContent = name;
+  filterAssets();
+  populateScanSelect();
+  renderSystems();
+  showToast('Workspace', `Switched to ${name}`);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function setView(view, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-inventory').style.display = view==='inventory' ? '' : 'none';
+  document.getElementById('view-scan').style.display = view==='scan' ? '' : 'none';
+  document.getElementById('view-systems').style.display = view==='systems' ? '' : 'none';
+  const titles = { inventory:'Inventory', scan:'QR Scanner', systems:'Systems' };
+  const subtitles = { inventory:'All Assets', scan:'Scan Asset', systems:'System Groups' };
+  document.getElementById('viewTitle').textContent = titles[view];
+  document.getElementById('viewName').textContent = subtitles[view];
+  if (view === 'systems') renderSystems();
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ============================================================
+// ADD ASSET
+// ============================================================
+let idCounters = { AUD:1, VID:1, LGT:1, PWR:1, GEN:1 };
+
+function generateId(dept) {
+  const map = { Audio:'AUD', Video:'VID', Lighting:'LGT', Power:'PWR', Consumables:'CON', Networking:'NET', Scenic:'SCN' };
+  const prefix = map[dept] || 'GEN';
+  const assets = getAssets();
+  const existing = assets.filter(a => a.id.startsWith(prefix));
+  const num = String(existing.length + 1).padStart(3, '0');
+  const ws = currentWorkspace === 'Rodvel Tour' ? 'RT-' : currentWorkspace === 'Corporate Events' ? 'CE-' : '';
+  return `${ws}${prefix}-${num}`;
+}
+
+function addAsset() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) { showToast('Error', 'Asset name is required', 'error'); return; }
+  const dept = document.getElementById('newDept').value;
+  const newAsset = {
+    id: generateId(dept),
+    name,
+    dept,
+    system: document.getElementById('newSystem').value.trim(),
+    caseId: document.getElementById('newCase').value.trim(),
+    crit: document.getElementById('newCrit').value,
+    status: document.getElementById('newStatus').value,
+    location: document.getElementById('newLocation').value.trim() || 'UNASSIGNED',
+    notes: document.getElementById('newNotes').value.trim(),
+    history: [`${new Date().toISOString().split('T')[0]}: Added to ${currentWorkspace} inventory`],
+  };
+  if (!workspaceData[currentWorkspace]) workspaceData[currentWorkspace] = [];
+  workspaceData[currentWorkspace].push(newAsset);
+  closeModal('addAssetModal');
+  // Clear form
+  ['newName','newSystem','newCase','newLocation','newSerial','newNotes'].forEach(f => document.getElementById(f).value = '');
+  filterAssets();
+  populateScanSelect();
+  showToast('Asset Added', `${newAsset.id} — ${newAsset.name} added with QR code`);
+}
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+function openDetail(id) {
+  const a = getAssets().find(x => x.id === id);
+  if (!a) return;
+  activeDetailId = id;
+  document.getElementById('detailName').textContent = a.name;
+  document.getElementById('detailId').textContent = a.id;
+  document.getElementById('detailHier').innerHTML = `
+    <span>${currentWorkspace}</span>
+    <span class="sep">›</span>
+    <span>${a.dept}</span>
+    ${a.system ? `<span class="sep">›</span><span>${a.system}</span>` : ''}
+    ${a.caseId ? `<span class="sep">›</span><span>${a.caseId}</span>` : ''}
+  `;
+
+  // Critical alert for missing mission-critical
+  const alertEl = document.getElementById('detailAlert');
+  if (a.status === 'Missing' && a.crit === 'Mission Critical') {
+    alertEl.innerHTML = `<div class="alert-banner critical">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <div class="alert-title">⚠ MISSION CRITICAL — SHOW CANNOT OPEN</div>
+        <div>This asset is missing and is required for the show to operate. Locate immediately.</div>
+      </div>
+    </div>`;
+  } else if (a.status === 'Missing' && a.crit === 'Show Critical') {
+    alertEl.innerHTML = `<div class="alert-banner critical" style="background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2);color:#FCD34D">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <div class="alert-title" style="color:#F59E0B">⚠ SHOW CRITICAL — LOCATE BEFORE DOORS</div>
+        <div style="color:#FCD34D">This asset is missing. Show can potentially open but this needs to be resolved.</div>
+      </div>
+    </div>`;
+  } else {
+    alertEl.innerHTML = '';
+  }
+
+  document.getElementById('detailCrit').innerHTML = `<span class="crit-badge ${critClass(a.crit)}"><span class="crit-dot"></span>${a.crit}</span>`;
+  document.getElementById('detailStatus').innerHTML = `<span class="status-badge ${statusClass(a.status)}"><span class="status-dot"></span>${a.status}</span>`;
+  document.getElementById('detailDept').innerHTML = `<span class="dept-tag">${a.dept}</span>`;
+  document.getElementById('detailSystem').textContent = a.system || '—';
+  document.getElementById('detailLocation').innerHTML = `<span class="location-pill">${a.location || '—'}</span>`;
+  document.getElementById('detailCase').textContent = a.caseId || '—';
+  document.getElementById('detailNotes').textContent = a.notes || 'No notes.';
+
+  // QR
+  const qrSvg = generateQRSVG(a.id);
+  document.getElementById('detailQrSvg').innerHTML = qrSvg;
+  document.getElementById('detailQrLabel').textContent = a.id;
+
+  // History
+  document.getElementById('detailHistory').innerHTML = (a.history || []).reverse().map(h => `
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <div style="color:var(--text-muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:11px;padding-top:2px">${h.split(':')[0]}</div>
+      <div style="color:var(--steel)">${h.split(':').slice(1).join(':').trim()}</div>
+    </div>
+  `).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px 0">No history recorded.</div>';
+
+  // Reset tabs
+  switchTab('overview', document.querySelector('.tab.active') || document.querySelector('.tab'));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  openModal('assetDetailModal');
+}
+
+function showQR(id) {
+  openDetail(id);
+  setTimeout(() => switchTab('qr', document.querySelectorAll('.tab')[1]), 100);
+}
+
+function deleteAsset() {
+  if (!activeDetailId) return;
+  const assets = workspaceData[currentWorkspace];
+  const idx = assets.findIndex(a => a.id === activeDetailId);
+  if (idx >= 0) assets.splice(idx, 1);
+  closeModal('assetDetailModal');
+  filterAssets();
+  populateScanSelect();
+  showToast('Asset Removed', `${activeDetailId} removed from inventory`);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('tab-overview').style.display = name==='overview' ? '' : 'none';
+  document.getElementById('tab-qr').style.display = name==='qr' ? '' : 'none';
+  document.getElementById('tab-history').style.display = name==='history' ? '' : 'none';
+}
+
+// ============================================================
+// SCAN SIMULATOR
+// ============================================================
+function populateScanSelect() {
+  const sel = document.getElementById('scanSelect');
+  const assets = getAssets();
+  sel.innerHTML = '<option value="">— Select Asset —</option>' +
+    assets.map(a => `<option value="${a.id}">${a.id} — ${a.name}</option>`).join('');
+}
+
+function simulateScan() {
+  const id = document.getElementById('scanSelect').value;
+  const panel = document.getElementById('scanResult');
+  if (!id) { panel.style.display = 'none'; return; }
+  const a = getAssets().find(x => x.id === id);
+  if (!a) return;
+
+  panel.style.display = 'block';
+  document.getElementById('scanId').textContent = a.id;
+  document.getElementById('scanName').textContent = a.name;
+  document.getElementById('qrLabel').textContent = a.id;
+  document.getElementById('qrCodeSvg').innerHTML = generateQRSVG(a.id);
+
+  const critEl = document.getElementById('scanCrit');
+  const msgEl = document.getElementById('scanStatusMsg');
+
+  if (a.status === 'Missing') {
+    critEl.className = `scan-crit-display ${critClass(a.crit)}`;
+    critEl.textContent = `MISSING — ${a.crit.toUpperCase()}`;
+    if (a.crit === 'Mission Critical') {
+      msgEl.innerHTML = '<span style="color:#F87171;font-weight:700">⚠ SHOW CANNOT OPEN</span>';
+    } else if (a.crit === 'Show Critical') {
+      msgEl.innerHTML = '<span style="color:#FCD34D">⚠ Show may be impacted — locate before doors</span>';
+    } else {
+      msgEl.innerHTML = '<span style="color:#9CA3AF">Show can proceed — locate when possible</span>';
+    }
+  } else {
+    critEl.className = `scan-crit-display ${critClass(a.crit)}`;
+    critEl.textContent = `${a.status.toUpperCase()} — ${a.crit.toUpperCase()}`;
+    msgEl.innerHTML = `<span style="color:var(--steel)">Location: <strong style="color:var(--text)">${a.location}</strong></span>`;
+  }
+}
+
+// ============================================================
+// SYSTEMS VIEW
+// ============================================================
+function renderSystems() {
+  const assets = getAssets();
+  const systems = {};
+  assets.forEach(a => {
+    const sys = a.system || 'Unassigned';
+    if (!systems[sys]) systems[sys] = [];
+    systems[sys].push(a);
+  });
+
+  const el = document.getElementById('systemsGrid');
+  el.innerHTML = Object.entries(systems).map(([sys, items]) => {
+    const missing = items.filter(a => a.status === 'Missing');
+    const hasCritMissing = missing.some(a => a.crit === 'Mission Critical');
+    const allGood = missing.length === 0;
+    const sysId = 'SYS-' + sys.replace(/\s+/g,'-').toUpperCase().substring(0,10);
+    return `
+      <div style="background:var(--bg-card);border:1px solid ${hasCritMissing?'rgba(232,64,64,0.3)':allGood?'rgba(34,197,94,0.2)':'var(--border)'};border-radius:var(--radius-lg);padding:18px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px">${sys}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px">${sysId}</div>
+          </div>
+          <span class="status-badge ${hasCritMissing?'missing':allGood?'operational':'repair'}">
+            <span class="status-dot"></span>
+            ${hasCritMissing?'CRITICAL':'allGood'?'READY':missing.length+' MISSING'}
+          </span>
+        </div>
+        ${items.map(a => `
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(42,48,64,0.4);font-size:12px">
+            <span class="asset-id" style="font-size:11px;min-width:80px">${a.id}</span>
+            <span style="flex:1;color:${a.status==='Missing'?'#F87171':'var(--text)'}">${a.name}</span>
+            <span class="crit-badge ${critClass(a.crit)}" style="font-size:10px;padding:2px 7px">${a.crit}</span>
+            <span class="status-badge ${statusClass(a.status)}" style="font-size:10px;padding:2px 7px">${a.status}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(title, sub, type='success') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-sub">${sub}</div>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+filterAssets();
+populateScanSelect();
+</script>
+</body>
+</html>

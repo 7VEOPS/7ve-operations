@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>CTRL · SHOW</title>
+<style>
+:root{
+  --bg:#0d0d0f; --p1:#141416; --p2:#1a1a1e; --p3:#202024; --p4:#28282e;
+  --b1:#2a2a30; --b2:#38383f; --b3:#484850;
+  --gold:#c8a444; --gold2:#e8c050; --gold3:#7a6420;
+  --bma:#1e4488; --bact:#3377ee;
+  --gma:#1a7a44; --gact:#33dd77;
+  --rma:#7a1e1e; --ract:#ee3333;
+  --cma:#1a7a99;
+  --c-r:#ff3344; --c-g:#33ff77; --c-b:#3388ff;
+  --c-a:#ffaa22; --c-w:#e8e8f0; --c-uv:#9944ff;
+  --c-m:#ff33cc; --c-c:#22ddff; --c-y:#ffee22;
+  --txt:#c8c8d0; --txt2:#888890; --txt3:#505058; --txtb:#e8e8f0;
+  --font:'SF Mono','Fira Code',monospace;
+  --sans:-apple-system,'Helvetica Neue',sans-serif;
+  --r:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--sans);height:100%;overflow:hidden;font-size:13px}
+#app{display:grid;grid-template-rows:42px 1fr 82px;height:100vh;height:100dvh}
+
+/* ── TOP BAR ── */
+#topbar{
+  display:flex;align-items:center;background:var(--p1);
+  border-bottom:1px solid var(--b2);flex-shrink:0;overflow:hidden;
+}
+.tbs{display:flex;align-items:center;padding:0 12px;height:100%;border-right:1px solid var(--b1);gap:8px;flex-shrink:0}
+#logo{font-family:var(--font);font-size:14px;font-weight:700;letter-spacing:.25em;color:var(--gold2)}
+#logo span{color:var(--txt3);font-size:10px;font-weight:400;letter-spacing:.1em}
+.sp{flex:1}
+#wsp{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--b1);background:var(--p2);font-size:10px;color:var(--txt2)}
+#wsd{width:6px;height:6px;border-radius:50%;background:var(--b3);transition:background .3s}
+#wsd.on{background:var(--gact);box-shadow:0 0 5px var(--gact)}
+.mast{display:flex;align-items:center;gap:8px;padding:0 14px;border-left:1px solid var(--b1)}
+.mlbl{font-size:9px;color:var(--txt3);letter-spacing:.15em;white-space:nowrap}
+#msl{width:90px;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+#msl::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold3);cursor:pointer}
+#mpct{font-family:var(--font);font-size:11px;color:var(--gold);min-width:34px}
+#btn-bo{height:100%;padding:0 16px;border:none;background:var(--rma);color:var(--txtb);font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;transition:background .1s;border-left:1px solid var(--b2);flex-shrink:0}
+#btn-bo.active{background:var(--ract);box-shadow:inset 0 0 16px rgba(255,0,0,.3)}
+
+/* ── MAIN 3-COL ── */
+#main{display:grid;grid-template-columns:200px 1fr 240px;overflow:hidden}
+@media(max-width:700px){#main{grid-template-columns:170px 1fr}#rcol{display:none}}
+@media(max-width:480px){#main{grid-template-columns:1fr}#lcol{display:none}#rcol{display:none}}
+
+/* ── SHARED COL STYLES ── */
+.col{display:flex;flex-direction:column;overflow:hidden}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--p2);border-bottom:1px solid var(--b1);flex-shrink:0}
+.cht{font-size:9px;color:var(--txt2);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+.chs{font-size:9px;color:var(--txt3)}
+.cscroll{flex:1;overflow-y:auto;padding:8px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* ── LEFT: GROUPS ── */
+#lcol{background:var(--p1);border-right:1px solid var(--b2)}
+.gtools{display:flex;gap:4px;margin-bottom:8px}
+.gtb{flex:1;height:28px;border-radius:var(--r);border:1px solid var(--b2);background:var(--p3);color:var(--txt2);font-size:10px;letter-spacing:.08em;cursor:pointer;transition:all .1s}
+.gtb:active{background:var(--bact);border-color:var(--bact);color:#fff}
+.grpb{display:flex;align-items:center;gap:0;width:100%;margin-bottom:4px;border-radius:var(--r);overflow:hidden;cursor:pointer;border:1px solid var(--b1);background:var(--p2);height:42px;transition:border-color .1s}
+.grpb.sel{border-color:var(--gold);background:var(--p3)}
+.grpb.sel .gbar{opacity:1}
+.gbar{width:4px;height:100%;opacity:.4;transition:opacity .12s;flex-shrink:0}
+.ginn{flex:1;padding:0 8px;display:flex;flex-direction:column;gap:1px}
+.gnm{font-size:11px;font-weight:600;color:var(--txt)}
+.gsb{font-size:9px;color:var(--txt3)}
+.gcnt{font-family:var(--font);font-size:10px;color:var(--txt2);padding-right:8px}
+
+/* ── CENTER: TABS ── */
+#ccol{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+#ctabs{display:flex;background:var(--p1);border-bottom:1px solid var(--b2);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+#ctabs::-webkit-scrollbar{display:none}
+.ctab{padding:10px 16px;font-size:10px;letter-spacing:.12em;cursor:pointer;white-space:nowrap;color:var(--txt3);border-bottom:2px solid transparent;transition:color .12s,border-color .12s;text-transform:uppercase}
+.ctab.active{color:var(--gold2);border-bottom-color:var(--gold2)}
+.cpanel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.cpanel.active{display:flex}
+
+/* ── COLOR PANEL ── */
+#cp-color{overflow-y:auto;padding:10px;gap:10px}
+
+/* Color picker row */
+.cprow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+
+/* Wheel */
+#ww{position:relative;flex-shrink:0}
+#wcvs{border-radius:50%;cursor:crosshair;touch-action:none;display:block}
+#wcur{position:absolute;width:13px;height:13px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #000,0 0 5px rgba(255,255,255,.5);transform:translate(-50%,-50%);pointer-events:none}
+
+/* Sliders */
+#csliders{display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px}
+.csr{display:flex;align-items:center;gap:6px}
+.csdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cslbl{font-size:9px;color:var(--txt2);min-width:18px}
+.cssl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+.cssl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--p3);border:2px solid var(--b2);cursor:pointer}
+.cssl.r::-webkit-slider-thumb{border-color:var(--c-r)}
+.cssl.g::-webkit-slider-thumb{border-color:var(--c-g)}
+.cssl.b::-webkit-slider-thumb{border-color:var(--c-b)}
+.cssl.a::-webkit-slider-thumb{border-color:var(--c-a)}
+.cssl.w::-webkit-slider-thumb{border-color:#e8e8f0}
+.cssl.u::-webkit-slider-thumb{border-color:var(--c-uv)}
+.cssl.d::-webkit-slider-thumb{border-color:var(--gold)}
+.csv{font-family:var(--font);font-size:10px;color:var(--txt2);min-width:24px;text-align:right}
+
+/* Preview + actions */
+.cside{display:flex;flex-direction:column;gap:6px;align-items:center;flex-shrink:0}
+#cprev{width:52px;height:52px;border-radius:var(--r);border:1px solid var(--b2);background:#000}
+.cact{width:100%;padding:5px;border-radius:var(--r);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;border:1px solid var(--b2);text-align:center;white-space:nowrap}
+.cact.apply{background:var(--bma);border-color:var(--bact);color:#fff}
+.cact.full{background:var(--p3);color:var(--txt2)}
+.cact.out{background:var(--p3);color:var(--txt2)}
+
+/* EXECUTOR GRID */
+.exec-section{margin-top:12px}
+.exs-hdr{font-size:9px;color:var(--txt3);letter-spacing:.2em;text-transform:uppercase;padding:3px 0 6px;border-bottom:1px solid var(--b1);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.exs-hdr span{color:var(--txt3);font-size:9px}
+.exrow{display:flex;gap:6px;flex-wrap:wrap}
+.exb{
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-width:84px;flex:1;height:76px;border-radius:var(--r);cursor:pointer;
+  border:1px solid var(--b2);background:var(--p2);padding:6px 8px;
+  transition:border-color .1s,background .1s;position:relative;overflow:hidden;
+}
+.exb::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--b2);transition:background .1s}
+.exb.on::before{background:currentColor}
+.exb.on{border-color:color-mix(in srgb,currentColor 50%,var(--b2))}
+.exb.on .exst{background:currentColor;box-shadow:0 0 4px currentColor}
+.extop{display:flex;justify-content:space-between;align-items:flex-start}
+.exnum{font-family:var(--font);font-size:9px;color:var(--txt3)}
+.exst{width:7px;height:7px;border-radius:50%;background:var(--b2);transition:background .15s}
+.exnm{font-size:11px;font-weight:700;color:var(--txt);line-height:1.2}
+.exsub{font-size:9px;color:var(--txt3);margin-top:1px}
+.exbar{height:3px;border-radius:2px;background:var(--b2);margin-top:4px;overflow:hidden}
+.exbf{height:100%;border-radius:2px;width:0%;transition:width .1s}
+.exb.new-slot{border-style:dashed;min-width:70px}
+.exb.new-slot .exnm{color:var(--txt3);font-size:20px;text-align:center;padding-top:2px}
+
+/* ── MOVEMENT PANEL ── */
+#cp-move{overflow:hidden;flex-direction:column}
+
+/* Page navigation */
+#move-pages{
+  display:flex;align-items:center;gap:0;
+  background:var(--p1);border-bottom:1px solid var(--b2);flex-shrink:0;
+}
+.mpbtn{
+  padding:10px 16px;font-size:10px;letter-spacing:.1em;cursor:pointer;
+  color:var(--txt3);border-bottom:2px solid transparent;transition:all .12s;
+  text-transform:uppercase;white-space:nowrap;border-right:1px solid var(--b1);
+}
+.mpbtn.active{color:var(--c-c);border-bottom-color:var(--c-c)}
+#move-add-page{
+  padding:8px 12px;font-size:12px;color:var(--txt3);cursor:pointer;
+  background:transparent;border:none;transition:color .1s;
+}
+#move-add-page:active{color:var(--gold2)}
+.msp{flex:1}
+
+/* Movement page content */
+#move-content{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:12px}
+
+/* Mover selector */
+.mover-sel{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.mvsel-btn{
+  padding:5px 12px;border-radius:var(--r);font-size:10px;
+  background:var(--p2);border:1px solid var(--b2);color:var(--txt2);cursor:pointer;
+  transition:all .1s;
+}
+.mvsel-btn.sel{background:var(--c-c);border-color:var(--c-c);color:#000;font-weight:700}
+.mvsel-btn.sel-e{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+.mvsel-all{background:var(--p3);color:var(--txt);font-weight:600}
+
+/* XY pad zone */
+.xy-zone{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.xy-wrap{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.xy-lbl-row{display:flex;justify-content:space-between}
+.xy-lbl{font-size:9px;color:var(--txt3)}
+.xypad{
+  position:relative;background:var(--p2);border:1px solid var(--b2);border-radius:var(--r);
+  touch-action:none;cursor:crosshair;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:20px 20px;
+}
+.xy-crossh{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.07);pointer-events:none}
+.xy-crossv{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.07);pointer-events:none}
+.xy-cur{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  background:var(--c-c);box-shadow:0 0 8px var(--c-c);
+  transform:translate(-50%,-50%);pointer-events:none;
+  border:2px solid rgba(255,255,255,.5);
+}
+.xy-cur.entour{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+/* Fine-tune sliders next to XY */
+.xy-fine{display:flex;flex-direction:column;gap:8px;justify-content:center}
+.xyfr{display:flex;align-items:center;gap:6px}
+.xyfsl{
+  width:90px;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:var(--b2);outline:none;cursor:pointer;
+}
+.xyfsl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--c-c);cursor:pointer}
+.xyfsl.ent::-webkit-slider-thumb{background:var(--gold)}
+
+/* Position presets */
+.pos-sec{flex:1;min-width:180px}
+.pos-sec-title{font-size:9px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.pos-btn{
+  padding:8px 4px;border-radius:var(--r);font-size:10px;text-align:center;
+  background:var(--p2);border:1px solid var(--b2);color:var(--txt);cursor:pointer;
+  transition:all .1s;line-height:1.2;
+}
+.pos-btn:active{background:var(--c-c);border-color:var(--c-c);color:#000}
+.pos-btn.ent-pos:active{background:var(--gold);border-color:var(--gold);color:#000}
+
+/* Movement preset save/recall */
+.mov-presets-section{margin-top:8px}
+.mov-preset-title{font-size:9px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.mov-preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px}
+.mov-pb{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  height:56px;border-radius:var(--r);background:var(--p2);border:1px solid var(--b2);
+  cursor:pointer;font-size:10px;color:var(--txt);transition:all .1s;padding:4px;text-align:center;
+}
+.mov-pb:active{border-color:var(--c-c);background:var(--p3)}
+.mov-pb.new-mp{border-style:dashed;color:var(--txt3);font-size:16px}
+.mov-pb .mp-lbl{font-size:9px;color:var(--txt2);word-break:break-word;line-height:1.2}
+.mov-pb .mp-ico{font-size:14px}
+
+/* Speed & tilt fine strip */
+.move-extras{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.me-item{display:flex;align-items:center;gap:6px;flex:1;min-width:120px}
+.me-lbl{font-size:9px;color:var(--txt2);white-space:nowrap;min-width:40px}
+.me-sl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+.me-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--p3);border:2px solid var(--b3);cursor:pointer}
+.me-val{font-family:var(--font);font-size:9px;color:var(--txt2);min-width:22px;text-align:right}
+
+/* ── RIGHT: FIXTURE STATE ── */
+#rcol{background:var(--p1);border-left:1px solid var(--b2)}
+.fsr{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:var(--r);margin-bottom:3px;background:var(--p2);border:1px solid var(--b1)}
+.fssw{width:20px;height:20px;border-radius:3px;flex-shrink:0;border:1px solid var(--b1)}
+.fsif{flex:1;min-width:0}
+.fsnm{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsch{font-size:9px;color:var(--txt3);font-family:var(--font)}
+.fsdm{font-family:var(--font);font-size:10px;color:var(--txt2);min-width:26px;text-align:right}
+.fspos{font-size:8px;color:var(--txt3);font-family:var(--font);white-space:nowrap}
+
+/* ── COMMAND STRIP ── */
+#cmdstrip{background:var(--p1);border-top:1px solid var(--b2);display:flex;flex-direction:column}
+#cmdrow1{display:flex;align-items:center;height:36px;border-bottom:1px solid var(--b1)}
+.clbl{padding:0 10px;font-size:9px;color:var(--txt3);letter-spacing:.15em;text-transform:uppercase;border-right:1px solid var(--b1);height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0}
+#cmdtxt{flex:1;font-family:var(--font);font-size:11px;color:var(--gold2);padding:0 10px;display:flex;align-items:center}
+#cmdcur{display:inline-block;width:7px;height:13px;background:var(--gold2);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#cmdfb{padding:0 10px;font-size:10px;color:var(--txt2);border-left:1px solid var(--b1);height:100%;display:flex;align-items:center;min-width:90px;font-style:italic;flex-shrink:0}
+#btn-ss{height:100%;padding:0 12px;border:none;border-left:1px solid var(--b1);background:var(--bma);color:#fff;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#cmdrow2{display:flex;height:46px;overflow-x:auto;scrollbar-width:none}
+#cmdrow2::-webkit-scrollbar{display:none}
+.qfb{flex:1;min-width:48px;height:100%;border:none;border-right:1px solid var(--b1);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:background .08s}
+.qfb:last-child{border-right:none}
+.qfb:active{filter:brightness(1.4)}
+.qfsw{width:16px;height:8px;border-radius:2px}
+.qfnm{font-size:8px;color:var(--txt2)}
+.qfb.aq .qfnm{color:var(--txtb)}
+
+/* ── MODAL ── */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;z-index:200;align-items:center;justify-content:center}
+#modal.open{display:flex}
+#mbox{background:var(--p1);border:1px solid var(--b2);border-radius:6px;padding:20px;min-width:260px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,.9)}
+.mtitle{font-size:13px;font-weight:700;color:var(--txtb);margin-bottom:14px;letter-spacing:.08em}
+.mrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.mlbl{font-size:10px;color:var(--txt2);min-width:55px}
+.minp{flex:1;background:var(--p2);border:1px solid var(--b2);color:var(--txt);padding:7px 10px;border-radius:var(--r);font-family:var(--font);font-size:12px}
+.minp:focus{outline:none;border-color:var(--gold)}
+.macts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.mbtn{padding:7px 16px;border-radius:var(--r);border:1px solid var(--b2);background:var(--p2);color:var(--txt);font-size:11px;cursor:pointer}
+.mbtn.ok{background:var(--bma);border-color:var(--bact);color:#fff}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--p3);border:1px solid var(--b2);padding:7px 16px;border-radius:20px;font-size:11px;color:var(--txt);transition:transform .18s,opacity .18s;opacity:0;pointer-events:none;z-index:300;white-space:nowrap;font-family:var(--font)}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="tbs"><div id="logo">CTRL <span>SHOW</span></div></div>
+  <div class="tbs"><div id="wsp"><div id="wsd"></div><span id="wsl">OFFLINE</span></div></div>
+  <div class="mast">
+    <span class="mlbl">MASTER</span>
+    <input type="range" id="msl" min="0" max="255" value="255">
+    <span id="mpct">100%</span>
+  </div>
+  <div class="sp"></div>
+  <button id="btn-bo">⬛ BLACKOUT</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT: GROUPS -->
+  <div id="lcol" class="col">
+    <div class="chdr">
+      <span class="cht">GROUPS</span>
+      <span class="chs" id="selct">NONE</span>
+    </div>
+    <div class="cscroll">
+      <div class="gtools">
+        <button class="gtb" id="gall">ALL</button>
+        <button class="gtb" id="gclr">CLEAR</button>
+      </div>
+      <div id="glist"></div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="ccol">
+    <div id="ctabs">
+      <div class="ctab active" data-cp="color">COLORS</div>
+      <div class="ctab" data-cp="move">MOVEMENT</div>
+    </div>
+
+    <!-- ── COLOR PANEL ── -->
+    <div class="cpanel active" id="cp-color">
+
+      <!-- Wheel + sliders + actions -->
+      <div class="cprow">
+        <div id="ww">
+          <canvas id="wcvs" width="120" height="120"></canvas>
+          <div id="wcur" style="left:50%;top:50%"></div>
+        </div>
+        <div id="csliders">
+          <div class="csr"><div class="csdot" style="background:var(--c-r)"></div><span class="cslbl">R</span><input type="range" class="cssl r" id="sl-r" min="0" max="255" value="0"><span class="csv" id="vl-r">0</span></div>
+          <div class="csr"><div class="csdot" style="background:var(--c-g)"></div><span class="cslbl">G</span><input type="range" class="cssl g" id="sl-g" min="0" max="255" value="0"><span class="csv" id="vl-g">0</span></div>
+          <div class="csr"><div class="csdot" style="background:var(--c-b)"></div><span class="cslbl">B</span><input type="range" class="cssl b" id="sl-b" min="0" max="255" value="0"><span class="csv" id="vl-b">0</span></div>
+          <div class="csr"><div class="csdot" style="background:var(--c-a)"></div><span class="cslbl">A</span><input type="range" class="cssl a" id="sl-a" min="0" max="255" value="0"><span class="csv" id="vl-a">0</span></div>
+          <div class="csr"><div class="csdot" style="background:#e8e8f0"></div><span class="cslbl">W</span><input type="range" class="cssl w" id="sl-w" min="0" max="255" value="0"><span class="csv" id="vl-w">0</span></div>
+          <div class="csr"><div class="csdot" style="background:var(--c-uv)"></div><span class="cslbl">UV</span><input type="range" class="cssl u" id="sl-uv" min="0" max="255" value="0"><span class="csv" id="vl-uv">0</span></div>
+          <div class="csr"><div class="csdot" style="background:var(--gold)"></div><span class="cslbl">DIM</span><input type="range" class="cssl d" id="sl-dim" min="0" max="255" value="255"><span class="csv" id="vl-dim">255</span></div>
+        </div>
+        <div class="cside">
+          <div id="cprev"></div>
+          <div class="cact apply" id="capply">APPLY</div>
+          <div class="cact full" id="cfull">FULL ON</div>
+          <div class="cact out" id="cout">OUT</div>
+        </div>
+      </div>
+
+      <!-- Color Macro executors -->
+      <div class="exec-section">
+        <div class="exs-hdr">COLOR MACROS <span id="cm-count"></span></div>
+        <div class="exrow" id="cm-row"></div>
+      </div>
+
+      <!-- Movement Macros row (inside Color panel for quick access) -->
+      <div class="exec-section">
+        <div class="exs-hdr">MOVEMENT MACROS <span style="color:var(--c-c)">ENTOURS + MOVERS</span></div>
+        <div class="exrow" id="mm-row"></div>
+      </div>
+
+      <!-- Scene executors -->
+      <div class="exec-section">
+        <div class="exs-hdr">SCENES <span id="sc-count">0 stored</span></div>
+        <div class="exrow" id="sc-row"></div>
+      </div>
+
+      <!-- Group quick-fire -->
+      <div class="exec-section">
+        <div class="exs-hdr">GROUP QUICK-FIRE</div>
+        <div class="exrow" id="gqf-row"></div>
+      </div>
+
+    </div><!-- /cp-color -->
+
+    <!-- ── MOVEMENT PANEL ── -->
+    <div class="cpanel" id="cp-move" style="overflow:hidden;flex-direction:column">
+
+      <!-- Page tabs -->
+      <div id="move-pages">
+        <div class="mpbtn active" data-pg="0">PAGE 1</div>
+        <div class="mpbtn" data-pg="1">PAGE 2</div>
+        <div class="mpbtn" data-pg="2">PAGE 3</div>
+        <div class="mpbtn" data-pg="3">PAGE 4</div>
+        <div class="msp"></div>
+        <button id="move-add-page">＋</button>
+      </div>
+
+      <!-- Page content -->
+      <div id="move-content"></div>
+
+    </div><!-- /cp-move -->
+
+  </div><!-- /ccol -->
+
+  <!-- RIGHT: FIXTURE STATE -->
+  <div id="rcol" class="col">
+    <div class="chdr"><span class="cht">FIXTURE STATE</span><span class="chs">LIVE</span></div>
+    <div class="cscroll" id="fxstate"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- CMD STRIP -->
+<div id="cmdstrip">
+  <div id="cmdrow1">
+    <div class="clbl">CMD</div>
+    <div id="cmdtxt"><span id="cmdsp"></span><span id="cmdcur"></span></div>
+    <div id="cmdfb">Ready</div>
+    <button id="btn-ss">+ SAVE SCENE</button>
+  </div>
+  <div id="cmdrow2"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="mbox">
+    <div class="mtitle" id="modal-title">SAVE SCENE</div>
+    <div class="mrow"><span class="mlbl">Name</span><input class="minp" id="minp" placeholder="Name…" type="text"></div>
+    <div class="macts">
+      <button class="mbtn" id="mcancel">Cancel</button>
+      <button class="mbtn ok" id="mok">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const PATCH=[
+  {id:'e1',label:'Entour 1',type:'mac250e',univ:1,addr:1},
+  {id:'e2',label:'Entour 2',type:'mac250e',univ:1,addr:16},
+  {id:'e3',label:'Entour 3',type:'mac250e',univ:1,addr:31},
+  {id:'e4',label:'Entour 4',type:'mac250e',univ:1,addr:46},
+  {id:'e5',label:'Entour 5',type:'mac250e',univ:1,addr:61},
+  {id:'e6',label:'Entour 6',type:'mac250e',univ:1,addr:76},
+  {id:'e7',label:'Entour 7',type:'mac250e',univ:1,addr:91},
+  {id:'e8',label:'Entour 8',type:'mac250e',univ:1,addr:106},
+  {id:'w1',label:'Wall 1',type:'shwall',univ:1,addr:121},
+  {id:'w2',label:'Wall 2',type:'shwall',univ:1,addr:132},
+  {id:'w3',label:'Wall 3',type:'shwall',univ:1,addr:143},
+  {id:'w4',label:'Wall 4',type:'shwall',univ:1,addr:154},
+  {id:'m1',label:'Mover 1',type:'shmov',univ:1,addr:165},
+  {id:'m2',label:'Mover 2',type:'shmov',univ:1,addr:174},
+  {id:'m3',label:'Mover 3',type:'shmov',univ:1,addr:183},
+  {id:'m4',label:'Mover 4',type:'shmov',univ:1,addr:192},
+  ...[...Array(27)].map((_,i)=>({id:'p'+(i+1),label:'EZPar '+(i+1),type:'ezp64',univ:2,addr:1+i*4})),
+  ...[...Array(8)].map((_,i)=>({id:'s'+(i+1),label:'Slim '+(i+1),type:'slim',univ:2,addr:109+i*4})),
+  {id:'enc1',label:'Encoder 1',type:'enc',univ:2,addr:141},
+  {id:'enc2',label:'Encoder 2',type:'enc',univ:2,addr:142},
+  {id:'fog1',label:'Fog Machine',type:'fog',univ:2,addr:143},
+];
+
+const GROUPS=[
+  {id:'ge',  name:'All Entours', sub:'MAC 250 ×8',     ids:['e1','e2','e3','e4','e5','e6','e7','e8'], col:'#c8a444'},
+  {id:'gw',  name:'Wall Washes', sub:'18×18 ×4',       ids:['w1','w2','w3','w4'],                     col:'#3377ee'},
+  {id:'gm',  name:'Wash Movers', sub:'12×12 ×4',       ids:['m1','m2','m3','m4'],                     col:'#22aacc'},
+  {id:'gp',  name:'All EZ Pars', sub:'EZPar 64 ×27',   ids:[...Array(27)].map((_,i)=>'p'+(i+1)),     col:'#aa4422'},
+  {id:'gs',  name:'Slim Pars',   sub:'Slim Par ×8',     ids:[...Array(8)].map((_,i)=>'s'+(i+1)),      col:'#664422'},
+  {id:'gap', name:'All Pars',    sub:'×35',             ids:[...[...Array(27)].map((_,i)=>'p'+(i+1)),...[...Array(8)].map((_,i)=>'s'+(i+1))],col:'#884422'},
+  {id:'gam', name:'All Movers',  sub:'×12',             ids:['e1','e2','e3','e4','e5','e6','e7','e8','m1','m2','m3','m4'],col:'#226644'},
+  {id:'gall',name:'Full Rig',    sub:'All fixtures',    ids:PATCH.map(p=>p.id),                        col:'#555560'},
+  {id:'gfog',name:'Fog',         sub:'Fog Machine',     ids:['fog1'],                                  col:'#446688'},
+];
+
+// All movers (entours + wash movers)
+const ENTOUR_IDS=['e1','e2','e3','e4','e5','e6','e7','e8'];
+const SHMOV_IDS=['m1','m2','m3','m4'];
+const ALL_MOVER_IDS=[...ENTOUR_IDS,...SHMOV_IDS];
+
+// Position presets for entours (540°×257°)
+const ENTOUR_POSITIONS=[
+  {n:'Home',    p:128,t:128, icon:'⌂'},
+  {n:'Up',      p:128,t:64,  icon:'↑'},
+  {n:'Down',    p:128,t:200, icon:'↓'},
+  {n:'Left',    p:64, t:128, icon:'←'},
+  {n:'Right',   p:192,t:128, icon:'→'},
+  {n:'FR-L',    p:70, t:90,  icon:'↖'},
+  {n:'FR-R',    p:186,t:90,  icon:'↗'},
+  {n:'FL-L',    p:70, t:200, icon:'↙'},
+  {n:'FL-R',    p:186,t:200, icon:'↘'},
+  {n:'Audience',p:128,t:220, icon:'👥'},
+  {n:'SR',      p:30, t:128, icon:'⇐'},
+  {n:'SL',      p:225,t:128, icon:'⇒'},
+];
+
+// Position presets for wash movers (540°×180°)
+const SHMOV_POSITIONS=[
+  {n:'Home',  p:128,t:128,icon:'⌂'},
+  {n:'Up',    p:128,t:64, icon:'↑'},
+  {n:'Down',  p:128,t:200,icon:'↓'},
+  {n:'Left',  p:64, t:128,icon:'←'},
+  {n:'Right', p:192,t:128,icon:'→'},
+  {n:'FR-L',  p:70, t:90, icon:'↖'},
+  {n:'FR-R',  p:186,t:90, icon:'↗'},
+  {n:'FL-L',  p:70, t:200,icon:'↙'},
+  {n:'FL-R',  p:186,t:200,icon:'↘'},
+];
+
+const COLOR_MACROS=[
+  {n:'Red',     r:255,g:0,  b:0,  a:0,  w:0,  uv:0,  dim:255,bg:'#ff3344'},
+  {n:'Green',   r:0,  g:255,b:0,  a:0,  w:0,  uv:0,  dim:255,bg:'#33ff77'},
+  {n:'Blue',    r:0,  g:0,  b:255,a:0,  w:0,  uv:0,  dim:255,bg:'#3388ff'},
+  {n:'Cyan',    r:0,  g:255,b:255,a:0,  w:0,  uv:0,  dim:255,bg:'#22ddff'},
+  {n:'Magenta', r:255,g:0,  b:255,a:0,  w:0,  uv:0,  dim:255,bg:'#ff33cc'},
+  {n:'Yellow',  r:255,g:220,b:0,  a:60, w:0,  uv:0,  dim:255,bg:'#ffee22'},
+  {n:'Amber',   r:255,g:140,b:0,  a:255,w:0,  uv:0,  dim:255,bg:'#ffaa22'},
+  {n:'White',   r:0,  g:0,  b:0,  a:0,  w:255,uv:0,  dim:255,bg:'#e8e8f0'},
+  {n:'Warm W',  r:80, g:40, b:0,  a:200,w:200,uv:0,  dim:255,bg:'#ffcc88'},
+  {n:'UV',      r:0,  g:0,  b:0,  a:0,  w:0,  uv:255,dim:255,bg:'#9944ff'},
+  {n:'Pink',    r:255,g:20, b:150,a:0,  w:30, uv:0,  dim:255,bg:'#ff5599'},
+  {n:'Lavender',r:100,g:0,  b:255,a:0,  w:80, uv:60, dim:255,bg:'#9966ff'},
+  {n:'Sunrise', r:255,g:80, b:0,  a:180,w:40, uv:0,  dim:255,bg:'#ff8844'},
+  {n:'Ice Blue',r:0,  g:180,b:255,a:0,  w:60, uv:0,  dim:255,bg:'#44aaff'},
+  {n:'Deep Blue',r:0, g:0,  b:200,a:0,  w:0,  uv:80, dim:255,bg:'#2244cc'},
+  {n:'Off',     r:0,  g:0,  b:0,  a:0,  w:0,  uv:0,  dim:0,  bg:'#333340'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let selGroups=new Set();
+let curColor={r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+let fxColors={}; PATCH.forEach(p=>fxColors[p.id]={r:0,g:0,b:0,a:0,w:0,uv:0,dim:255});
+
+// Mover positions: {id: {pan,tilt}}
+let moverPos={}; ALL_MOVER_IDS.forEach(id=>moverPos[id]={pan:128,tilt:128});
+
+// Which movers are selected on movement panel
+let selMovers=new Set(ALL_MOVER_IDS);
+
+// Movement presets stored per page
+let movePages=[
+  {name:'PAGE 1',presets:[]},
+  {name:'PAGE 2',presets:[]},
+  {name:'PAGE 3',presets:[]},
+  {name:'PAGE 4',presets:[]},
+];
+let curMovePage=0;
+let scenes=JSON.parse(localStorage.getItem('dmx_sp_scenes')||'[]');
+let movPresets=JSON.parse(localStorage.getItem('dmx_mov_presets')||JSON.stringify(movePages));
+if(movPresets.length>=4) movePages=movPresets;
+
+let masterVal=255,blackout=false;
+let modalMode='scene'; // 'scene' | 'movpreset'
+let pendingMovPresetPage=-1;
+
+// ═══════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════
+let WS,wsOk=false;
+function connectWS(){
+  try{
+    WS=new WebSocket('ws://'+location.hostname+':'+(location.port||3000));
+    WS.onopen=()=>{wsOk=true;document.getElementById('wsd').classList.add('on');document.getElementById('wsl').textContent='LIVE';cmd('Server connected')};
+    WS.onclose=()=>{wsOk=false;document.getElementById('wsd').classList.remove('on');document.getElementById('wsl').textContent='OFFLINE';setTimeout(connectWS,3000)};
+    WS.onerror=()=>{};
+  }catch(e){}
+}
+connectWS();
+function ws(m){if(wsOk)WS.send(JSON.stringify(m))}
+
+function sendColor(fid,col){
+  fxColors[fid]={...col};
+  ws({type:'fixtureColor',fixtureId:fid,color:col});
+}
+function sendPanTilt(fid,pan,tilt){
+  moverPos[fid]={pan,tilt};
+  ws({type:'panTilt',fixtureId:fid,pan,tilt});
+}
+function applyColorToSel(col){
+  const ids=getSelFxIds();
+  if(!ids.length){toast('SELECT A GROUP FIRST');return;}
+  ids.forEach(id=>sendColor(id,col));
+  updateFxState();
+  cmd('Color → '+ids.length+' fixtures');
+}
+function getSelFxIds(){
+  const s=new Set();
+  selGroups.forEach(gid=>{const g=GROUPS.find(x=>x.id===gid);if(g)g.ids.forEach(id=>s.add(id))});
+  return[...s];
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR WHEEL
+// ═══════════════════════════════════════════════════════════
+let wBright=1;
+function drawWheel(b){
+  const cvs=document.getElementById('wcvs'),ctx=cvs.getContext('2d'),s=120,cx=60,cy=60,r=59;
+  ctx.clearRect(0,0,s,s);
+  for(let a=0;a<360;a++){
+    const rad=a*Math.PI/180,g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,`hsla(${a},0%,${Math.round(b*100)}%,1)`);
+    g.addColorStop(1,`hsla(${a},100%,${Math.round(b*50)}%,1)`);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,rad-.02,rad+.02);ctx.closePath();
+    ctx.fillStyle=g;ctx.fill();
+  }
+}
+function wrgb(x,y,b){
+  const cx=60,cy=60,dx=x-cx,dy=y-cy,d=Math.sqrt(dx*dx+dy*dy)/60;
+  if(d>1)return null;
+  const h=(Math.atan2(dy,dx)*180/Math.PI+360)%360;
+  const c=b*d,xc=c*(1-Math.abs((h/60)%2-1)),m=b-c;
+  let ri=0,gi=0,bi=0;
+  if(h<60){ri=c;gi=xc}else if(h<120){ri=xc;gi=c}else if(h<180){gi=c;bi=xc}
+  else if(h<240){gi=xc;bi=c}else if(h<300){ri=xc;bi=c}else{ri=c;bi=xc}
+  return{r:Math.round((ri+m)*255),g:Math.round((gi+m)*255),b:Math.round((bi+m)*255)};
+}
+function setupWheel(){
+  drawWheel(wBright);
+  const cvs=document.getElementById('wcvs'),cur=document.getElementById('wcur');
+  function pick(ex,ey){
+    const rc=cvs.getBoundingClientRect();
+    const x=ex-rc.left,y=ey-rc.top;
+    const rgb=wrgb(x,y,wBright);if(!rgb)return;
+    cur.style.left=(x/120*100)+'%';cur.style.top=(y/120*100)+'%';
+    setSl('r',rgb.r);setSl('g',rgb.g);setSl('b',rgb.b);
+    updatePrev();
+  }
+  cvs.addEventListener('touchstart',e=>{e.preventDefault();pick(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  cvs.addEventListener('touchmove', e=>{e.preventDefault();pick(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  cvs.addEventListener('mousedown', e=>pick(e.clientX,e.clientY));
+  cvs.addEventListener('mousemove', e=>{if(e.buttons===1)pick(e.clientX,e.clientY)});
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR SLIDERS
+// ═══════════════════════════════════════════════════════════
+function setSl(id,v){
+  const sl=document.getElementById('sl-'+id),vl=document.getElementById('vl-'+id);
+  if(sl)sl.value=v;if(vl)vl.textContent=v;
+  curColor[id==='uv'?'uv':id==='dim'?'dim':id]=v;
+}
+function updatePrev(){
+  const{r,g,b,a,w,uv}=curColor;
+  const mr=Math.min(255,r+(a*.5|0)+(w*.4|0));
+  const mg=Math.min(255,g+(w*.4|0));
+  const mb=Math.min(255,b+(uv*.4|0)+(w*.4|0));
+  document.getElementById('cprev').style.background=`rgb(${mr},${mg},${mb})`;
+}
+['r','g','b','a','w','uv','dim'].forEach(id=>{
+  const sl=document.getElementById('sl-'+id);if(!sl)return;
+  sl.addEventListener('input',()=>{const v=parseInt(sl.value);document.getElementById('vl-'+id).textContent=v;curColor[id]=v;updatePrev()});
+});
+document.getElementById('capply').addEventListener('click',()=>{applyColorToSel({...curColor});toast('Color applied')});
+document.getElementById('cfull').addEventListener('click',()=>{
+  ['r','g','b','a','w'].forEach(k=>setSl(k,255));setSl('uv',0);setSl('dim',255);
+  updatePrev();applyColorToSel({r:255,g:255,b:255,a:255,w:255,uv:0,dim:255});toast('Full On');
+});
+document.getElementById('cout').addEventListener('click',()=>{
+  ['r','g','b','a','w','uv'].forEach(k=>setSl(k,0));setSl('dim',0);
+  updatePrev();applyColorToSel({r:0,g:0,b:0,a:0,w:0,uv:0,dim:0});toast('Out');
+});
+
+// ═══════════════════════════════════════════════════════════
+// GROUPS
+// ═══════════════════════════════════════════════════════════
+function buildGroups(){
+  const el=document.getElementById('glist');
+  GROUPS.forEach(g=>{
+    const b=document.createElement('div');b.className='grpb';b.id='gb-'+g.id;
+    b.innerHTML=`<div class="gbar" style="background:${g.col}"></div>
+      <div class="ginn"><div class="gnm">${g.name}</div><div class="gsb">${g.sub}</div></div>
+      <div class="gcnt">${g.ids.length}</div>`;
+    b.addEventListener('click',()=>toggleGrp(g.id));
+    el.appendChild(b);
+  });
+  document.getElementById('gall').addEventListener('click',()=>{GROUPS.forEach(g=>selGroups.add(g.id));updateGrpUI()});
+  document.getElementById('gclr').addEventListener('click',()=>{selGroups.clear();updateGrpUI()});
+}
+function toggleGrp(gid){selGroups.has(gid)?selGroups.delete(gid):selGroups.add(gid);updateGrpUI()}
+function updateGrpUI(){
+  GROUPS.forEach(g=>{
+    const b=document.getElementById('gb-'+g.id);if(!b)return;
+    b.classList.toggle('sel',selGroups.has(g.id));
+    b.querySelector('.gbar').style.opacity=selGroups.has(g.id)?'1':'.35';
+  });
+  const n=selGroups.size,ids=getSelFxIds();
+  document.getElementById('selct').textContent=n?n+' GRP · '+ids.length+' FX':'NONE';
+  // sync GQF buttons
+  document.querySelectorAll('.gqfb').forEach(b=>{b.classList.toggle('on',selGroups.has(b.dataset.gid))});
+}
+
+// ═══════════════════════════════════════════════════════════
+// CENTER PANEL TABS
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.ctab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.ctab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.cpanel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('cp-'+t.dataset.cp).classList.add('active');
+}));
+
+// ═══════════════════════════════════════════════════════════
+// COLOR MACRO EXECUTORS
+// ═══════════════════════════════════════════════════════════
+function buildColorMacros(){
+  const row=document.getElementById('cm-row');
+  COLOR_MACROS.forEach((cm,i)=>{
+    const b=document.createElement('div');b.className='exb';b.id='cm-'+i;b.style.color=cm.bg;
+    b.innerHTML=`<div class="extop"><span class="exnum">${String(i+1).padStart(2,'0')}</span><div class="exst"></div></div>
+      <div class="exnm">${cm.n}</div><div class="exbar"><div class="exbf" style="width:100%;background:${cm.bg}66"></div></div>`;
+    b.addEventListener('click',()=>{
+      const col={r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};
+      curColor={...col};
+      Object.entries({r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim}).forEach(([k,v])=>setSl(k,v));
+      updatePrev();applyColorToSel(col);
+      document.querySelectorAll('#cm-row .exb').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      document.querySelectorAll('#cmdrow2 .qfb').forEach(x=>x.classList.remove('aq'));
+      document.querySelectorAll('#cmdrow2 .qfb')[i]?.classList.add('aq');
+      toast(cm.n+' → selection');
+    });
+    row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MOVEMENT MACRO EXECUTORS (in color panel)
+// These are saved movement presets accessible from Color view
+// ═══════════════════════════════════════════════════════════
+function buildMovementMacros(){
+  renderMovementMacros();
+}
+function renderMovementMacros(){
+  const row=document.getElementById('mm-row');row.innerHTML='';
+  // Collect all presets across all pages
+  const allPresets=[];
+  movePages.forEach((pg,pi)=>pg.presets.forEach((pr,pri)=>allPresets.push({...pr,page:pi,idx:pri})));
+
+  if(!allPresets.length){
+    const empty=document.createElement('div');empty.style.cssText='font-size:10px;color:var(--txt3);padding:8px 0';
+    empty.textContent='No movement presets saved yet — go to MOVEMENT tab to create them';
+    row.appendChild(empty);return;
+  }
+  allPresets.forEach((pr,i)=>{
+    const b=document.createElement('div');b.className='exb';b.style.color='var(--c-c)';
+    b.innerHTML=`<div class="extop"><span class="exnum">M${String(i+1).padStart(2,'0')}</span><div class="exst"></div></div>
+      <div class="exnm">${pr.name}</div>
+      <div class="exsub">${pr.movers.length} movers</div>
+      <div class="exbar"><div class="exbf" style="width:100%;background:#22aacc55"></div></div>`;
+    b.addEventListener('click',()=>{
+      recallMovPreset(pr);
+      document.querySelectorAll('#mm-row .exb').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      toast('↩ Move: '+pr.name);
+    });
+    row.appendChild(b);
+  });
+}
+
+function recallMovPreset(pr){
+  pr.movers.forEach(m=>{
+    sendPanTilt(m.id,m.pan,m.tilt);
+    moverPos[m.id]={pan:m.pan,tilt:m.tilt};
+  });
+  // Sync XY pad cursors if on movement page
+  syncAllXYCursors();
+  updateFxState();
+  cmd('Move recalled: '+pr.name);
+}
+
+// ═══════════════════════════════════════════════════════════
+// GROUP QUICK-FIRE EXECUTORS
+// ═══════════════════════════════════════════════════════════
+function buildGQF(){
+  const row=document.getElementById('gqf-row');
+  GROUPS.slice(0,7).forEach((g,i)=>{
+    const b=document.createElement('div');b.className='exb gqfb';b.dataset.gid=g.id;b.style.color=g.col;
+    b.innerHTML=`<div class="extop"><span class="exnum">${i+1}</span><div class="exst"></div></div>
+      <div class="exnm">${g.name}</div><div class="exsub">${g.ids.length} fx</div>
+      <div class="exbar"><div class="exbf" style="width:0%;background:${g.col}"></div></div>`;
+    b.addEventListener('click',()=>{toggleGrp(g.id)});
+    row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENES
+// ═══════════════════════════════════════════════════════════
+function buildScenes(){renderScenes()}
+function renderScenes(){
+  const row=document.getElementById('sc-row');row.innerHTML='';
+  // New slot
+  const nb=document.createElement('div');nb.className='exb new-slot';
+  nb.innerHTML=`<div class="extop"><span class="exnum">NEW</span></div><div class="exnm">+</div><div class="exsub">SAVE SCENE</div><div class="exbar"></div>`;
+  nb.addEventListener('click',()=>{modalMode='scene';openModal('SAVE SCENE','Scene '+(scenes.length+1))});
+  row.appendChild(nb);
+  scenes.forEach((s,i)=>{
+    const b=document.createElement('div');b.className='exb';b.style.color=s.col||'var(--gold)';
+    b.innerHTML=`<div class="extop"><span class="exnum">${String(i+1).padStart(2,'0')}</span><div class="exst"></div></div>
+      <div class="exnm">${s.name}</div><div class="exsub">${s.grps} grp</div>
+      <div class="exbar"><div class="exbf" style="width:100%;background:${s.col||'var(--gold)'}55"></div></div>`;
+    b.addEventListener('click',()=>{recallScene(i);document.querySelectorAll('#sc-row .exb').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+    let lt;b.addEventListener('pointerdown',()=>{lt=setTimeout(()=>{scenes.splice(i,1);saveSc();renderScenes();toast('Deleted')},900)});
+    b.addEventListener('pointerup',()=>clearTimeout(lt));b.addEventListener('pointerleave',()=>clearTimeout(lt));
+    row.appendChild(b);
+  });
+  document.getElementById('sc-count').textContent=scenes.length+' stored';
+}
+function recallScene(i){
+  const s=scenes[i];
+  for(const[fid,col] of Object.entries(s.fxcols||{})){fxColors[fid]={...col};ws({type:'fixtureColor',fixtureId:fid,color:col})}
+  if(s.selGroups){selGroups.clear();s.selGroups.forEach(g=>selGroups.add(g));updateGrpUI()}
+  if(s.colVal){Object.entries(s.colVal).forEach(([k,v])=>setSl(k,v));curColor={...s.colVal};updatePrev()}
+  // Recall movement too
+  if(s.moverPos){for(const[fid,pt] of Object.entries(s.moverPos)){sendPanTilt(fid,pt.pan,pt.tilt);moverPos[fid]={...pt}}}
+  syncAllXYCursors();updateFxState();cmd('Recalled: '+s.name);toast('↩ '+s.name);
+}
+function saveSc(){localStorage.setItem('dmx_sp_scenes',JSON.stringify(scenes))}
+document.getElementById('btn-ss').addEventListener('click',()=>{modalMode='scene';openModal('SAVE SCENE','Scene '+(scenes.length+1))});
+
+// ═══════════════════════════════════════════════════════════
+// MOVEMENT PAGES + XY PADS
+// ═══════════════════════════════════════════════════════════
+function buildMovementPanel(){
+  // Page tab clicks
+  document.querySelectorAll('.mpbtn').forEach(b=>b.addEventListener('click',()=>{
+    curMovePage=parseInt(b.dataset.pg);
+    document.querySelectorAll('.mpbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderMovePage(curMovePage);
+  }));
+  document.getElementById('move-add-page').addEventListener('click',()=>{
+    const pg={name:'PAGE '+(movePages.length+1),presets:[]};
+    movePages.push(pg);
+    // Add tab
+    const nt=document.createElement('div');nt.className='mpbtn';nt.dataset.pg=movePages.length-1;
+    nt.textContent='PAGE '+movePages.length;
+    nt.addEventListener('click',()=>{
+      curMovePage=movePages.length-1;
+      document.querySelectorAll('.mpbtn').forEach(x=>x.classList.remove('active'));
+      nt.classList.add('active');
+      renderMovePage(curMovePage);
+    });
+    document.getElementById('move-pages').insertBefore(nt,document.getElementById('move-add-page'));
+    saveMovPresets();toast('Page '+movePages.length+' added');
+  });
+  renderMovePage(0);
+}
+
+function renderMovePage(pi){
+  const el=document.getElementById('move-content');el.innerHTML='';
+  const pg=movePages[pi];if(!pg)return;
+
+  // ── Mover selector ──
+  const sel=document.createElement('div');sel.className='mover-sel';
+
+  // ALL ENTOURS
+  const aeBtn=document.createElement('div');aeBtn.className='mvsel-btn mvsel-all';aeBtn.textContent='All Entours';
+  aeBtn.addEventListener('click',()=>{ENTOUR_IDS.forEach(id=>selMovers.add(id));syncMoverSelUI();});
+  sel.appendChild(aeBtn);
+
+  // ALL MOVERS
+  const amBtn=document.createElement('div');amBtn.className='mvsel-btn mvsel-all';amBtn.textContent='All Movers';
+  amBtn.addEventListener('click',()=>{ALL_MOVER_IDS.forEach(id=>selMovers.add(id));syncMoverSelUI();});
+  sel.appendChild(amBtn);
+
+  // CLEAR
+  const clBtn=document.createElement('div');clBtn.className='mvsel-btn mvsel-all';clBtn.style.color='var(--txt3)';clBtn.textContent='Clear';
+  clBtn.addEventListener('click',()=>{selMovers.clear();syncMoverSelUI();});
+  sel.appendChild(clBtn);
+
+  // Individual entours
+  ENTOUR_IDS.forEach(id=>{
+    const p=PATCH.find(x=>x.id===id);
+    const b=document.createElement('div');b.className='mvsel-btn sel-e';b.dataset.mid=id;b.id='msb-'+id;
+    b.textContent=p.label.replace('Entour ','E');
+    b.classList.toggle('sel-e',selMovers.has(id));
+    b.classList.toggle('',!selMovers.has(id));
+    if(!selMovers.has(id))b.style.background='var(--p3)';
+    b.addEventListener('click',()=>{selMovers.has(id)?selMovers.delete(id):selMovers.add(id);syncMoverSelUI()});
+    sel.appendChild(b);
+  });
+
+  // Individual wash movers
+  SHMOV_IDS.forEach(id=>{
+    const p=PATCH.find(x=>x.id===id);
+    const b=document.createElement('div');b.className='mvsel-btn';b.dataset.mid=id;b.id='msb-'+id;
+    b.textContent=p.label.replace('Mover ','M');
+    b.classList.toggle('sel',selMovers.has(id));
+    b.addEventListener('click',()=>{selMovers.has(id)?selMovers.delete(id):selMovers.add(id);syncMoverSelUI()});
+    sel.appendChild(b);
+  });
+  el.appendChild(sel);
+
+  // ── XY Pad section ──
+  const xySec=document.createElement('div');xySec.style.cssText='display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start';
+
+  // PAD SIZE — responsive
+  const padSz=Math.min(200, window.innerWidth>700?200:window.innerWidth-280);
+
+  // Entour XY pad
+  const entWrap=makeXYPad('ENTOURS (540°×257°)',padSz,ENTOUR_IDS,'entour');
+  xySec.appendChild(entWrap);
+
+  // Wash Mover XY pad
+  const movWrap=makeXYPad('WASH MOVERS (540°×180°)',padSz,SHMOV_IDS,'mover');
+  xySec.appendChild(movWrap);
+
+  el.appendChild(xySec);
+
+  // ── Position presets ──
+  const presSec=document.createElement('div');presSec.style.cssText='display:flex;gap:12px;flex-wrap:wrap';
+
+  // Entour positions
+  const ep=document.createElement('div');ep.className='pos-sec';
+  ep.innerHTML='<div class="pos-sec-title" style="color:var(--gold)">ENTOUR POSITIONS</div>';
+  const epg=document.createElement('div');epg.className='pos-grid';
+  ENTOUR_POSITIONS.forEach(pos=>{
+    const b=document.createElement('div');b.className='pos-btn ent-pos';
+    b.innerHTML=`<div>${pos.icon}</div><div>${pos.n}</div>`;
+    b.addEventListener('click',()=>{
+      ENTOUR_IDS.forEach(id=>{if(selMovers.has(id)){sendPanTilt(id,pos.p,pos.t);syncXYCursor(id)}});
+      cmd('Entours → '+pos.n);toast('Entours: '+pos.n);
+    });
+    epg.appendChild(b);
+  });
+  ep.appendChild(epg);presSec.appendChild(ep);
+
+  // Wash mover positions
+  const mp=document.createElement('div');mp.className='pos-sec';
+  mp.innerHTML='<div class="pos-sec-title" style="color:var(--c-c)">MOVER POSITIONS</div>';
+  const mpg=document.createElement('div');mpg.className='pos-grid';
+  SHMOV_POSITIONS.forEach(pos=>{
+    const b=document.createElement('div');b.className='pos-btn';
+    b.innerHTML=`<div>${pos.icon}</div><div>${pos.n}</div>`;
+    b.addEventListener('click',()=>{
+      SHMOV_IDS.forEach(id=>{if(selMovers.has(id)){sendPanTilt(id,pos.p,pos.t);syncXYCursor(id)}});
+      cmd('Movers → '+pos.n);toast('Movers: '+pos.n);
+    });
+    mpg.appendChild(b);
+  });
+  mp.appendChild(mpg);presSec.appendChild(mp);
+  el.appendChild(presSec);
+
+  // ── Move extras: speed ──
+  const extras=document.createElement('div');extras.className='move-extras';
+  // PT Speed (sent to all selected movers)
+  ['PT Speed','Focus (Entour)'].forEach((lbl,i)=>{
+    const mi=document.createElement('div');mi.className='me-item';
+    const slId='me-sl-'+i;
+    mi.innerHTML=`<span class="me-lbl">${lbl}</span>
+      <input type="range" class="me-sl" id="${slId}" min="0" max="255" value="${i===0?128:128}">
+      <span class="me-val" id="me-v-${i}">128</span>`;
+    mi.querySelector('input').addEventListener('input',function(){
+      const v=parseInt(this.value);document.getElementById('me-v-'+i).textContent=v;
+      if(i===0) ALL_MOVER_IDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'spd',value:v})});
+      else ENTOUR_IDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'foc',value:v})});
+    });
+    extras.appendChild(mi);
+  });
+  el.appendChild(extras);
+
+  // ── Movement Presets section ──
+  const mpSec=document.createElement('div');mpSec.className='mov-presets-section';
+  const mpTitle=document.createElement('div');mpTitle.className='mov-preset-title';
+  mpTitle.innerHTML=`<span style="color:var(--c-c)">MOVEMENT PRESETS</span><span style="color:var(--txt3)">${pg.name} — long press to delete</span>`;
+  const mpGrid=document.createElement('div');mpGrid.className='mov-preset-grid';mpGrid.id='mpgrid-'+pi;
+
+  // New preset button
+  const newMp=document.createElement('div');newMp.className='mov-pb new-mp';
+  newMp.innerHTML='<div class="mp-ico">+</div><div class="mp-lbl">SAVE POS</div>';
+  newMp.addEventListener('click',()=>{pendingMovPresetPage=pi;modalMode='movpreset';openModal('SAVE POSITION PRESET','Move '+(pg.presets.length+1))});
+  mpGrid.appendChild(newMp);
+
+  pg.presets.forEach((pr,pri)=>{
+    const mpb=document.createElement('div');mpb.className='mov-pb';
+    mpb.innerHTML=`<div class="mp-ico">📍</div><div class="mp-lbl">${pr.name}</div>`;
+    mpb.addEventListener('click',()=>{recallMovPreset(pr);renderMovementMacros();toast('↩ '+pr.name)});
+    let lt2;
+    mpb.addEventListener('pointerdown',()=>{lt2=setTimeout(()=>{pg.presets.splice(pri,1);saveMovPresets();renderMovePage(pi);renderMovementMacros();toast('Deleted')},900)});
+    mpb.addEventListener('pointerup',()=>clearTimeout(lt2));
+    mpb.addEventListener('pointerleave',()=>clearTimeout(lt2));
+    mpGrid.appendChild(mpb);
+  });
+  mpSec.appendChild(mpTitle);mpSec.appendChild(mpGrid);
+  el.appendChild(mpSec);
+}
+
+function makeXYPad(title,sz,moverIds,type){
+  const isEnt=type==='entour';
+  const wrap=document.createElement('div');wrap.className='xy-wrap';
+  const t=document.createElement('div');t.style.cssText='font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;color:'+(isEnt?'var(--gold)':'var(--c-c)');
+  t.textContent=title;
+  wrap.appendChild(t);
+
+  const outer=document.createElement('div');outer.style.cssText='display:flex;gap:8px;align-items:center';
+  const padEl=document.createElement('div');padEl.className='xypad';padEl.style.width=sz+'px';padEl.style.height=sz+'px';
+  padEl.id='xypad-'+type;
+
+  const ch=document.createElement('div');ch.className='xy-crossh';
+  const cv=document.createElement('div');cv.className='xy-crossv';
+  padEl.appendChild(ch);padEl.appendChild(cv);
+
+  // One cursor per mover
+  moverIds.forEach(id=>{
+    const cur=document.createElement('div');cur.className='xy-cur'+(isEnt?' entour':'');
+    cur.id='xycur-'+id;cur.style.opacity='0.85';
+    const pt=moverPos[id]||{pan:128,tilt:128};
+    cur.style.left=(pt.pan/255*100)+'%';cur.style.top=((255-pt.tilt)/255*100)+'%';
+    padEl.appendChild(cur);
+  });
+
+  function move(ex,ey){
+    const rc=padEl.getBoundingClientRect();
+    const x=Math.max(0,Math.min(1,(ex-rc.left)/rc.width));
+    const y=Math.max(0,Math.min(1,(ey-rc.top)/rc.height));
+    const pan=Math.round(x*255),tilt=Math.round((1-y)*255);
+    // Move all selected movers of this type
+    moverIds.forEach(id=>{
+      if(!selMovers.has(id))return;
+      sendPanTilt(id,pan,tilt);
+      const cur=document.getElementById('xycur-'+id);
+      if(cur){cur.style.left=(x*100)+'%';cur.style.top=(y*100)+'%'}
+    });
+    updateFxState();
+  }
+  padEl.addEventListener('touchstart',e=>{e.preventDefault();move(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  padEl.addEventListener('touchmove', e=>{e.preventDefault();move(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  padEl.addEventListener('mousedown', e=>move(e.clientX,e.clientY));
+  padEl.addEventListener('mousemove', e=>{if(e.buttons===1)move(e.clientX,e.clientY)});
+
+  // Fine sliders (Pan / Tilt) next to pad
+  const fine=document.createElement('div');fine.className='xy-fine';
+  const reprMover=moverIds[0];
+  const ptCur=moverPos[reprMover]||{pan:128,tilt:128};
+
+  ['Pan','Tilt'].forEach((ax,ai)=>{
+    const row=document.createElement('div');row.className='xyfr';
+    const sl=document.createElement('input');
+    sl.type='range';sl.className='xyfsl'+(isEnt?' ent':'');
+    sl.min=0;sl.max=255;sl.value=ai===0?ptCur.pan:ptCur.tilt;
+    sl.id='xyf-'+type+'-'+ax.toLowerCase();
+    sl.style.cssText='writing-mode:vertical-lr;direction:rtl;width:20px;height:'+(sz/2)+'px';
+    const lbl=document.createElement('span');lbl.style.cssText='font-size:9px;color:var(--txt3)';lbl.textContent=ax;
+    sl.addEventListener('input',()=>{
+      const v=parseInt(sl.value);
+      moverIds.forEach(id=>{
+        if(!selMovers.has(id))return;
+        const pt=moverPos[id]||{pan:128,tilt:128};
+        if(ax==='Pan') sendPanTilt(id,v,pt.tilt);
+        else           sendPanTilt(id,pt.pan,v);
+        syncXYCursor(id);
+      });
+    });
+    row.appendChild(sl);row.appendChild(lbl);
+    fine.appendChild(row);
+  });
+  outer.appendChild(padEl);outer.appendChild(fine);
+  wrap.appendChild(outer);
+
+  // XY axis labels
+  const xlbls=document.createElement('div');xlbls.className='xy-lbl-row';xlbls.style.width=sz+'px';
+  xlbls.innerHTML='<span class="xy-lbl">← PAN →</span><span class="xy-lbl">↑ TILT ↓</span>';
+  wrap.appendChild(xlbls);
+  return wrap;
+}
+
+function syncXYCursor(id){
+  const pt=moverPos[id];if(!pt)return;
+  const cur=document.getElementById('xycur-'+id);
+  if(cur){cur.style.left=(pt.pan/255*100)+'%';cur.style.top=((255-pt.tilt)/255*100)+'%'}
+}
+function syncAllXYCursors(){ALL_MOVER_IDS.forEach(id=>syncXYCursor(id))}
+function syncMoverSelUI(){
+  ALL_MOVER_IDS.forEach(id=>{
+    const b=document.getElementById('msb-'+id);if(!b)return;
+    const isEnt=ENTOUR_IDS.includes(id);
+    b.style.background=selMovers.has(id)?(isEnt?'var(--gold)':'var(--c-c)'):'var(--p3)';
+    b.style.color=selMovers.has(id)?'#000':'var(--txt2)';
+    b.style.borderColor=selMovers.has(id)?(isEnt?'var(--gold)':'var(--c-c)'):'var(--b2)';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE MOVEMENT PRESET
+// ═══════════════════════════════════════════════════════════
+function saveMovPreset(name){
+  const pg=movePages[pendingMovPresetPage];if(!pg)return;
+  // Snapshot ALL mover positions
+  const movers=ALL_MOVER_IDS.map(id=>({id,pan:moverPos[id].pan,tilt:moverPos[id].tilt}));
+  pg.presets.push({name,movers});
+  saveMovPresets();
+  renderMovePage(pendingMovPresetPage);
+  renderMovementMacros();
+  toast('Saved: '+name);
+}
+function saveMovPresets(){localStorage.setItem('dmx_mov_presets',JSON.stringify(movePages))}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(title,defaultVal){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('minp').value=defaultVal||'';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('minp').focus(),100);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function confirmModal(){
+  const nm=document.getElementById('minp').value.trim();
+  if(modalMode==='scene'){
+    const fxcols={};PATCH.forEach(p=>fxcols[p.id]={...fxColors[p.id]});
+    const mpos={};ALL_MOVER_IDS.forEach(id=>mpos[id]={...moverPos[id]});
+    const fg=GROUPS.find(g=>selGroups.has(g.id));
+    scenes.push({name:nm||'Scene '+(scenes.length+1),grps:selGroups.size,fxcols,moverPos:mpos,colVal:{...curColor},selGroups:[...selGroups],col:fg?.col||'var(--gold)'});
+    saveSc();renderScenes();
+  } else {
+    saveMovPreset(nm||'Move '+(movePages[pendingMovPresetPage]?.presets.length+1||1));
+  }
+  closeModal();
+}
+document.getElementById('mcancel').addEventListener('click',closeModal);
+document.getElementById('mok').addEventListener('click',confirmModal);
+document.getElementById('minp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmModal()});
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal()});
+
+// ═══════════════════════════════════════════════════════════
+// FIXTURE STATE (right column)
+// ═══════════════════════════════════════════════════════════
+function updateFxState(){
+  const el=document.getElementById('fxstate');el.innerHTML='';
+  const selIds=getSelFxIds();
+  const show=selIds.length?selIds:PATCH.map(p=>p.id).slice(0,20);
+  show.forEach(fid=>{
+    const p=PATCH.find(x=>x.id===fid);if(!p)return;
+    const col=fxColors[fid]||{r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+    const mr=Math.min(255,col.r+(col.a*.5|0)+(col.w*.4|0));
+    const mg=Math.min(255,col.g+(col.w*.4|0));
+    const mb=Math.min(255,col.b+(col.uv*.4|0)+(col.w*.4|0));
+    const isMover=ALL_MOVER_IDS.includes(fid);
+    const pt=moverPos[fid];
+    const row=document.createElement('div');row.className='fsr';
+    row.innerHTML=`<div class="fssw" style="background:rgb(${mr},${mg},${mb})"></div>
+      <div class="fsif">
+        <div class="fsnm">${p.label}</div>
+        ${isMover&&pt?`<div class="fspos">P${Math.round(pt.pan/255*540)}° T${Math.round(pt.tilt/255*(p.type==='mac250e'?257:180))}°</div>`:
+        `<div class="fsch">U${p.univ}·${p.addr}</div>`}
+      </div>
+      <div class="fsdm">${Math.round((col.dim||0)/2.55)}%</div>`;
+    el.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK-FIRE BOTTOM STRIP
+// ═══════════════════════════════════════════════════════════
+function buildQF(){
+  const row=document.getElementById('cmdrow2');
+  COLOR_MACROS.forEach((cm,i)=>{
+    const b=document.createElement('button');b.className='qfb';
+    b.innerHTML=`<div class="qfsw" style="background:${cm.bg}"></div><div class="qfnm">${cm.n}</div>`;
+    b.addEventListener('click',()=>{
+      const col={r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};
+      curColor={...col};Object.entries({r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim}).forEach(([k,v])=>setSl(k,v));
+      updatePrev();applyColorToSel(col);
+      row.querySelectorAll('.qfb').forEach(x=>x.classList.remove('aq'));b.classList.add('aq');
+      document.querySelectorAll('#cm-row .exb').forEach((x,j)=>{j===i?x.classList.add('on'):x.classList.remove('on')});
+    });
+    row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MASTER + BLACKOUT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('msl').addEventListener('input',function(){
+  masterVal=parseInt(this.value);
+  document.getElementById('mpct').textContent=Math.round(masterVal/2.55)+'%';
+  ws({type:'master',value:masterVal});
+});
+document.getElementById('btn-bo').addEventListener('click',function(){
+  blackout=!blackout;this.classList.toggle('active',blackout);
+  this.textContent=blackout?'🔴 LIVE':'⬛ BLACKOUT';
+  ws({type:'blackout',active:blackout});
+  cmd(blackout?'BLACKOUT ACTIVE':'BLACKOUT CLEAR');
+  toast(blackout?'⬛ BLACKOUT':'BLACKOUT CLEAR');
+});
+
+// ═══════════════════════════════════════════════════════════
+// CMD
+// ═══════════════════════════════════════════════════════════
+function cmd(t){
+  document.getElementById('cmdsp').textContent=t;
+  document.getElementById('cmdfb').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let tt;
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2200)}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+setupWheel();
+updatePrev();
+buildGroups();
+buildColorMacros();
+buildMovementMacros();
+buildGQF();
+buildScenes();
+buildMovementPanel();
+buildQF();
+updateFxState();
+cmd('Ready — select groups, pick color or movement, apply');
+</script>
+</body>
+</html>

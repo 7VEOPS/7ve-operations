@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>CTRL · SHOW</title>
+<style>
+:root{
+  --bg:#0c0c0f;--p1:#131316;--p2:#191920;--p3:#202028;--p4:#28282f;
+  --b1:#26262f;--b2:#34343f;--b3:#444450;
+  --gold:#c8a444;--gold2:#e8c050;--gold3:#6a5418;
+  --bma:#1a3f7a;--bact:#3377ee;
+  --gma:#1a6a38;--gact:#33cc66;
+  --rma:#7a1a1a;--ract:#ee2233;
+  --cyn:#22bbdd;--prp:#9933ee;
+  --c-r:#ff3344;--c-g:#33ff77;--c-b:#3388ff;
+  --c-a:#ffaa22;--c-w:#e8e8f0;--c-uv:#9944ff;
+  --txt:#c4c4cc;--txt2:#7a7a88;--txt3:#44444e;--txtb:#eeeef4;
+  --font:'SF Mono','Fira Code',monospace;
+  --sans:-apple-system,'Helvetica Neue',sans-serif;
+  --r:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--sans);height:100%;overflow:hidden;font-size:13px}
+#app{display:grid;grid-template-rows:42px 1fr 80px;height:100vh;height:100dvh}
+
+/* TOP BAR */
+#topbar{display:flex;align-items:center;background:var(--p1);border-bottom:2px solid var(--b2);flex-shrink:0}
+.tbs{display:flex;align-items:center;padding:0 12px;height:100%;border-right:1px solid var(--b1);gap:8px;flex-shrink:0}
+#logo{font-family:var(--font);font-size:14px;font-weight:700;letter-spacing:.25em;color:var(--gold2)}
+#logo span{color:var(--txt3);font-size:10px;font-weight:400}
+.sp{flex:1}
+#wsp{display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1px solid var(--b1);background:var(--p2);font-size:10px;color:var(--txt2)}
+#wsd{width:6px;height:6px;border-radius:50%;background:var(--b3);transition:background .3s}
+#wsd.on{background:var(--gact);box-shadow:0 0 5px var(--gact)}
+.mast{display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid var(--b1)}
+.mlbl{font-size:9px;color:var(--txt3);letter-spacing:.12em;white-space:nowrap}
+#msl{width:80px;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+#msl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold);cursor:pointer}
+#mpct{font-family:var(--font);font-size:11px;color:var(--gold);min-width:32px}
+#btn-bo{height:100%;padding:0 16px;border:none;background:var(--rma);color:var(--txtb);font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;border-left:1px solid var(--b2);flex-shrink:0;transition:background .1s}
+#btn-bo.active{background:var(--ract);box-shadow:inset 0 0 16px rgba(255,0,0,.25)}
+
+/* MAIN */
+#main{display:grid;grid-template-columns:190px 1fr 220px;overflow:hidden}
+@media(max-width:680px){#main{grid-template-columns:160px 1fr}#rcol{display:none}}
+@media(max-width:460px){#main{grid-template-columns:1fr}#lcol{display:none}#rcol{display:none}}
+
+/* SHARED */
+.col{display:flex;flex-direction:column;overflow:hidden}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--p2);border-bottom:1px solid var(--b1);flex-shrink:0}
+.cht{font-size:9px;color:var(--txt2);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+.chs{font-size:9px;color:var(--txt3)}
+.cscroll{flex:1;overflow-y:auto;padding:8px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* LEFT GROUPS */
+#lcol{background:var(--p1);border-right:1px solid var(--b2)}
+.gtools{display:flex;gap:4px;margin-bottom:8px}
+.gtb{flex:1;height:27px;border-radius:var(--r);border:1px solid var(--b2);background:var(--p3);color:var(--txt2);font-size:10px;cursor:pointer;transition:all .1s}
+.gtb:active{background:var(--bact);border-color:var(--bact);color:#fff}
+.grpb{display:flex;align-items:center;width:100%;margin-bottom:4px;border-radius:var(--r);overflow:hidden;cursor:pointer;border:1px solid var(--b1);background:var(--p2);height:40px;transition:border-color .1s}
+.grpb.sel{border-color:var(--gold);background:var(--p3)}
+.grpb.sel .gbar{opacity:1}
+.gbar{width:4px;height:100%;opacity:.3;flex-shrink:0;transition:opacity .12s}
+.ginn{flex:1;padding:0 8px}
+.gnm{font-size:11px;font-weight:600;color:var(--txt)}
+.gsb{font-size:9px;color:var(--txt3)}
+.gcnt{font-family:var(--font);font-size:10px;color:var(--txt2);padding-right:8px}
+
+/* CENTER TABS */
+#ccol{display:flex;flex-direction:column;overflow:hidden}
+#ctabs{display:flex;background:var(--p1);border-bottom:2px solid var(--b2);flex-shrink:0}
+.ctab{padding:10px 18px;font-size:10px;letter-spacing:.12em;cursor:pointer;white-space:nowrap;color:var(--txt3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .12s,border-color .12s;text-transform:uppercase}
+.ctab.active{color:var(--gold2);border-bottom-color:var(--gold2)}
+.cpanel{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.cpanel.active{display:flex}
+
+/* ══ CONTROL PANEL ══ */
+#cp-ctrl{padding:10px;gap:10px}
+
+/* Color picker row */
+.ctrlrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+#ww{position:relative;flex-shrink:0}
+#wcvs{border-radius:50%;cursor:crosshair;touch-action:none;display:block}
+#wcur{position:absolute;width:13px;height:13px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #000,0 0 6px rgba(255,255,255,.5);transform:translate(-50%,-50%);pointer-events:none}
+#csliders{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
+.csr{display:flex;align-items:center;gap:6px}
+.csdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cslbl{font-size:9px;color:var(--txt2);min-width:18px}
+.cssl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+.cssl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--p3);border:2px solid var(--b2);cursor:pointer}
+.cssl.r::-webkit-slider-thumb{border-color:var(--c-r)}.cssl.g::-webkit-slider-thumb{border-color:var(--c-g)}
+.cssl.b::-webkit-slider-thumb{border-color:var(--c-b)}.cssl.a::-webkit-slider-thumb{border-color:var(--c-a)}
+.cssl.w::-webkit-slider-thumb{border-color:#e8e8f0}.cssl.u::-webkit-slider-thumb{border-color:var(--c-uv)}
+.cssl.d::-webkit-slider-thumb{border-color:var(--gold)}
+.csv{font-family:var(--font);font-size:10px;color:var(--txt2);min-width:24px;text-align:right}
+.cside{display:flex;flex-direction:column;gap:5px;align-items:center;flex-shrink:0}
+#cprev{width:50px;height:50px;border-radius:var(--r);border:1px solid var(--b2);background:#000}
+.cact{width:100%;padding:5px 7px;border-radius:var(--r);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;border:1px solid var(--b2);text-align:center}
+.cact.apply{background:var(--bma);border-color:var(--bact);color:#fff}
+.cact.full{background:var(--p3);color:var(--txt2)}.cact.out{background:var(--p3);color:var(--txt2)}
+.cact.lamp-on{background:#2a4a1a;border-color:var(--gact);color:var(--gact)}
+.cact.lamp-off{background:#3a1a1a;border-color:var(--ract);color:var(--ract)}
+
+/* Executor section */
+.exsec{margin-top:8px}
+.exshdr{font-size:9px;color:var(--txt3);letter-spacing:.18em;text-transform:uppercase;padding:3px 0 5px;border-bottom:1px solid var(--b1);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.exrow{display:flex;gap:5px;flex-wrap:wrap}
+.exb{display:flex;flex-direction:column;justify-content:space-between;min-width:80px;flex:1;height:72px;border-radius:var(--r);cursor:pointer;border:1px solid var(--b2);background:var(--p2);padding:6px 7px;transition:border-color .1s;position:relative;overflow:hidden}
+.exb::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--b2);transition:background .1s}
+.exb.on::before{background:currentColor}
+.exb.on{border-color:color-mix(in srgb,currentColor 45%,var(--b2))}
+.exb.on .exst{background:currentColor;box-shadow:0 0 4px currentColor}
+.extop{display:flex;justify-content:space-between;align-items:flex-start}
+.exnum{font-family:var(--font);font-size:9px;color:var(--txt3)}
+.exst{width:6px;height:6px;border-radius:50%;background:var(--b2)}
+.exnm{font-size:11px;font-weight:700;color:var(--txt);line-height:1.2}
+.exsub{font-size:9px;color:var(--txt3)}
+.exbar{height:3px;border-radius:2px;background:var(--b2);overflow:hidden}
+.exbf{height:100%;border-radius:2px;width:0%}
+.exb.ns{border-style:dashed;min-width:64px}
+.exb.ns .exnm{color:var(--txt3);font-size:18px;text-align:center;padding-top:2px}
+
+/* Dimmer row */
+.dim-strip{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--b1);margin-top:6px}
+.dim-lbl{font-size:9px;color:var(--txt2);min-width:32px;letter-spacing:.08em}
+.dim-sl{flex:1;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--b2);outline:none;cursor:pointer}
+.dim-sl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer}
+.dim-val{font-family:var(--font);font-size:11px;color:var(--gold);min-width:28px;text-align:right}
+
+/* ══ ASSIGNABLE FADER BANK ══ */
+#fader-bank{
+  display:flex;gap:0;align-items:stretch;
+  background:var(--p1);border:1px solid var(--b2);border-radius:var(--r);
+  overflow:hidden;margin-top:10px;flex-shrink:0;
+}
+.fdr-col{
+  display:flex;flex-direction:column;align-items:center;
+  flex:1;min-width:0;border-right:1px solid var(--b1);
+  background:var(--p2);position:relative;
+}
+.fdr-col:last-child{border-right:none}
+/* assign button at top */
+.fdr-assign{
+  width:100%;padding:4px 2px;background:var(--p3);border:none;
+  border-bottom:1px solid var(--b1);color:var(--txt3);font-size:8px;
+  letter-spacing:.06em;cursor:pointer;text-align:center;line-height:1.3;
+  transition:background .1s,color .1s;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;
+}
+.fdr-assign:active,.fdr-assign.assigned{color:var(--gold2);background:var(--p4)}
+/* vertical fader */
+.fdr-track{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 0;position:relative;width:100%}
+.fdr-sl{
+  -webkit-appearance:none;appearance:none;
+  writing-mode:vertical-lr;direction:rtl;
+  width:36px;height:120px;
+  background:var(--b1);border-radius:3px;outline:none;cursor:pointer;
+}
+.fdr-sl::-webkit-slider-thumb{
+  -webkit-appearance:none;width:34px;height:16px;border-radius:3px;
+  background:var(--p3);border:2px solid var(--b3);cursor:pointer;
+  transition:border-color .12s,background .12s;
+}
+.fdr-sl.active-fdr::-webkit-slider-thumb{
+  border-color:var(--gold2);
+  background:color-mix(in srgb,var(--gold2) 18%,var(--p3));
+}
+/* value display */
+.fdr-val{
+  font-family:var(--font);font-size:10px;color:var(--txt2);
+  padding:3px 0;text-align:center;width:100%;
+}
+/* label at bottom */
+.fdr-lbl{
+  font-size:9px;color:var(--gold2);text-align:center;
+  padding:4px 2px;border-top:1px solid var(--b1);width:100%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.04em;background:var(--p3);
+}
+
+/* Assign picker popup */
+#assign-popup{
+  position:fixed;z-index:400;
+  background:var(--p1);border:1px solid var(--b2);border-radius:var(--r);
+  box-shadow:0 8px 32px rgba(0,0,0,.9);padding:10px;
+  display:none;min-width:200px;max-height:320px;overflow-y:auto;
+}
+#assign-popup.open{display:block}
+.ap-title{font-size:9px;color:var(--txt3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+.ap-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);cursor:pointer;transition:background .1s;margin-bottom:2px}
+.ap-item:hover,.ap-item:active{background:var(--p3)}
+.ap-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ap-name{font-size:11px;font-weight:600;color:var(--txt)}
+.ap-sub{font-size:9px;color:var(--txt3);margin-left:auto}
+.ap-close{width:100%;margin-top:8px;padding:6px;border-radius:var(--r);border:1px solid var(--b2);background:var(--p3);color:var(--txt2);font-size:10px;cursor:pointer;text-align:center}
+
+/* ══ MOVEMENT PANEL ══ */
+#cp-move{overflow:hidden;flex-direction:column}
+#mpgtabs{display:flex;align-items:center;background:var(--p1);border-bottom:1px solid var(--b2);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+#mpgtabs::-webkit-scrollbar{display:none}
+.mptab{padding:9px 14px;font-size:10px;letter-spacing:.1em;cursor:pointer;white-space:nowrap;color:var(--txt3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;text-transform:uppercase}
+.mptab.active{color:var(--cyn);border-bottom-color:var(--cyn)}
+#mpadd{padding:8px 12px;font-size:14px;color:var(--txt3);cursor:pointer;background:transparent;border:none;flex-shrink:0}
+#mpadd:active{color:var(--gold2)}
+#mpcontent{flex:1;overflow-y:auto;padding:10px}
+
+/* Mover selector */
+.mvsel{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--b1)}
+.mvsb{padding:5px 10px;border-radius:var(--r);font-size:10px;background:var(--p3);border:1px solid var(--b2);color:var(--txt2);cursor:pointer;transition:all .1s}
+.mvsb.se{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+.mvsb.sm{background:var(--cyn);border-color:var(--cyn);color:#000;font-weight:700}
+.mvsb.sa{background:var(--p4);color:var(--txt);font-weight:600}
+
+/* ══ MOVEMENT PATTERN BUTTONS ══ */
+.pat-section{margin-bottom:14px}
+.pat-title{font-size:9px;color:var(--txt3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--b1)}
+.pat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:12px}
+.pat-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;height:100px;border-radius:var(--r);cursor:pointer;
+  border:1px solid var(--b2);background:var(--p2);
+  transition:border-color .12s,background .12s;position:relative;overflow:hidden;
+}
+.pat-btn:active,.pat-btn.running{border-color:var(--cyn);background:var(--p3)}
+.pat-btn.running{box-shadow:0 0 12px color-mix(in srgb,var(--cyn) 30%,transparent)}
+.pat-btn.running .pat-icon canvas{filter:drop-shadow(0 0 4px var(--cyn))}
+.pat-name{font-size:11px;font-weight:700;color:var(--txt);letter-spacing:.05em}
+.pat-sub{font-size:9px;color:var(--txt3)}
+.pat-run-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--b3);transition:background .1s}
+.pat-btn.running .pat-run-dot{background:var(--cyn);box-shadow:0 0 5px var(--cyn)}
+.pat-icon{width:64px;height:44px;display:flex;align-items:center;justify-content:center}
+
+/* Speed + size controls for patterns */
+.pat-ctrls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--b1);margin-bottom:10px}
+.pcl{display:flex;align-items:center;gap:6px;flex:1;min-width:120px}
+.pclbl{font-size:9px;color:var(--txt2);min-width:36px}
+.pcsl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer}
+.pcsl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyn);cursor:pointer}
+.pcv{font-family:var(--font);font-size:9px;color:var(--cyn);min-width:22px;text-align:right}
+#pat-stop{padding:7px 16px;border-radius:var(--r);border:1px solid var(--ract);color:var(--ract);background:transparent;font-size:11px;font-weight:700;cursor:pointer;transition:all .1s;white-space:nowrap}
+#pat-stop:active{background:var(--ract);color:#fff}
+
+/* XY Pads */
+.xy-section{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.xy-wrap{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.xy-title{font-size:9px;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.xypad{position:relative;background:var(--p2);border:1px solid var(--b2);border-radius:var(--r);touch-action:none;cursor:crosshair;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:18px 18px}
+.xych{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.06);pointer-events:none}
+.xycv{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.06);pointer-events:none}
+.xycur{position:absolute;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;border:2px solid rgba(255,255,255,.5)}
+.xycur.ec{background:var(--gold);box-shadow:0 0 7px var(--gold)}
+.xycur.mc{background:var(--cyn);box-shadow:0 0 7px var(--cyn)}
+.xylbls{display:flex;justify-content:space-between;margin-top:2px}
+.xylbl{font-size:8px;color:var(--txt3)}
+
+/* Position presets */
+.pos-sec{flex:1;min-width:170px}
+.pos-title{font-size:9px;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.posgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.posbtn{padding:7px 3px;border-radius:var(--r);font-size:10px;text-align:center;background:var(--p2);border:1px solid var(--b2);color:var(--txt);cursor:pointer;transition:all .1s;line-height:1.2}
+.posbtn:active{background:var(--cyn);border-color:var(--cyn);color:#000}
+.posbtn.ep:active{background:var(--gold);border-color:var(--gold);color:#000}
+
+/* Lamp + dimmer */
+.lamp-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.lamp-btn{padding:8px 14px;border-radius:var(--r);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--b2);background:var(--p2);color:var(--txt);transition:all .1s;flex:1;text-align:center}
+.lamp-btn.lon{border-color:var(--gact);color:var(--gact)}
+.lamp-btn.loff{border-color:var(--ract);color:var(--ract)}
+.lamp-btn.lon:active{background:var(--gact);color:#000}
+.lamp-btn.loff:active{background:var(--ract);color:#fff}
+.lamp-btn.str{border-color:var(--gold2);color:var(--gold2)}
+.lamp-btn.str:active{background:var(--gold2);color:#000}
+
+/* Mov presets */
+.movpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:6px}
+.movpb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:58px;border-radius:var(--r);background:var(--p2);border:1px solid var(--b2);cursor:pointer;font-size:10px;color:var(--txt);transition:border-color .1s;text-align:center;padding:4px}
+.movpb:active{border-color:var(--cyn)}
+.movpb.nmp{border-style:dashed;color:var(--txt3)}
+.movpb .mpi{font-size:14px}
+.movpb .mpl{font-size:9px;color:var(--txt2);line-height:1.2;word-break:break-word}
+.movs-hdr{font-size:9px;color:var(--txt3);letter-spacing:.15em;text-transform:uppercase;margin:8px 0 4px;display:flex;justify-content:space-between}
+
+/* RIGHT */
+#rcol{background:var(--p1);border-left:1px solid var(--b2)}
+.fsr{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:var(--r);margin-bottom:3px;background:var(--p2);border:1px solid var(--b1)}
+.fssw{width:20px;height:20px;border-radius:3px;flex-shrink:0;border:1px solid var(--b1)}
+.fsif{flex:1;min-width:0}.fsnm{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsch{font-size:9px;color:var(--txt3);font-family:var(--font)}
+.fsdm{font-family:var(--font);font-size:10px;color:var(--txt2);min-width:26px;text-align:right}
+
+/* CMD */
+#cmdstrip{background:var(--p1);border-top:1px solid var(--b2);display:flex;flex-direction:column}
+#cmdrow1{display:flex;align-items:center;height:34px;border-bottom:1px solid var(--b1)}
+.clbl{padding:0 10px;font-size:9px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;border-right:1px solid var(--b1);height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0}
+#cmdtxt{flex:1;font-family:var(--font);font-size:11px;color:var(--gold2);padding:0 10px;display:flex;align-items:center}
+#cmdcur{display:inline-block;width:7px;height:12px;background:var(--gold2);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#cmdfb{padding:0 10px;font-size:10px;color:var(--txt2);border-left:1px solid var(--b1);height:100%;display:flex;align-items:center;min-width:80px;font-style:italic;flex-shrink:0}
+#btn-ss{height:100%;padding:0 12px;border:none;border-left:1px solid var(--b1);background:var(--bma);color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#cmdrow2{display:flex;height:46px;overflow-x:auto;scrollbar-width:none}
+#cmdrow2::-webkit-scrollbar{display:none}
+.qfb{flex:1;min-width:46px;height:100%;border:none;border-right:1px solid var(--b1);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:filter .08s}
+.qfb:last-child{border-right:none}
+.qfb:active{filter:brightness(1.5)}
+.qfsw{width:16px;height:8px;border-radius:2px}
+.qfnm{font-size:8px;color:var(--txt2)}
+.qfb.aq .qfnm{color:var(--txtb)}
+
+/* MODAL */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;z-index:200;align-items:center;justify-content:center}
+#modal.open{display:flex}
+#mbox{background:var(--p1);border:1px solid var(--b2);border-radius:6px;padding:20px;min-width:260px;max-width:88vw;box-shadow:0 8px 40px rgba(0,0,0,.9)}
+.mtitle{font-size:13px;font-weight:700;color:var(--txtb);margin-bottom:14px}
+.mrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.mlbl{font-size:10px;color:var(--txt2);min-width:50px}
+.minp{flex:1;background:var(--p2);border:1px solid var(--b2);color:var(--txt);padding:7px 10px;border-radius:var(--r);font-family:var(--font);font-size:12px}
+.minp:focus{outline:none;border-color:var(--gold)}
+.macts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.mbtn{padding:7px 16px;border-radius:var(--r);border:1px solid var(--b2);background:var(--p2);color:var(--txt);font-size:11px;cursor:pointer}
+.mbtn.ok{background:var(--bma);border-color:var(--bact);color:#fff}
+
+/* TOAST */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--p3);border:1px solid var(--b2);padding:6px 16px;border-radius:20px;font-size:11px;color:var(--txt);transition:transform .18s,opacity .18s;opacity:0;pointer-events:none;z-index:300;white-space:nowrap;font-family:var(--font)}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="tbs"><div id="logo">CTRL <span>SHOW</span></div></div>
+  <div class="tbs"><div id="wsp"><div id="wsd"></div><span id="wsl">OFFLINE</span></div></div>
+  <div class="mast"><span class="mlbl">MASTER</span><input type="range" id="msl" min="0" max="255" value="255"><span id="mpct">100%</span></div>
+  <div class="sp"></div>
+  <button id="btn-bo">⬛ BLACKOUT</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- LEFT: GROUPS -->
+<div id="lcol" class="col">
+  <div class="chdr"><span class="cht">GROUPS</span><span class="chs" id="selct">NONE</span></div>
+  <div class="cscroll">
+    <div class="gtools"><button class="gtb" id="gall">ALL</button><button class="gtb" id="gclr">CLEAR</button></div>
+    <div id="glist"></div>
+  </div>
+</div>
+
+<!-- CENTER -->
+<div id="ccol">
+  <div id="ctabs">
+    <div class="ctab active" data-cp="ctrl">CONTROL</div>
+    <div class="ctab" data-cp="move">MOVEMENT</div>
+  </div>
+
+  <!-- ══ CONTROL PANEL ══ -->
+  <div class="cpanel active" id="cp-ctrl">
+
+    <!-- Color picker -->
+    <div class="ctrlrow">
+      <div id="ww"><canvas id="wcvs" width="118" height="118"></canvas><div id="wcur" style="left:50%;top:50%"></div></div>
+      <div id="csliders">
+        <div class="csr"><div class="csdot" style="background:var(--c-r)"></div><span class="cslbl">R</span><input type="range" class="cssl r" id="sl-r" min="0" max="255" value="0"><span class="csv" id="vl-r">0</span></div>
+        <div class="csr"><div class="csdot" style="background:var(--c-g)"></div><span class="cslbl">G</span><input type="range" class="cssl g" id="sl-g" min="0" max="255" value="0"><span class="csv" id="vl-g">0</span></div>
+        <div class="csr"><div class="csdot" style="background:var(--c-b)"></div><span class="cslbl">B</span><input type="range" class="cssl b" id="sl-b" min="0" max="255" value="0"><span class="csv" id="vl-b">0</span></div>
+        <div class="csr"><div class="csdot" style="background:var(--c-a)"></div><span class="cslbl">A</span><input type="range" class="cssl a" id="sl-a" min="0" max="255" value="0"><span class="csv" id="vl-a">0</span></div>
+        <div class="csr"><div class="csdot" style="background:#e8e8f0"></div><span class="cslbl">W</span><input type="range" class="cssl w" id="sl-w" min="0" max="255" value="0"><span class="csv" id="vl-w">0</span></div>
+        <div class="csr"><div class="csdot" style="background:var(--c-uv)"></div><span class="cslbl">UV</span><input type="range" class="cssl u" id="sl-uv" min="0" max="255" value="0"><span class="csv" id="vl-uv">0</span></div>
+        <div class="csr"><div class="csdot" style="background:var(--gold)"></div><span class="cslbl">DIM</span><input type="range" class="cssl d" id="sl-dim" min="0" max="255" value="255"><span class="csv" id="vl-dim">255</span></div>
+      </div>
+      <div class="cside">
+        <div id="cprev"></div>
+        <div class="cact apply" id="capply">APPLY</div>
+        <div class="cact full" id="cfull">FULL ON</div>
+        <div class="cact out" id="cout">OUT</div>
+        <div class="cact lamp-on" id="clamp-on">LAMP ON</div>
+        <div class="cact lamp-off" id="clamp-off">LAMP OFF</div>
+      </div>
+    </div>
+
+    <!-- Dimmer strip -->
+    <div class="dim-strip">
+      <span class="dim-lbl">GROUP DIM</span>
+      <input type="range" class="dim-sl" id="grp-dim" min="0" max="255" value="255">
+      <span class="dim-val" id="grp-dim-v">255</span>
+    </div>
+
+    <!-- ══ ASSIGNABLE FADER BANK ══ -->
+    <div class="exshdr" style="margin-top:10px">ASSIGNABLE FADERS <span style="color:var(--txt3);font-size:9px">tap label to assign</span></div>
+    <div id="fader-bank"></div>
+
+    <!-- Color macro executors -->
+    <div class="exsec">
+      <div class="exshdr">COLOR MACROS</div>
+      <div class="exrow" id="cm-row"></div>
+    </div>
+
+    <!-- Scene executors -->
+    <div class="exsec">
+      <div class="exshdr">SCENES <span id="sc-count" style="color:var(--txt3)">0 stored</span></div>
+      <div class="exrow" id="sc-row"></div>
+    </div>
+
+    <!-- Group quick-fire -->
+    <div class="exsec">
+      <div class="exshdr">GROUP QUICK-FIRE</div>
+      <div class="exrow" id="gqf-row"></div>
+    </div>
+
+  </div><!-- /ctrl -->
+
+  <!-- ══ MOVEMENT PANEL ══ -->
+  <div class="cpanel" id="cp-move" style="overflow:hidden;flex-direction:column">
+    <div id="mpgtabs">
+      <div class="mptab active" data-pg="0">PAGE 1</div>
+      <div class="mptab" data-pg="1">PAGE 2</div>
+      <div class="mptab" data-pg="2">PAGE 3</div>
+      <div class="mptab" data-pg="3">PAGE 4</div>
+      <div class="sp"></div>
+      <button id="mpadd">＋</button>
+    </div>
+    <div id="mpcontent"></div>
+  </div>
+
+</div><!-- /ccol -->
+
+<!-- RIGHT: FIXTURE STATE -->
+<div id="rcol" class="col">
+  <div class="chdr"><span class="cht">FIXTURE STATE</span><span class="chs">LIVE</span></div>
+  <div class="cscroll" id="fxstate"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- CMD STRIP -->
+<div id="cmdstrip">
+  <div id="cmdrow1">
+    <div class="clbl">CMD</div>
+    <div id="cmdtxt"><span id="cmdsp"></span><span id="cmdcur"></span></div>
+    <div id="cmdfb">Ready</div>
+    <button id="btn-ss">+ SAVE SCENE</button>
+  </div>
+  <div id="cmdrow2"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="mbox">
+    <div class="mtitle" id="modal-title">SAVE</div>
+    <div class="mrow"><span class="mlbl">Name</span><input class="minp" id="minp" placeholder="Name…" type="text"></div>
+    <div class="macts"><button class="mbtn" id="mcancel">Cancel</button><button class="mbtn ok" id="mok">SAVE</button></div>
+  </div>
+</div>
+<!-- ASSIGN POPUP -->
+<div id="assign-popup">
+  <div class="ap-title" id="ap-title">ASSIGN FADER</div>
+  <div id="ap-list"></div>
+  <div class="ap-close" id="ap-close">✕ CANCEL</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const PATCH=[
+  {id:'e1',label:'Entour 1',type:'mac250e',univ:1,addr:1},
+  {id:'e2',label:'Entour 2',type:'mac250e',univ:1,addr:16},
+  {id:'e3',label:'Entour 3',type:'mac250e',univ:1,addr:31},
+  {id:'e4',label:'Entour 4',type:'mac250e',univ:1,addr:46},
+  {id:'e5',label:'Entour 5',type:'mac250e',univ:1,addr:61},
+  {id:'e6',label:'Entour 6',type:'mac250e',univ:1,addr:76},
+  {id:'e7',label:'Entour 7',type:'mac250e',univ:1,addr:91},
+  {id:'e8',label:'Entour 8',type:'mac250e',univ:1,addr:106},
+  {id:'w1',label:'Wall 1',type:'shwall',univ:1,addr:121},{id:'w2',label:'Wall 2',type:'shwall',univ:1,addr:132},
+  {id:'w3',label:'Wall 3',type:'shwall',univ:1,addr:143},{id:'w4',label:'Wall 4',type:'shwall',univ:1,addr:154},
+  {id:'m1',label:'Mover 1',type:'shmov',univ:1,addr:165},{id:'m2',label:'Mover 2',type:'shmov',univ:1,addr:174},
+  {id:'m3',label:'Mover 3',type:'shmov',univ:1,addr:183},{id:'m4',label:'Mover 4',type:'shmov',univ:1,addr:192},
+  ...[...Array(27)].map((_,i)=>({id:'p'+(i+1),label:'EZPar '+(i+1),type:'ezp64',univ:2,addr:1+i*4})),
+  ...[...Array(8)].map((_,i)=>({id:'s'+(i+1),label:'Slim '+(i+1),type:'slim',univ:2,addr:109+i*4})),
+  {id:'enc1',label:'Encoder 1',type:'enc',univ:2,addr:141},{id:'enc2',label:'Encoder 2',type:'enc',univ:2,addr:142},
+  {id:'fog1',label:'Fog',type:'fog',univ:2,addr:143},
+];
+const GROUPS=[
+  {id:'ge', name:'All Entours', sub:'MAC 250 ×8', ids:['e1','e2','e3','e4','e5','e6','e7','e8'],col:'#c8a444'},
+  {id:'gw', name:'Wall Washes',sub:'18×18 ×4',   ids:['w1','w2','w3','w4'],col:'#3377ee'},
+  {id:'gm', name:'Wash Movers',sub:'12×12 ×4',   ids:['m1','m2','m3','m4'],col:'#22aacc'},
+  {id:'gp', name:'All EZ Pars',sub:'×27',         ids:[...Array(27)].map((_,i)=>'p'+(i+1)),col:'#aa4422'},
+  {id:'gs', name:'Slim Pars',  sub:'×8',          ids:[...Array(8)].map((_,i)=>'s'+(i+1)),col:'#664422'},
+  {id:'gap',name:'All Pars',   sub:'×35',         ids:[...[...Array(27)].map((_,i)=>'p'+(i+1)),...[...Array(8)].map((_,i)=>'s'+(i+1))],col:'#884422'},
+  {id:'gam',name:'All Movers', sub:'×12',         ids:['e1','e2','e3','e4','e5','e6','e7','e8','m1','m2','m3','m4'],col:'#226644'},
+  {id:'gall',name:'Full Rig',  sub:'All',         ids:PATCH.map(p=>p.id),col:'#555560'},
+  {id:'gfog',name:'Fog',       sub:'Machine',     ids:['fog1'],col:'#446688'},
+];
+const EIDS=['e1','e2','e3','e4','e5','e6','e7','e8'];
+const MIDS=['m1','m2','m3','m4'];
+const AMID=[...EIDS,...MIDS];
+
+const EPOS=[
+  {n:'Home',p:128,t:128,i:'⌂'},{n:'Up',p:128,t:64,i:'↑'},{n:'Down',p:128,t:200,i:'↓'},
+  {n:'Left',p:64,t:128,i:'←'},{n:'Right',p:192,t:128,i:'→'},{n:'FR-L',p:70,t:90,i:'↖'},
+  {n:'FR-R',p:186,t:90,i:'↗'},{n:'FL-L',p:70,t:200,i:'↙'},{n:'FL-R',p:186,t:200,i:'↘'},
+  {n:'Audience',p:128,t:220,i:'👥'},{n:'Side-L',p:30,t:128,i:'⇐'},{n:'Side-R',p:225,t:128,i:'⇒'},
+];
+const MPOS=[
+  {n:'Home',p:128,t:128,i:'⌂'},{n:'Up',p:128,t:64,i:'↑'},{n:'Down',p:128,t:200,i:'↓'},
+  {n:'Left',p:64,t:128,i:'←'},{n:'Right',p:192,t:128,i:'→'},{n:'FR-L',p:70,t:90,i:'↖'},
+  {n:'FR-R',p:186,t:90,i:'↗'},{n:'FL-L',p:70,t:200,i:'↙'},{n:'FL-R',p:186,t:200,i:'↘'},
+];
+
+const CMACROS=[
+  {n:'Red',r:255,g:0,b:0,a:0,w:0,uv:0,dim:255,bg:'#ff3344'},
+  {n:'Green',r:0,g:255,b:0,a:0,w:0,uv:0,dim:255,bg:'#33ff77'},
+  {n:'Blue',r:0,g:0,b:255,a:0,w:0,uv:0,dim:255,bg:'#3388ff'},
+  {n:'Cyan',r:0,g:255,b:255,a:0,w:0,uv:0,dim:255,bg:'#22ddff'},
+  {n:'Magenta',r:255,g:0,b:255,a:0,w:0,uv:0,dim:255,bg:'#ff33cc'},
+  {n:'Yellow',r:255,g:220,b:0,a:60,w:0,uv:0,dim:255,bg:'#ffee22'},
+  {n:'Amber',r:255,g:140,b:0,a:255,w:0,uv:0,dim:255,bg:'#ffaa22'},
+  {n:'White',r:0,g:0,b:0,a:0,w:255,uv:0,dim:255,bg:'#e8e8f0'},
+  {n:'Warm W',r:80,g:40,b:0,a:200,w:200,uv:0,dim:255,bg:'#ffcc88'},
+  {n:'UV',r:0,g:0,b:0,a:0,w:0,uv:255,dim:255,bg:'#9944ff'},
+  {n:'Pink',r:255,g:20,b:150,a:0,w:30,uv:0,dim:255,bg:'#ff5599'},
+  {n:'Lavender',r:100,g:0,b:255,a:0,w:80,uv:60,dim:255,bg:'#9966ff'},
+  {n:'Sunrise',r:255,g:80,b:0,a:180,w:40,uv:0,dim:255,bg:'#ff8844'},
+  {n:'Ice Blue',r:0,g:180,b:255,a:0,w:60,uv:0,dim:255,bg:'#44aaff'},
+  {n:'Deep Blue',r:0,g:0,b:200,a:0,w:0,uv:80,dim:255,bg:'#2244cc'},
+  {n:'Off',r:0,g:0,b:0,a:0,w:0,uv:0,dim:0,bg:'#333340'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let selGrps=new Set();
+let curCol={r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+let fxCols={}; PATCH.forEach(p=>fxCols[p.id]={r:0,g:0,b:0,a:0,w:0,uv:0,dim:255});
+let movPos={}; AMID.forEach(id=>movPos[id]={pan:128,tilt:128});
+let selMovers=new Set(AMID);
+let movePages=JSON.parse(localStorage.getItem('dmx_mpgs')||'[{"name":"PAGE 1","presets":[]},{"name":"PAGE 2","presets":[]},{"name":"PAGE 3","presets":[]},{"name":"PAGE 4","presets":[]}]');
+let scenes=JSON.parse(localStorage.getItem('dmx_sc')||'[]');
+let curMovPg=0,masterV=255,blackout=false;
+let modalMode='scene',pendingPg=-1;
+let patEffect=null,patSpeed=50,patSize=80; // running effect
+
+// ═══════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════
+let WS,wsOk=false;
+function connectWS(){
+  try{
+    WS=new WebSocket('ws://'+location.hostname+':'+(location.port||3000));
+    WS.onopen=()=>{wsOk=true;document.getElementById('wsd').classList.add('on');document.getElementById('wsl').textContent='LIVE';cmd('Server connected')};
+    WS.onclose=()=>{wsOk=false;document.getElementById('wsd').classList.remove('on');document.getElementById('wsl').textContent='OFFLINE';setTimeout(connectWS,3000)};
+    WS.onerror=()=>{};
+  }catch(e){}
+}
+connectWS();
+function ws(m){if(wsOk)WS.send(JSON.stringify(m))}
+function sendColor(fid,col){fxCols[fid]={...col};ws({type:'fixtureColor',fixtureId:fid,color:col})}
+function sendPT(fid,pan,tilt){movPos[fid]={pan,tilt};ws({type:'panTilt',fixtureId:fid,pan,tilt})}
+function applyColSel(col){
+  const ids=getSelIds();
+  if(!ids.length){toast('SELECT A GROUP FIRST');return}
+  ids.forEach(id=>sendColor(id,col));updateFxState();cmd('Color → '+ids.length+' fx');
+}
+function getSelIds(){const s=new Set();selGrps.forEach(gid=>{const g=GROUPS.find(x=>x.id===gid);if(g)g.ids.forEach(id=>s.add(id))});return[...s]}
+
+// ═══════════════════════════════════════════════════════════
+// MOVEMENT PATTERNS ENGINE
+// ═══════════════════════════════════════════════════════════
+// Each pattern: fn(t, i, total, size) → {pan, tilt}  t=0..1 per fixture offset
+const PATTERNS={
+  circle:    (t,i,n,sz)=>({pan:128+Math.round(Math.cos(t*Math.PI*2)*sz), tilt:128+Math.round(Math.sin(t*Math.PI*2)*sz*.6)}),
+  figure8:   (t,i,n,sz)=>({pan:128+Math.round(Math.sin(t*Math.PI*2)*sz), tilt:128+Math.round(Math.sin(t*Math.PI*4)*sz*.5)}),
+  chase:     (t,i,n,sz)=>({pan:128+Math.round(Math.sin((t+i/n)*Math.PI*2)*sz), tilt:128}),
+  wave:      (t,i,n,sz)=>({pan:128+Math.round(Math.sin((t+i/n)*Math.PI*2)*sz), tilt:128+Math.round(Math.cos((t+i/n)*Math.PI*2)*sz*.5)}),
+  sweep:     (t,i,n,sz)=>({pan:Math.round((Math.sin(t*Math.PI*2)+1)/2*(sz*2)+(128-sz)), tilt:128}),
+  'V-sweep': (t,i,n,sz)=>({pan:128, tilt:Math.round((Math.sin(t*Math.PI*2)+1)/2*(sz*1.2)+(128-sz*.6))}),
+  random:    (t,i,n,sz)=>{const seed=(i*7+Math.floor(t*4))*2654435761;return{pan:128+Math.round(((seed>>5&0xff)/255-.5)*sz*2),tilt:128+Math.round(((seed>>13&0xff)/255-.5)*sz*1.2)}},
+  fan:       (t,i,n,sz)=>({pan:Math.round((i/(n-1||1))*sz*2+(128-sz)), tilt:128+Math.round(Math.sin(t*Math.PI*2)*sz*.4)}),
+  spiral:    (t,i,n,sz)=>{const r=sz*(1-t%1);return{pan:128+Math.round(Math.cos(t*Math.PI*8)*r),tilt:128+Math.round(Math.sin(t*Math.PI*8)*r*.6)}},
+  square:    (t,i,n,sz)=>{const p=t%1*4;let px=0,ty=0;if(p<1){px=p;ty=0}else if(p<2){px=1;ty=p-1}else if(p<3){px=1-(p-2);ty=1}else{px=0;ty=1-(p-3)};return{pan:128+Math.round((px-.5)*sz*2),tilt:128+Math.round((ty-.5)*sz*1.2)}},
+  'straight up':(t,i,n,sz)=>({pan:128,tilt:64}),
+  'straight down':(t,i,n,sz)=>({pan:128,tilt:200}),
+};
+
+// Pattern visual draw functions (on 64×44 canvas)
+const PAT_DRAW={
+  circle:    (ctx,w,h,t)=>{ctx.beginPath();for(let a=0;a<=Math.PI*2;a+=.1)ctx.lineTo(w/2+Math.cos(a)*w*.38,h/2+Math.sin(a)*h*.38);ctx.stroke();const px=w/2+Math.cos(t*Math.PI*2)*w*.38,py=h/2+Math.sin(t*Math.PI*2)*h*.38;dot(ctx,px,py)},
+  figure8:   (ctx,w,h,t)=>{ctx.beginPath();for(let a=0;a<=Math.PI*2;a+=.05)ctx.lineTo(w/2+Math.sin(a)*w*.4,h/2+Math.sin(a*2)*h*.36);ctx.stroke();dot(ctx,w/2+Math.sin(t*Math.PI*2)*w*.4,h/2+Math.sin(t*Math.PI*4)*h*.36)},
+  chase:     (ctx,w,h,t)=>{for(let i=0;i<4;i++){const x=w/2+Math.sin((t+i/4)*Math.PI*2)*w*.4,y=h/2;ctx.globalAlpha=.3+i*.15;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;dot(ctx,w/2+Math.sin(t*Math.PI*2)*w*.4,h/2)},
+  wave:      (ctx,w,h,t)=>{ctx.beginPath();for(let a=0;a<=Math.PI*2;a+=.05)ctx.lineTo(w/2+Math.sin(a)*w*.4,h/2+Math.cos(a)*h*.36);ctx.stroke();dot(ctx,w/2+Math.sin(t*Math.PI*2)*w*.4,h/2+Math.cos(t*Math.PI*2)*h*.36)},
+  sweep:     (ctx,w,h,t)=>{ctx.beginPath();ctx.moveTo(w*.08,h/2);ctx.lineTo(w*.92,h/2);ctx.globalAlpha=.3;ctx.stroke();ctx.globalAlpha=1;dot(ctx,(Math.sin(t*Math.PI*2)+1)/2*(w*.84)+w*.08,h/2)},
+  'V-sweep': (ctx,w,h,t)=>{ctx.beginPath();ctx.moveTo(w/2,h*.08);ctx.lineTo(w/2,h*.92);ctx.globalAlpha=.3;ctx.stroke();ctx.globalAlpha=1;dot(ctx,w/2,(Math.sin(t*Math.PI*2)+1)/2*(h*.84)+h*.08)},
+  random:    (ctx,w,h,t)=>{for(let i=0;i<5;i++){ctx.globalAlpha=.2+i*.12;ctx.beginPath();ctx.arc(w*.15+Math.random()*(w*.7),h*.15+Math.random()*(h*.7),2,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1},
+  fan:       (ctx,w,h,t)=>{for(let i=0;i<4;i++){const x=w*.1+(i/3)*(w*.8),y=h/2+Math.sin((t+i*.25)*Math.PI*2)*h*.3;ctx.globalAlpha=.4;ctx.beginPath();ctx.moveTo(w/2,h/2);ctx.lineTo(x,y);ctx.stroke();ctx.globalAlpha=1}},
+  spiral:    (ctx,w,h,t)=>{ctx.beginPath();for(let a=0;a<=Math.PI*8;a+=.1){const r=(1-a/(Math.PI*8))*.4;ctx.lineTo(w/2+Math.cos(a)*w*r,h/2+Math.sin(a)*h*r*.7)}ctx.stroke();const r2=(1-t%1)*.4;dot(ctx,w/2+Math.cos(t*Math.PI*8)*w*r2,h/2+Math.sin(t*Math.PI*8)*h*r2*.7)},
+  square:    (ctx,w,h,t)=>{ctx.beginPath();ctx.rect(w*.1,h*.1,w*.8,h*.8);ctx.stroke();const p=t%1*4;let px,py;if(p<1){px=p;py=0}else if(p<2){px=1;py=p-1}else if(p<3){px=1-(p-2);py=1}else{px=0;py=1-(p-3)};dot(ctx,w*.1+px*w*.8,h*.1+py*h*.8)},
+  'straight up':(ctx,w,h,t)=>{ctx.beginPath();ctx.moveTo(w/2,h*.8);ctx.lineTo(w/2,h*.1);ctx.stroke();const a=Math.abs(Math.sin(t*Math.PI*2))*.3;dot(ctx,w/2,h*.15+a*h*.3)},
+  'straight down':(ctx,w,h,t)=>{ctx.beginPath();ctx.moveTo(w/2,h*.2);ctx.lineTo(w/2,h*.9);ctx.stroke();dot(ctx,w/2,h*.75)},
+};
+function dot(ctx,x,y){ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill()}
+
+// Pattern definitions with labels and descriptions
+const PAT_DEFS=[
+  {id:'circle',     name:'CIRCLE',      sub:'360° orbit',         color:'#22bbdd'},
+  {id:'figure8',    name:'FIGURE 8',    sub:'Infinity loop',      color:'#9933ee'},
+  {id:'chase',      name:'CHASE',       sub:'Sequential sweep',   color:'#33cc66'},
+  {id:'wave',       name:'WAVE',        sub:'Sinusoidal',         color:'#3388ff'},
+  {id:'sweep',      name:'SWEEP',       sub:'Pan sweep',          color:'#ffaa22'},
+  {id:'V-sweep',    name:'V-SWEEP',     sub:'Tilt sweep',         color:'#ff8844'},
+  {id:'fan',        name:'FAN',         sub:'Spread all movers',  color:'#ffee22'},
+  {id:'spiral',     name:'SPIRAL',      sub:'Tightening spiral',  color:'#ff33cc'},
+  {id:'square',     name:'SQUARE',      sub:'Box pattern',        color:'#c8a444'},
+  {id:'wave',       name:'FIGURE WAVE', sub:'Combined motion',    color:'#44aaff',id2:'wave2'},
+  {id:'straight up',name:'STRAIGHT UP', sub:'Lock up, lamp on',   color:'#e8e8f0',isStatic:true},
+  {id:'straight down',name:'STRAIGHT ↓',sub:'Floor/audience',     color:'#ff4455',isStatic:true},
+];
+
+// Pattern animation loop
+let animFrame=null,patT=0,lastTs=0;
+function startPattern(patId){
+  stopPattern(false);
+  patEffect=patId;
+  document.querySelectorAll('.pat-btn').forEach(b=>b.classList.toggle('running',b.dataset.pid===patId));
+  if(PATTERNS[patId]){
+    const pDef=PAT_DEFS.find(p=>(p.id===patId||p.id2===patId));
+    if(pDef?.isStatic){
+      // Static position
+      const allMovIds=[...AMID].filter(id=>selMovers.has(id));
+      allMovIds.forEach((id,i)=>{
+        const pt=PATTERNS[patId](0,i,allMovIds.length,patSize);
+        sendPT(id,pt.pan,pt.tilt);
+      });
+      toast(pDef.name+' applied');
+      return;
+    }
+    lastTs=performance.now();
+    function tick(ts){
+      const dt=(ts-lastTs)/1000;
+      lastTs=ts;
+      patT+=dt*(patSpeed/50);
+      const allMovIds=[...AMID].filter(id=>selMovers.has(id));
+      allMovIds.forEach((id,i)=>{
+        const offset=i/allMovIds.length;
+        const pt=PATTERNS[patId](patT+offset,i,allMovIds.length,patSize);
+        const pan=Math.max(0,Math.min(255,pt.pan));
+        const tilt=Math.max(0,Math.min(255,pt.tilt));
+        if(Math.abs((movPos[id]?.pan||128)-pan)>1||Math.abs((movPos[id]?.tilt||128)-tilt)>1){
+          sendPT(id,pan,tilt);
+          syncXYCur(id);
+        }
+      });
+      updateFxState();
+      animFrame=requestAnimationFrame(tick);
+    }
+    animFrame=requestAnimationFrame(tick);
+    toast((pDef?.name||patId)+' running');
+    cmd('Pattern: '+(pDef?.name||patId));
+  }
+}
+function stopPattern(notify=true){
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null}
+  patEffect=null;
+  document.querySelectorAll('.pat-btn').forEach(b=>b.classList.remove('running'));
+  if(notify)toast('Pattern stopped');
+}
+
+// Draw animated pattern icons
+const PAT_ANIM_TIMES={};
+function animatePatIcons(){
+  document.querySelectorAll('.pat-icon canvas').forEach(cvs=>{
+    const pid=cvs.dataset.pid;
+    if(!PAT_ANIM_TIMES[pid])PAT_ANIM_TIMES[pid]=0;
+    PAT_ANIM_TIMES[pid]+=0.015;
+    const ctx=cvs.getContext('2d');
+    ctx.clearRect(0,0,64,44);
+    const isRunning=patEffect===pid;
+    ctx.strokeStyle=isRunning?'#22bbdd':'#555566';
+    ctx.fillStyle=isRunning?'#22bbdd':'#7777aa';
+    ctx.lineWidth=1.5;ctx.globalAlpha=1;
+    if(PAT_DRAW[pid])PAT_DRAW[pid](ctx,64,44,PAT_ANIM_TIMES[pid]);
+  });
+  requestAnimationFrame(animatePatIcons);
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR WHEEL
+// ═══════════════════════════════════════════════════════════
+function drawWheel(b){
+  const cvs=document.getElementById('wcvs'),ctx=cvs.getContext('2d'),s=118,cx=59,cy=59,r=58;
+  ctx.clearRect(0,0,s,s);
+  for(let a=0;a<360;a++){const rad=a*Math.PI/180,g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,`hsla(${a},0%,${Math.round(b*100)}%,1)`);g.addColorStop(1,`hsla(${a},100%,${Math.round(b*50)}%,1)`);ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,rad-.02,rad+.02);ctx.closePath();ctx.fillStyle=g;ctx.fill()}
+}
+function wrgb(x,y,b){const cx=59,cy=59,dx=x-cx,dy=y-cy,d=Math.sqrt(dx*dx+dy*dy)/59;if(d>1)return null;const h=(Math.atan2(dy,dx)*180/Math.PI+360)%360,c=b*d,xc=c*(1-Math.abs((h/60)%2-1)),m=b-c;let ri=0,gi=0,bi=0;if(h<60){ri=c;gi=xc}else if(h<120){ri=xc;gi=c}else if(h<180){gi=c;bi=xc}else if(h<240){gi=xc;bi=c}else if(h<300){ri=xc;bi=c}else{ri=c;bi=xc}return{r:Math.round((ri+m)*255),g:Math.round((gi+m)*255),b:Math.round((bi+m)*255)}}
+let wBrt=1;
+function setupWheel(){
+  drawWheel(wBrt);
+  const cvs=document.getElementById('wcvs'),cur=document.getElementById('wcur');
+  function pick(ex,ey){const rc=cvs.getBoundingClientRect();const x=ex-rc.left,y=ey-rc.top;const rgb=wrgb(x,y,wBrt);if(!rgb)return;cur.style.left=(x/118*100)+'%';cur.style.top=(y/118*100)+'%';setSl('r',rgb.r);setSl('g',rgb.g);setSl('b',rgb.b);updPrev()}
+  cvs.addEventListener('touchstart',e=>{e.preventDefault();pick(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  cvs.addEventListener('touchmove', e=>{e.preventDefault();pick(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  cvs.addEventListener('mousedown', e=>pick(e.clientX,e.clientY));
+  cvs.addEventListener('mousemove', e=>{if(e.buttons===1)pick(e.clientX,e.clientY)});
+}
+function setSl(id,v){const sl=document.getElementById('sl-'+id),vl=document.getElementById('vl-'+id);if(sl)sl.value=v;if(vl)vl.textContent=v;curCol[id]=v}
+function updPrev(){const{r,g,b,a,w,uv}=curCol;const mr=Math.min(255,r+(a*.5|0)+(w*.4|0));const mg=Math.min(255,g+(w*.4|0));const mb=Math.min(255,b+(uv*.4|0)+(w*.4|0));document.getElementById('cprev').style.background=`rgb(${mr},${mg},${mb})`}
+['r','g','b','a','w','uv','dim'].forEach(id=>{const sl=document.getElementById('sl-'+id);if(!sl)return;sl.addEventListener('input',()=>{const v=parseInt(sl.value);document.getElementById('vl-'+id).textContent=v;curCol[id]=v;updPrev()})});
+document.getElementById('capply').addEventListener('click',()=>{applyColSel({...curCol});toast('Color applied')});
+document.getElementById('cfull').addEventListener('click',()=>{['r','g','b','a','w'].forEach(k=>setSl(k,255));setSl('uv',0);setSl('dim',255);updPrev();applyColSel({r:255,g:255,b:255,a:255,w:255,uv:0,dim:255});toast('Full On')});
+document.getElementById('cout').addEventListener('click',()=>{['r','g','b','a','w','uv'].forEach(k=>setSl(k,0));setSl('dim',0);updPrev();applyColSel({r:0,g:0,b:0,a:0,w:0,uv:0,dim:0});toast('Out')});
+// Lamp on/off for MAC 250 Entours
+document.getElementById('clamp-on').addEventListener('click',()=>{EIDS.forEach(id=>ws({type:'channelType',fixtureId:id,channelType:'rst',value:25}));toast('Entour lamps ON');cmd('Lamp ON → all Entours')});
+document.getElementById('clamp-off').addEventListener('click',()=>{EIDS.forEach(id=>ws({type:'channelType',fixtureId:id,channelType:'rst',value:26}));toast('Entour lamps OFF');cmd('Lamp OFF → all Entours')});
+// Group dimmer
+document.getElementById('grp-dim').addEventListener('input',function(){const v=parseInt(this.value);document.getElementById('grp-dim-v').textContent=v;const ids=getSelIds();ids.forEach(id=>{fxCols[id]={...fxCols[id],dim:v};ws({type:'channelType',fixtureId:id,channelType:'dim',value:v})});updateFxState()});
+
+// ═══════════════════════════════════════════════════════════
+// GROUPS
+// ═══════════════════════════════════════════════════════════
+function buildGroups(){
+  const el=document.getElementById('glist');
+  GROUPS.forEach(g=>{
+    const b=document.createElement('div');b.className='grpb';b.id='gb-'+g.id;
+    b.innerHTML=`<div class="gbar" style="background:${g.col}"></div><div class="ginn"><div class="gnm">${g.name}</div><div class="gsb">${g.sub}</div></div><div class="gcnt">${g.ids.length}</div>`;
+    b.addEventListener('click',()=>toggleGrp(g.id));el.appendChild(b);
+  });
+  document.getElementById('gall').addEventListener('click',()=>{GROUPS.forEach(g=>selGrps.add(g.id));updGrpUI()});
+  document.getElementById('gclr').addEventListener('click',()=>{selGrps.clear();updGrpUI()});
+}
+function toggleGrp(gid){selGrps.has(gid)?selGrps.delete(gid):selGrps.add(gid);updGrpUI()}
+function updGrpUI(){
+  GROUPS.forEach(g=>{const b=document.getElementById('gb-'+g.id);if(!b)return;b.classList.toggle('sel',selGrps.has(g.id));b.querySelector('.gbar').style.opacity=selGrps.has(g.id)?'1':'.3'});
+  const n=selGrps.size,ids=getSelIds();document.getElementById('selct').textContent=n?n+' GRP·'+ids.length+' FX':'NONE';
+  document.querySelectorAll('.gqfb').forEach(b=>b.classList.toggle('on',selGrps.has(b.dataset.gid)));
+}
+
+// ═══════════════════════════════════════════════════════════
+// CENTER TABS
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.ctab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.ctab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.cpanel').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('cp-'+t.dataset.cp).classList.add('active')}));
+
+// ═══════════════════════════════════════════════════════════
+// COLOR MACROS
+// ═══════════════════════════════════════════════════════════
+function buildCMacros(){
+  const row=document.getElementById('cm-row');
+  CMACROS.forEach((cm,i)=>{
+    const b=document.createElement('div');b.className='exb';b.id='cm-'+i;b.style.color=cm.bg;
+    b.innerHTML=`<div class="extop"><span class="exnum">${String(i+1).padStart(2,'0')}</span><div class="exst"></div></div><div class="exnm">${cm.n}</div><div class="exbar"><div class="exbf" style="width:100%;background:${cm.bg}55"></div></div>`;
+    b.addEventListener('click',()=>{
+      const col={r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};
+      curCol={...col};Object.entries({r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim}).forEach(([k,v])=>setSl(k,v));updPrev();applyColSel(col);
+      document.querySelectorAll('#cm-row .exb').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      document.querySelectorAll('#cmdrow2 .qfb').forEach((x,j)=>j===i?x.classList.add('aq'):x.classList.remove('aq'));
+      toast(cm.n);
+    });
+    row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GQF
+// ═══════════════════════════════════════════════════════════
+function buildGQF(){
+  const row=document.getElementById('gqf-row');
+  GROUPS.slice(0,7).forEach((g,i)=>{
+    const b=document.createElement('div');b.className='exb gqfb';b.dataset.gid=g.id;b.style.color=g.col;
+    b.innerHTML=`<div class="extop"><span class="exnum">${i+1}</span><div class="exst"></div></div><div class="exnm">${g.name}</div><div class="exsub">${g.ids.length} fx</div><div class="exbar"><div class="exbf" style="width:0%;background:${g.col}"></div></div>`;
+    b.addEventListener('click',()=>toggleGrp(g.id));row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENES
+// ═══════════════════════════════════════════════════════════
+function renderScenes(){
+  const row=document.getElementById('sc-row');row.innerHTML='';
+  const nb=document.createElement('div');nb.className='exb ns';nb.innerHTML=`<div class="extop"><span class="exnum">NEW</span></div><div class="exnm">+</div><div class="exsub">SAVE</div><div class="exbar"></div>`;
+  nb.addEventListener('click',()=>{modalMode='scene';openModal('SAVE SCENE','Scene '+(scenes.length+1))});row.appendChild(nb);
+  scenes.forEach((s,i)=>{
+    const b=document.createElement('div');b.className='exb';b.style.color=s.col||'var(--gold)';
+    b.innerHTML=`<div class="extop"><span class="exnum">${String(i+1).padStart(2,'0')}</span><div class="exst"></div></div><div class="exnm">${s.name}</div><div class="exsub">${s.grps} grp</div><div class="exbar"><div class="exbf" style="width:100%;background:${s.col||'var(--gold)'}44"></div></div>`;
+    b.addEventListener('click',()=>{recallScene(i);document.querySelectorAll('#sc-row .exb').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+    let lt;b.addEventListener('pointerdown',()=>{lt=setTimeout(()=>{scenes.splice(i,1);saveSc();renderScenes();toast('Deleted')},900)});
+    b.addEventListener('pointerup',()=>clearTimeout(lt));b.addEventListener('pointerleave',()=>clearTimeout(lt));
+    row.appendChild(b);
+  });
+  document.getElementById('sc-count').textContent=scenes.length+' stored';
+}
+function recallScene(i){
+  const s=scenes[i];
+  for(const[fid,col] of Object.entries(s.fxcols||{})){fxCols[fid]={...col};ws({type:'fixtureColor',fixtureId:fid,color:col})}
+  if(s.sg){selGrps.clear();s.sg.forEach(g=>selGrps.add(g));updGrpUI()}
+  if(s.col_v){Object.entries(s.col_v).forEach(([k,v])=>setSl(k,v));curCol={...s.col_v};updPrev()}
+  if(s.mpos){for(const[fid,pt] of Object.entries(s.mpos)){sendPT(fid,pt.pan,pt.tilt);movPos[fid]={...pt}}}
+  syncAllXY();updateFxState();cmd('Recalled: '+s.name);toast('↩ '+s.name);
+}
+function saveSc(){localStorage.setItem('dmx_sc',JSON.stringify(scenes))}
+document.getElementById('btn-ss').addEventListener('click',()=>{modalMode='scene';openModal('SAVE SCENE','Scene '+(scenes.length+1))});
+
+// ═══════════════════════════════════════════════════════════
+// MOVEMENT PAGE RENDERER
+// ═══════════════════════════════════════════════════════════
+function buildMovPanel(){
+  document.querySelectorAll('.mptab').forEach(t=>t.addEventListener('click',()=>{curMovPg=parseInt(t.dataset.pg);document.querySelectorAll('.mptab').forEach(x=>x.classList.remove('active'));t.classList.add('active');renderMovPage(curMovPg)}));
+  document.getElementById('mpadd').addEventListener('click',()=>{movePages.push({name:'PAGE '+(movePages.length+1),presets:[]});const nt=document.createElement('div');nt.className='mptab';nt.dataset.pg=movePages.length-1;nt.textContent='PAGE '+movePages.length;nt.addEventListener('click',()=>{curMovPg=movePages.length-1;document.querySelectorAll('.mptab').forEach(x=>x.classList.remove('active'));nt.classList.add('active');renderMovPage(curMovPg)});document.getElementById('mpgtabs').insertBefore(nt,document.getElementById('mpadd'));saveMP();toast('Page added')});
+  renderMovPage(0);
+}
+
+function renderMovPage(pi){
+  const el=document.getElementById('mpcontent');el.innerHTML='';
+  const pg=movePages[pi];if(!pg)return;
+
+  // ── Mover selector ──
+  const sel=document.createElement('div');sel.className='mvsel';
+  [{label:'All Entours',ids:EIDS,cls:'se'},{label:'All Movers',ids:AMID,cls:'sm'},{label:'Clear',ids:[],cls:'sa',clear:true}].forEach(item=>{
+    const b=document.createElement('div');b.className='mvsb sa';b.textContent=item.label;
+    b.addEventListener('click',()=>{if(item.clear){selMovers.clear()}else{item.ids.forEach(id=>selMovers.add(id))}syncMvSel()});sel.appendChild(b);
+  });
+  EIDS.forEach(id=>{const p=PATCH.find(x=>x.id===id);const b=document.createElement('div');b.className='mvsb';b.id='msb-'+id;b.textContent='E'+(EIDS.indexOf(id)+1);b.classList.toggle('se',selMovers.has(id));b.addEventListener('click',()=>{selMovers.has(id)?selMovers.delete(id):selMovers.add(id);syncMvSel()});sel.appendChild(b)});
+  MIDS.forEach(id=>{const b=document.createElement('div');b.className='mvsb';b.id='msb-'+id;b.textContent='M'+(MIDS.indexOf(id)+1);b.classList.toggle('sm',selMovers.has(id));b.addEventListener('click',()=>{selMovers.has(id)?selMovers.delete(id):selMovers.add(id);syncMvSel()});sel.appendChild(b)});
+  el.appendChild(sel);
+
+  // ── Pattern speed / size controls ──
+  const ctrls=document.createElement('div');ctrls.className='pat-ctrls';
+  ctrls.innerHTML=`
+    <div class="pcl"><span class="pclbl">SPEED</span><input type="range" class="pcsl" id="pat-spd" min="5" max="200" value="${patSpeed}"><span class="pcv" id="pat-spd-v">${patSpeed}</span></div>
+    <div class="pcl"><span class="pclbl">SIZE</span><input type="range" class="pcsl" id="pat-sz" min="10" max="120" value="${patSize}"><span class="pcv" id="pat-sz-v">${patSize}</span></div>
+    <button id="pat-stop">◼ STOP</button>`;
+  ctrls.querySelector('#pat-spd').addEventListener('input',function(){patSpeed=parseInt(this.value);document.getElementById('pat-spd-v').textContent=patSpeed});
+  ctrls.querySelector('#pat-sz').addEventListener('input',function(){patSize=parseInt(this.value);document.getElementById('pat-sz-v').textContent=patSize});
+  ctrls.querySelector('#pat-stop').addEventListener('click',()=>stopPattern());
+  el.appendChild(ctrls);
+
+  // ── Pattern buttons ──
+  const patSec=document.createElement('div');patSec.className='pat-section';
+  const patTitle=document.createElement('div');patTitle.className='pat-title';patTitle.textContent='MOVEMENT PATTERNS';
+  const patGrid=document.createElement('div');patGrid.className='pat-grid';
+
+  PAT_DEFS.forEach(pd=>{
+    const pid=pd.id2||pd.id;
+    const btn=document.createElement('div');btn.className='pat-btn';btn.dataset.pid=pid;
+    btn.style.setProperty('--pc',pd.color);
+    btn.innerHTML=`
+      <div class="pat-run-dot"></div>
+      <div class="pat-icon"><canvas width="64" height="44" data-pid="${pid}"></canvas></div>
+      <div class="pat-name" style="color:${pd.color}">${pd.name}</div>
+      <div class="pat-sub">${pd.sub}</div>
+    `;
+    if(patEffect===pid)btn.classList.add('running');
+    btn.addEventListener('click',()=>{
+      if(patEffect===pid){stopPattern()}else{startPattern(pid)}
+    });
+    patGrid.appendChild(btn);
+  });
+  patSec.appendChild(patTitle);patSec.appendChild(patGrid);el.appendChild(patSec);
+
+  // ── Lamp control ──
+  const lampSec=document.createElement('div');lampSec.style.cssText='margin-bottom:12px';
+  lampSec.innerHTML='<div class="pat-title">LAMP + DIMMER CONTROL (ENTOURS)</div>';
+  const lampRow=document.createElement('div');lampRow.className='lamp-row';
+  [{label:'⚡ LAMP ON',cls:'lon',act:()=>{EIDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'rst',value:25})});toast('Lamp ON');cmd('Lamp ON')}},
+   {label:'⚫ LAMP OFF',cls:'loff',act:()=>{EIDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'rst',value:26})});toast('Lamp OFF');cmd('Lamp OFF')}},
+   {label:'✦ STROBE',cls:'str',act:()=>{EIDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'sht',value:55})});toast('Strobe ON')}},
+   {label:'◆ SHUTTER OPEN',cls:'',act:()=>{EIDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'sht',value:32})});toast('Shutter open')}},
+  ].forEach(item=>{
+    const b=document.createElement('div');b.className='lamp-btn '+item.cls;b.textContent=item.label;
+    b.addEventListener('click',item.act);lampRow.appendChild(b);
+  });
+  // Dimmer slider for Entours
+  const dimRow=document.createElement('div');dimRow.className='dim-strip';
+  dimRow.innerHTML=`<span class="dim-lbl">ENTOUR DIM</span><input type="range" class="dim-sl" id="edim" min="0" max="255" value="255"><span class="dim-val" id="edim-v">255</span>`;
+  dimRow.querySelector('#edim').addEventListener('input',function(){const v=parseInt(this.value);document.getElementById('edim-v').textContent=v;EIDS.forEach(id=>{if(selMovers.has(id))ws({type:'channelType',fixtureId:id,channelType:'dim',value:v})});});
+  lampSec.appendChild(lampRow);lampSec.appendChild(dimRow);el.appendChild(lampSec);
+
+  // ── XY Pads ──
+  const xySec=document.createElement('div');xySec.className='xy-section';
+  const padSz=Math.min(180,Math.floor((window.innerWidth>700?window.innerWidth-650:window.innerWidth-40)/2));
+  xySec.appendChild(makeXYPad('ENTOURS',padSz,EIDS,'ec'));
+  xySec.appendChild(makeXYPad('WASH MOVERS',padSz,MIDS,'mc'));
+
+  // Position presets
+  const posSec=document.createElement('div');posSec.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
+  const ep=buildPosSec('ENTOUR POSITIONS',EPOS,EIDS,'ep');
+  const mp=buildPosSec('MOVER POSITIONS',MPOS,MIDS,'');
+  posSec.appendChild(ep);posSec.appendChild(mp);
+  xySec.appendChild(posSec);
+  el.appendChild(xySec);
+
+  // ── Move presets ──
+  const mpSec=document.createElement('div');
+  const mpHdr=document.createElement('div');mpHdr.className='movs-hdr';
+  mpHdr.innerHTML=`<span style="color:var(--cyn)">POSITION PRESETS — ${pg.name}</span><span style="color:var(--txt3)">long-press to delete</span>`;
+  const mpGrid=document.createElement('div');mpGrid.className='movpgrid';
+  const newB=document.createElement('div');newB.className='movpb nmp';newB.innerHTML='<div class="mpi">+</div><div class="mpl">SAVE POS</div>';
+  newB.addEventListener('click',()=>{pendingPg=pi;modalMode='movpre';openModal('SAVE POSITION PRESET','Move '+(pg.presets.length+1))});
+  mpGrid.appendChild(newB);
+  pg.presets.forEach((pr,pri)=>{
+    const b=document.createElement('div');b.className='movpb';
+    b.innerHTML=`<div class="mpi">📍</div><div class="mpl">${pr.name}</div>`;
+    b.addEventListener('click',()=>{recallMovPre(pr);toast('↩ '+pr.name)});
+    let lt;b.addEventListener('pointerdown',()=>{lt=setTimeout(()=>{pg.presets.splice(pri,1);saveMP();renderMovPage(pi);toast('Deleted')},900)});
+    b.addEventListener('pointerup',()=>clearTimeout(lt));b.addEventListener('pointerleave',()=>clearTimeout(lt));
+    mpGrid.appendChild(b);
+  });
+  mpSec.appendChild(mpHdr);mpSec.appendChild(mpGrid);el.appendChild(mpSec);
+
+  // Start icon animation
+  animatePatIcons();
+}
+
+function buildPosSec(title,positions,moverIds,cls){
+  const sec=document.createElement('div');sec.className='pos-sec';
+  const t=document.createElement('div');t.className='pos-title';t.textContent=title;
+  const g=document.createElement('div');g.className='posgrid';
+  positions.forEach(pos=>{
+    const b=document.createElement('div');b.className='posbtn '+cls;
+    b.innerHTML=`<div>${pos.i}</div><div>${pos.n}</div>`;
+    b.addEventListener('click',()=>{moverIds.forEach(id=>{if(selMovers.has(id)){sendPT(id,pos.p,pos.t);syncXYCur(id)}});cmd(title.split(' ')[0]+' → '+pos.n);toast(pos.n)});
+    g.appendChild(b);
+  });
+  sec.appendChild(t);sec.appendChild(g);return sec;
+}
+
+function makeXYPad(title,sz,moverIds,curClass){
+  const wrap=document.createElement('div');wrap.className='xy-wrap';
+  const t=document.createElement('div');t.className='xy-title';t.style.color=curClass==='ec'?'var(--gold)':'var(--cyn)';t.textContent=title+' (touch to move)';
+  wrap.appendChild(t);
+  const pad=document.createElement('div');pad.className='xypad';pad.style.width=sz+'px';pad.style.height=sz+'px';
+  pad.appendChild(Object.assign(document.createElement('div'),{className:'xych'}));
+  pad.appendChild(Object.assign(document.createElement('div'),{className:'xycv'}));
+  moverIds.forEach(id=>{const cur=document.createElement('div');cur.className='xycur '+curClass;cur.id='xycur-'+id;const pt=movPos[id]||{pan:128,tilt:128};cur.style.left=(pt.pan/255*100)+'%';cur.style.top=((255-pt.tilt)/255*100)+'%';pad.appendChild(cur)});
+  function mv(ex,ey){const rc=pad.getBoundingClientRect();const x=Math.max(0,Math.min(1,(ex-rc.left)/rc.width));const y=Math.max(0,Math.min(1,(ey-rc.top)/rc.height));const pan=Math.round(x*255),tilt=Math.round((1-y)*255);moverIds.forEach(id=>{if(!selMovers.has(id))return;sendPT(id,pan,tilt);const c=document.getElementById('xycur-'+id);if(c){c.style.left=(x*100)+'%';c.style.top=(y*100)+'%'}});updateFxState()}
+  pad.addEventListener('touchstart',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  pad.addEventListener('touchmove', e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  pad.addEventListener('mousedown', e=>mv(e.clientX,e.clientY));
+  pad.addEventListener('mousemove', e=>{if(e.buttons===1)mv(e.clientX,e.clientY)});
+  const lbrow=document.createElement('div');lbrow.className='xylbls';lbrow.innerHTML='<span class="xylbl">← PAN →</span><span class="xylbl">↑ TILT ↓</span>';
+  wrap.appendChild(pad);wrap.appendChild(lbrow);return wrap;
+}
+
+function syncXYCur(id){const pt=movPos[id];if(!pt)return;const c=document.getElementById('xycur-'+id);if(c){c.style.left=(pt.pan/255*100)+'%';c.style.top=((255-pt.tilt)/255*100)+'%'}}
+function syncAllXY(){AMID.forEach(id=>syncXYCur(id))}
+function syncMvSel(){
+  EIDS.forEach(id=>{const b=document.getElementById('msb-'+id);if(!b)return;b.classList.toggle('se',selMovers.has(id))});
+  MIDS.forEach(id=>{const b=document.getElementById('msb-'+id);if(!b)return;b.classList.toggle('sm',selMovers.has(id))});
+}
+
+function recallMovPre(pr){pr.movers.forEach(m=>{sendPT(m.id,m.pan,m.tilt);movPos[m.id]={pan:m.pan,tilt:m.tilt}});syncAllXY();updateFxState()}
+function saveMovPre(name){const pg=movePages[pendingPg];if(!pg)return;pg.presets.push({name,movers:AMID.map(id=>({id,pan:movPos[id]?.pan||128,tilt:movPos[id]?.tilt||128}))});saveMP();renderMovPage(pendingPg);toast('Saved: '+name)}
+function saveMP(){localStorage.setItem('dmx_mpgs',JSON.stringify(movePages))}
+
+// ═══════════════════════════════════════════════════════════
+// FIXTURE STATE
+// ═══════════════════════════════════════════════════════════
+function updateFxState(){
+  const el=document.getElementById('fxstate');el.innerHTML='';
+  const selIds=getSelIds();const show=selIds.length?selIds:PATCH.slice(0,18).map(p=>p.id);
+  show.forEach(fid=>{
+    const p=PATCH.find(x=>x.id===fid);if(!p)return;
+    const col=fxCols[fid]||{r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+    const mr=Math.min(255,col.r+(col.a*.5|0)+(col.w*.4|0));const mg=Math.min(255,col.g+(col.w*.4|0));const mb=Math.min(255,col.b+(col.uv*.4|0)+(col.w*.4|0));
+    const isMov=AMID.includes(fid);const pt=movPos[fid];
+    const row=document.createElement('div');row.className='fsr';
+    row.innerHTML=`<div class="fssw" style="background:rgb(${mr},${mg},${mb})"></div><div class="fsif"><div class="fsnm">${p.label}</div>${isMov&&pt?`<div class="fsch">P${Math.round(pt.pan/255*360)}° T${Math.round(pt.tilt/255*220)}°</div>`:`<div class="fsch">U${p.univ}·${p.addr}</div>`}</div><div class="fsdm">${Math.round((col.dim||0)/2.55)}%</div>`;
+    el.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK-FIRE STRIP
+// ═══════════════════════════════════════════════════════════
+function buildQF(){
+  const row=document.getElementById('cmdrow2');
+  CMACROS.forEach((cm,i)=>{
+    const b=document.createElement('button');b.className='qfb';b.innerHTML=`<div class="qfsw" style="background:${cm.bg}"></div><div class="qfnm">${cm.n}</div>`;
+    b.addEventListener('click',()=>{const col={r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};curCol={...col};Object.entries(col).forEach(([k,v])=>setSl(k,v));updPrev();applyColSel(col);row.querySelectorAll('.qfb').forEach(x=>x.classList.remove('aq'));b.classList.add('aq');document.querySelectorAll('#cm-row .exb').forEach((x,j)=>j===i?x.classList.add('on'):x.classList.remove('on'))});
+    row.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MASTER + BLACKOUT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('msl').addEventListener('input',function(){masterV=parseInt(this.value);document.getElementById('mpct').textContent=Math.round(masterV/2.55)+'%';ws({type:'master',value:masterV})});
+document.getElementById('btn-bo').addEventListener('click',function(){blackout=!blackout;this.classList.toggle('active',blackout);this.textContent=blackout?'🔴 LIVE':'⬛ BLACKOUT';ws({type:'blackout',active:blackout});toast(blackout?'⬛ BLACKOUT':'BLACKOUT CLEAR');cmd(blackout?'BLACKOUT ACTIVE':'BLACKOUT CLEAR')});
+
+// ═══════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(title,def){document.getElementById('modal-title').textContent=title;document.getElementById('minp').value=def||'';document.getElementById('modal').classList.add('open');setTimeout(()=>document.getElementById('minp').focus(),100)}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function confirmModal(){
+  const nm=document.getElementById('minp').value.trim();
+  if(modalMode==='scene'){
+    const fxcols={};PATCH.forEach(p=>fxcols[p.id]={...fxCols[p.id]});
+    const mpos={};AMID.forEach(id=>mpos[id]={...movPos[id]});
+    const fg=GROUPS.find(g=>selGrps.has(g.id));
+    scenes.push({name:nm||'Scene '+(scenes.length+1),grps:selGrps.size,fxcols,mpos,col_v:{...curCol},sg:[...selGrps],col:fg?.col||'var(--gold)'});
+    saveSc();renderScenes();
+  } else {
+    saveMovPre(nm||'Move '+(movePages[pendingPg]?.presets.length+1||1));
+  }
+  closeModal();
+}
+document.getElementById('mcancel').addEventListener('click',closeModal);
+document.getElementById('mok').addEventListener('click',confirmModal);
+document.getElementById('minp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmModal()});
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal()});
+
+// ═══════════════════════════════════════════════════════════
+// ASSIGNABLE FADER BANK — 9 faders, any channel type
+// ═══════════════════════════════════════════════════════════
+const ASSIGNABLE_OPTIONS = [
+  // Color
+  {id:'red',   label:'Red',      sub:'Color',    dot:'#ff3344', chType:'red',   default:0},
+  {id:'grn',   label:'Green',    sub:'Color',    dot:'#33ff77', chType:'grn',   default:0},
+  {id:'blu',   label:'Blue',     sub:'Color',    dot:'#3388ff', chType:'blu',   default:0},
+  {id:'amb',   label:'Amber',    sub:'Color',    dot:'#ffaa22', chType:'amb',   default:0},
+  {id:'wht',   label:'White',    sub:'Color',    dot:'#e8e8f0', chType:'wht',   default:0},
+  {id:'uv',    label:'UV',       sub:'Color',    dot:'#9944ff', chType:'uv',    default:0},
+  // Intensity
+  {id:'dim',   label:'Dimmer',   sub:'Intensity',dot:'#c8a444', chType:'dim',   default:255},
+  {id:'str',   label:'Strobe',   sub:'Intensity',dot:'#ffffff', chType:'str',   default:0},
+  // Movement
+  {id:'pan',   label:'Pan',      sub:'Movement', dot:'#22bbdd', chType:'pan',   default:128},
+  {id:'tlt',   label:'Tilt',     sub:'Movement', dot:'#22bbdd', chType:'tlt',   default:128},
+  {id:'spd',   label:'PT Speed', sub:'Movement', dot:'#33cc66', chType:'spd',   default:128},
+  // Effects (Entours)
+  {id:'col',   label:'Color Whl',sub:'Effect',   dot:'#ff8844', chType:'col',   default:0},
+  {id:'gob',   label:'Gobo',     sub:'Effect',   dot:'#ff44cc', chType:'gob',   default:0},
+  {id:'gob2',  label:'Gobo Fixed',sub:'Effect',  dot:'#cc44ff', chType:'gob2',  default:0},
+  {id:'prm',   label:'Prism',    sub:'Effect',   dot:'#44aaff', chType:'prm',   default:0},
+  {id:'foc',   label:'Focus',    sub:'Effect',   dot:'#aaaaaa', chType:'foc',   default:128},
+  // Utility
+  {id:'rst',   label:'Lamp Ctrl',sub:'Utility',  dot:'#ffee22', chType:'rst',   default:0},
+  {id:'raw1',  label:'Custom 1', sub:'Utility',  dot:'#555560', chType:'raw',   default:0},
+  {id:'raw2',  label:'Custom 2', sub:'Utility',  dot:'#555560', chType:'raw',   default:0},
+];
+
+// Default fader assignments (9 faders)
+const DEFAULT_ASSIGNMENTS = ['red','grn','blu','pan','tlt','spd','gob','prm','dim'];
+let faderAssign = JSON.parse(localStorage.getItem('dmx_fdr_assign') || JSON.stringify(DEFAULT_ASSIGNMENTS));
+// Ensure we always have 9
+while(faderAssign.length < 9) faderAssign.push('raw1');
+faderAssign = faderAssign.slice(0,9);
+let faderValues = new Array(9).fill(null).map((_,i)=>{
+  const opt = ASSIGNABLE_OPTIONS.find(o=>o.id===faderAssign[i]);
+  return opt?.default ?? 0;
+});
+
+let assigningFader = -1; // which fader index is being assigned
+
+function buildFaderBank() {
+  const bank = document.getElementById('fader-bank');
+  bank.innerHTML = '';
+  faderAssign.forEach((asgn, fi) => {
+    const opt = ASSIGNABLE_OPTIONS.find(o=>o.id===asgn) || ASSIGNABLE_OPTIONS[0];
+    const col = document.createElement('div');
+    col.className = 'fdr-col';
+    col.id = 'fdr-col-' + fi;
+
+    // Assign button (tap to re-assign)
+    const assignBtn = document.createElement('button');
+    assignBtn.className = 'fdr-assign assigned';
+    assignBtn.textContent = (fi+1);
+    assignBtn.title = 'Tap to assign';
+    assignBtn.addEventListener('click', () => openAssignPicker(fi, assignBtn));
+
+    // Vertical fader
+    const track = document.createElement('div');
+    track.className = 'fdr-track';
+    const sl = document.createElement('input');
+    sl.type = 'range';
+    sl.className = 'fdr-sl active-fdr';
+    sl.min = 0; sl.max = 255;
+    sl.value = faderValues[fi];
+    sl.id = 'fdr-sl-' + fi;
+    sl.style.setProperty('--fc', opt.dot);
+    sl.style.cssText += `;accent-color:${opt.dot}`;
+
+    // Value display
+    const valEl = document.createElement('div');
+    valEl.className = 'fdr-val';
+    valEl.id = 'fdr-val-' + fi;
+    valEl.textContent = faderValues[fi];
+
+    // Label
+    const lbl = document.createElement('div');
+    lbl.className = 'fdr-lbl';
+    lbl.id = 'fdr-lbl-' + fi;
+    lbl.textContent = opt.label;
+    lbl.style.color = opt.dot;
+    lbl.title = 'Tap to assign';
+    lbl.addEventListener('click', () => openAssignPicker(fi, lbl));
+
+    sl.addEventListener('input', () => {
+      const v = parseInt(sl.value);
+      faderValues[fi] = v;
+      valEl.textContent = v;
+      fireFader(fi, v);
+    });
+
+    track.appendChild(sl);
+    col.appendChild(assignBtn);
+    col.appendChild(track);
+    col.appendChild(valEl);
+    col.appendChild(lbl);
+    bank.appendChild(col);
+  });
+}
+
+function fireFader(fi, value) {
+  const asgn = faderAssign[fi];
+  const opt = ASSIGNABLE_OPTIONS.find(o=>o.id===asgn);
+  if (!opt) return;
+  const ids = getSelIds();
+  if (!ids.length) return;
+  ids.forEach(fid => {
+    ws({type:'channelType', fixtureId:fid, channelType:opt.chType, value});
+    // Also update local color state for preview
+    if(opt.chType==='red')  fxCols[fid]={...fxCols[fid],r:value};
+    if(opt.chType==='grn')  fxCols[fid]={...fxCols[fid],g:value};
+    if(opt.chType==='blu')  fxCols[fid]={...fxCols[fid],b:value};
+    if(opt.chType==='amb')  fxCols[fid]={...fxCols[fid],a:value};
+    if(opt.chType==='wht')  fxCols[fid]={...fxCols[fid],w:value};
+    if(opt.chType==='uv')   fxCols[fid]={...fxCols[fid],uv:value};
+    if(opt.chType==='dim')  fxCols[fid]={...fxCols[fid],dim:value};
+    // Sync color sliders if color channel
+    const slMap = {red:'r',grn:'g',blu:'b',amb:'a',wht:'w',uv:'uv',dim:'dim'};
+    if(slMap[asgn]){setSl(slMap[asgn],value);updPrev();}
+  });
+  updateFxState();
+}
+
+// ── Assign picker popup ──
+function openAssignPicker(fi, anchor) {
+  assigningFader = fi;
+  const popup = document.getElementById('assign-popup');
+  const list  = document.getElementById('ap-list');
+  document.getElementById('ap-title').textContent = 'ASSIGN FADER ' + (fi+1);
+  list.innerHTML = '';
+
+  // Group by sub-category
+  const groups = {};
+  ASSIGNABLE_OPTIONS.forEach(o => {
+    if (!groups[o.sub]) groups[o.sub] = [];
+    groups[o.sub].push(o);
+  });
+
+  for (const [grpName, opts] of Object.entries(groups)) {
+    const ghdr = document.createElement('div');
+    ghdr.style.cssText = 'font-size:9px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;padding:6px 10px 3px;';
+    ghdr.textContent = grpName;
+    list.appendChild(ghdr);
+    opts.forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'ap-item';
+      const isActive = faderAssign[fi] === opt.id;
+      if(isActive) item.style.background = 'var(--p3)';
+      item.innerHTML = `
+        <div class="ap-dot" style="background:${opt.dot}"></div>
+        <span class="ap-name">${opt.label}</span>
+        <span class="ap-sub">${isActive ? '✓ ACTIVE' : ''}</span>
+      `;
+      item.addEventListener('click', () => {
+        faderAssign[fi] = opt.id;
+        const def = opt.default ?? 0;
+        faderValues[fi] = def;
+        localStorage.setItem('dmx_fdr_assign', JSON.stringify(faderAssign));
+        closeAssignPicker();
+        buildFaderBank();
+        toast('Fader '+(fi+1)+' → '+opt.label);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  // Position popup near anchor
+  const rect = anchor.getBoundingClientRect();
+  popup.style.display = 'block';
+  popup.classList.add('open');
+  // Position above or below
+  const ph = popup.offsetHeight || 280;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  popup.style.left = Math.min(rect.left, window.innerWidth - 210) + 'px';
+  if (spaceBelow > ph + 10) {
+    popup.style.top = (rect.bottom + 4) + 'px';
+  } else {
+    popup.style.top = Math.max(4, rect.top - ph - 4) + 'px';
+  }
+}
+
+function closeAssignPicker() {
+  document.getElementById('assign-popup').classList.remove('open');
+  document.getElementById('assign-popup').style.display = 'none';
+  assigningFader = -1;
+}
+
+document.getElementById('ap-close').addEventListener('click', closeAssignPicker);
+document.addEventListener('click', e => {
+  const popup = document.getElementById('assign-popup');
+  if (popup.classList.contains('open') && !popup.contains(e.target) && !e.target.classList.contains('fdr-assign') && !e.target.classList.contains('fdr-lbl')) {
+    closeAssignPicker();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// CMD + TOAST
+// ═══════════════════════════════════════════════════════════
+function cmd(t){document.getElementById('cmdsp').textContent=t;document.getElementById('cmdfb').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2200)}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+setupWheel();updPrev();
+buildGroups();buildCMacros();buildGQF();renderScenes();buildMovPanel();buildQF();
+buildFaderBank();
+updateFxState();cmd('Ready — select groups, choose colors or movement patterns');
+</script>
+</body>
+</html>

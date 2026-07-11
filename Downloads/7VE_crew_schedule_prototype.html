@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7VE — Crew Schedule Builder (prototype)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Saira:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0F12; --card:#1A1E25; --card2:#20252E; --input:#141720;
+    --line:#252B38; --line2:#323C4E; --ink:#E8EBF0; --muted:#8A93A3; --muted2:#5A6373;
+    --accent:#F5A623; --red:#E70B0E; --green:#22C55E; --steel:#7A8494; --purple:#A855F7;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  [onclick]{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 70px}
+
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .eyebrow{font-family:'Saira';font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--muted)}
+  h1{font-family:'Saira';font-weight:800;text-transform:uppercase;font-size:26px;letter-spacing:.01em;margin:2px 0 0}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px;max-width:640px}
+  .btn{background:var(--card2);border:1px solid var(--line2);color:var(--ink);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+  .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.ghost{background:transparent}
+  .note{background:#1c1206;border:1px solid #4a3410;border-left:3px solid var(--accent);border-radius:8px;padding:10px 13px;font-size:12.5px;color:#e9d8b5;margin:14px 0}
+  .note b{color:#ffcf6b}
+
+  /* day rail */
+  .days{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+  .day{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 13px;min-width:104px;text-align:left}
+  .day[aria-selected=true]{border-color:var(--accent);background:#211a0c}
+  .day .d{font-family:'Saira';font-weight:700;text-transform:uppercase;font-size:13px}
+  .day .c{font-family:'IBM Plex Mono';font-size:12px;margin-top:3px}
+  .day .c.ok{color:var(--green)} .day .c.short{color:var(--accent)}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .phead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .phead .t{font-family:'Saira';font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:15px}
+  .pill{font-family:'IBM Plex Mono';font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--line2)}
+  .pill.ok{color:var(--green);border-color:#1c4a2b;background:#0f2016}
+  .pill.short{color:var(--accent);border-color:#4a3410;background:#1c1206}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-family:'Saira';text-transform:uppercase;letter-spacing:.06em;font-size:10.5px;color:var(--muted);padding:6px 8px;font-weight:700}
+  td{padding:6px 8px;vertical-align:middle;border-top:1px solid var(--line)}
+  select,input{width:100%;background:var(--input);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 9px;font-size:13px;font-family:inherit}
+  select:focus,input:focus{outline:2px solid var(--steel);outline-offset:0}
+  .warn{color:var(--accent);font-size:11px;margin-top:3px;display:block}
+  .ok-check{color:var(--green);font-size:11px;margin-top:3px;display:block}
+  .slotno{font-family:'IBM Plex Mono';color:var(--muted2);text-align:center;font-size:12px}
+  .rm{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px}
+  .add{margin-top:10px}
+  .star{color:var(--accent)}
+  .skilltag{display:inline-block;font-family:'IBM Plex Mono';font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--line2);color:var(--steel);margin-left:4px}
+  .off{color:var(--red);font-size:11px}
+
+  /* roster ref */
+  details.roster{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 16px}
+  details.roster summary{cursor:pointer;padding:14px 0;font-family:'Saira';font-weight:700;text-transform:uppercase;font-size:13px;letter-spacing:.06em;color:var(--muted)}
+  .rrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="eyebrow">7 Virtues Entertainment · Crew Scheduling</div>
+      <h1 id="evName">Government AV — Hybrid Event</h1>
+      <div class="sub" id="evSub">Jul 19–24, 2026 · Vimeo + Google Meet hybrid (no Zoom/Teams) · same crew requested setup→strike</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" onclick="autoFill()">✨ Auto-suggest crew</button>
+      <button class="btn primary" onclick="callSheet()">⬇ Preview Call Sheet</button>
+    </div>
+  </div>
+
+  <div class="note"><b>Prototype</b> — loaded with the real request. Pick a day, assign techs to slots, watch the ⚠ soft skill flags and the filled/needed counts, then hit <b>Preview Call Sheet</b> to see the crew-chief PDF. React and I'll refine.</div>
+
+  <div class="days" id="days"></div>
+
+  <div class="panel">
+    <div class="phead">
+      <div class="t" id="dayTitle">—</div>
+      <div><span class="pill" id="dayCount">0 / 0</span></div>
+    </div>
+    <table>
+      <thead><tr><th style="width:34px">#</th><th style="width:31%">Technician</th><th style="width:24%">Position</th><th style="width:16%">Call time</th><th style="width:18%">Room</th><th style="width:34px"></th></tr></thead>
+      <tbody id="slots"></tbody>
+    </table>
+    <button class="btn ghost add" onclick="addSlot()">+ Add slot</button>
+  </div>
+
+  <details class="roster">
+    <summary>Roster &amp; skills (reference)</summary>
+    <div id="rosterList" style="padding-bottom:12px"></div>
+  </details>
+</div>
+
+<script>
+const SKILLS=['A1','V1','Stream','PTZ'];
+const POSITIONS=[
+  {t:'A1/V1 Lead', needs:['A1','V1']},
+  {t:'Stream Tech', needs:['Stream']},
+  {t:'PTZ Cam Tech', needs:['PTZ']},
+  {t:'In-room Video/Hybrid', needs:['V1']},
+  {t:'Audio Tech', needs:['A1']},
+  {t:'Setup/AV Test', needs:[]},
+];
+const ROOMS=['Vessey Ballroom','1105','1101/02'];
+const TECHS=[
+  {id:1,name:'Roberto Rodriguez', skills:['A1','V1','Stream'], off:[]},
+  {id:2,name:'Darrius Malone',    skills:['V1','Stream','PTZ'], off:[]},
+  {id:3,name:'Chris Smoot',       skills:['A1','V1'], off:[]},
+  {id:4,name:'Kevin Little',      skills:['PTZ','V1'], off:[]},
+  {id:5,name:'Trey Hamilton',     skills:['V1','Stream'], off:[]},
+  {id:6,name:"D'andre Bynum",     skills:['A1','PTZ'], off:[]},
+  {id:7,name:'Ivy Bondoc',        skills:['V1','Stream'], off:['Jul 20']},
+  {id:8,name:'Luis Figueroa',     skills:['A1','PTZ','Stream'], off:[]},
+];
+const DAYS=[
+  {id:'Jul 19', label:'Jul 19', role:'Setup', needed:4, defTime:'9:00a–5:30p', defPos:'Setup/AV Test'},
+  {id:'Jul 20', label:'Jul 20', role:'Show',  needed:5, defTime:'6:00a–6:00p', defPos:'In-room Video/Hybrid'},
+  {id:'Jul 21', label:'Jul 21', role:'Show',  needed:2, defTime:'6:00a–6:00p', defPos:'In-room Video/Hybrid'},
+  {id:'Jul 22', label:'Jul 22', role:'Show',  needed:6, defTime:'6:00a–6:00p', defPos:'In-room Video/Hybrid'},
+  {id:'Jul 23', label:'Jul 23', role:'Show',  needed:4, defTime:'6:00a–6:00p', defPos:'In-room Video/Hybrid'},
+  {id:'Jul 24', label:'Jul 24', role:'Show',  needed:1, defTime:'6:00a–2:00p', defPos:'In-room Video/Hybrid'},
+];
+// assignments[dayId] = [{tech, pos, time, room}]
+const A={}; DAYS.forEach(d=>{ A[d.id]=Array.from({length:d.needed},()=> ({tech:'',pos:d.defPos,time:d.defTime,room:'Vessey Ballroom'})); });
+let cur=DAYS[0].id;
+
+const techById=id=>TECHS.find(t=>t.id==id);
+const posByT=t=>POSITIONS.find(p=>p.t===t);
+function filled(dayId){ return A[dayId].filter(s=>s.tech).length; }
+function isOnCrew(techId){ return DAYS.some(d=>A[d.id].some(s=>s.tech==techId)); }
+function missingSkills(techId,posTitle){
+  const tech=techById(techId), pos=posByT(posTitle); if(!tech||!pos) return [];
+  return pos.needs.filter(n=>!tech.skills.includes(n));
+}
+
+function renderDays(){
+  document.getElementById('days').innerHTML=DAYS.map(d=>{
+    const f=filled(d.id), ok=f>=d.needed;
+    return `<div class="day" role="tab" aria-selected="${d.id===cur}" onclick="selDay('${d.id}')">
+      <div class="d">${d.label}</div>
+      <div class="c ${ok?'ok':'short'}">${f}/${d.needed} · ${d.role}</div></div>`;
+  }).join('');
+}
+function selDay(id){ cur=id; render(); }
+
+function techOptions(dayId, selId){
+  return TECHS.map(t=>{
+    const off=t.off.includes(dayId);
+    const on=isOnCrew(t.id)&&!off;
+    const label=(on?'★ ':'')+t.name+(off?' — OFF':'')+'  ['+t.skills.join('/')+']';
+    return `<option value="${t.id}" ${t.id==selId?'selected':''} ${off?'disabled':''}>${label}</option>`;
+  }).join('');
+}
+function render(){
+  renderDays();
+  const d=DAYS.find(x=>x.id===cur);
+  document.getElementById('dayTitle').textContent=`${d.label} · ${d.role} day`;
+  const f=filled(cur); const pill=document.getElementById('dayCount');
+  pill.textContent=`${f} / ${d.needed} staffed`;
+  pill.className='pill '+(f>=d.needed?'ok':'short');
+
+  document.getElementById('slots').innerHTML=A[cur].map((s,i)=>{
+    const miss=s.tech?missingSkills(s.tech,s.pos):[];
+    const flag = s.tech ? (miss.length
+        ? `<span class="warn">⚠ missing ${miss.join(', ')}</span>`
+        : `<span class="ok-check">✓ skills match</span>`) : '';
+    return `<tr>
+      <td class="slotno">${i+1}</td>
+      <td>
+        <select onchange="setSlot(${i},'tech',this.value)"><option value="">— select tech —</option>${techOptions(cur,s.tech)}</select>
+        ${flag}
+      </td>
+      <td><select onchange="setSlot(${i},'pos',this.value)">${POSITIONS.map(p=>`<option ${p.t===s.pos?'selected':''}>${p.t}</option>`).join('')}</select></td>
+      <td><input value="${s.time}" onchange="setSlot(${i},'time',this.value)"></td>
+      <td><select onchange="setSlot(${i},'room',this.value)">${ROOMS.map(r=>`<option ${r===s.room?'selected':''}>${r}</option>`).join('')}${ROOMS.includes(s.room)?'':`<option selected>${s.room}</option>`}</select></td>
+      <td><button class="rm" title="remove slot" onclick="delSlot(${i})">×</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rosterList').innerHTML=TECHS.map(t=>
+    `<div class="rrow"><span>${t.name} ${t.skills.map(s=>`<span class="skilltag">${s}</span>`).join('')} ${t.off.length?`<span class="off">· off ${t.off.join(', ')}</span>`:''}</span>
+     <span class="mono" style="color:var(--muted2)">${isOnCrew(t.id)?'on crew':''}</span></div>`).join('');
+}
+function setSlot(i,f,v){ A[cur][i][f]=v; render(); }
+function addSlot(){ const d=DAYS.find(x=>x.id===cur); A[cur].push({tech:'',pos:d.defPos,time:d.defTime,room:'Vessey Ballroom'}); render(); }
+function delSlot(i){ A[cur].splice(i,1); render(); }
+
+// crude continuity auto-suggest: fill empty slots preferring same-skill techs already on crew
+function autoFill(){
+  DAYS.forEach(d=>{
+    A[d.id].forEach(s=>{
+      if(s.tech) return;
+      const pos=posByT(s.pos);
+      const used=A[d.id].map(x=>x.tech);
+      const cand=TECHS.filter(t=>!t.off.includes(d.id)&&!used.includes(String(t.id))&&!used.includes(t.id)
+        && pos.needs.every(n=>t.skills.includes(n)));
+      cand.sort((a,b)=> (isOnCrew(b.id)-isOnCrew(a.id)));
+      if(cand[0]) s.tech=cand[0].id;
+    });
+  });
+  render();
+}
+
+// ---- branded crew-chief call sheet (print to PDF) ----
+function callSheet(){
+  const rows=TECHS.filter(t=>DAYS.some(d=>A[d.id].some(s=>s.tech==t.id)));
+  const cell=(t,d)=>{ const s=A[d.id].find(x=>x.tech==t.id); if(!s) return t.off.includes(d.id)?'<span class=off>OFF</span>':''; 
+    return `<div class="tm">${s.time}</div><div class="ps">${s.pos}</div><div class="rm2">${s.room}</div>`; };
+  const head=DAYS.map(d=>`<th>${d.label}<div class="need">${filled(d.id)}/${d.needed}</div></th>`).join('');
+  const body=rows.map(t=>`<tr><td class="tn">${t.name}<div class="sk">${t.skills.join(' · ')}</div></td>${DAYS.map(d=>`<td>${cell(t,d)}</td>`).join('')}</tr>`).join('');
+  const doc=`<!DOCTYPE html><html><head><meta charset=utf-8><title>Crew Call Sheet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Saira:wght@700;800&family=IBM+Plex+Mono&display=swap" rel=stylesheet>
+  <style>
+    body{font-family:Inter,sans-serif;color:#16181D;margin:0;background:#5B6070;padding:20px}
+    .sheet{max-width:1050px;margin:0 auto;background:#fff;padding:34px 40px 40px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+    .mh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #12141A;padding-bottom:14px}
+    .mk{width:56px;height:56px;border-radius:11px;background:linear-gradient(155deg,#1B1E25,#0C0D11);color:#E70B0E;display:flex;align-items:center;justify-content:center;font-family:Saira;font-weight:800;font-size:20px;box-shadow:inset 0 0 0 1px rgba(231,11,14,.45)}
+    .name{font-family:Saira;font-weight:800;text-transform:uppercase;font-size:20px}.name .r{color:#E70B0E}
+    .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6B7280;font-weight:600;margin-top:4px}
+    h1{font-family:Saira;font-weight:800;text-transform:uppercase;font-size:24px;margin:0;text-align:right;letter-spacing:.06em}
+    .ev{text-align:right;font-size:12px;color:#3D434E;margin-top:4px}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th{background:#12141A;color:#fff;font-family:Saira;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.05em;padding:8px 6px;text-align:center;border:1px solid #12141A}
+    th:first-child{text-align:left;width:150px}
+    .need{font-family:'IBM Plex Mono';font-size:9px;color:#F5A623;font-weight:400;margin-top:2px}
+    td{border:1px solid #D9DEE6;padding:7px 6px;font-size:10.5px;text-align:center;vertical-align:top}
+    td.tn{text-align:left;font-weight:700;font-size:12px}
+    .sk{font-size:9px;color:#8A93A3;font-weight:500;letter-spacing:.03em}
+    .tm{font-family:'IBM Plex Mono';font-weight:600}.ps{color:#B00810;font-weight:600;margin-top:1px}.rm2{color:#6B7280;margin-top:1px}
+    .off{color:#B00810;font-weight:700;font-size:9px}
+    .foot{margin-top:16px;font-size:10px;color:#6B7280;display:flex;justify-content:space-between;border-top:1px solid #D9DEE6;padding-top:10px}
+    @media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none}@page{size:landscape;margin:12mm}}
+  </style></head><body onload="setTimeout(()=>window.print(),400)">
+  <div class="sheet">
+    <div class="mh">
+      <div style="display:flex;gap:13px;align-items:center">
+        <div class="mk">7V</div>
+        <div><div class="name"><span class="r">7 Virtues</span> Entertainment</div><div class="tag">Crew Call Sheet · Confidential</div></div>
+      </div>
+      <div><h1>Call Sheet</h1><div class="ev">Government AV — Hybrid Event<br>Jul 19–24, 2026 · Vimeo + Google Meet</div></div>
+    </div>
+    <table><thead><tr><th>Technician</th>${head}</tr></thead><tbody>${body}</tbody></table>
+    <div class="foot"><span>Same crew requested setup→strike · No Zoom/Teams</span><span>7 Virtues Entertainment · 202-306-4375 · admin@7virtuesentertainment.com</span></div>
+  </div></body></html>`;
+  const w=window.open('','_blank'); if(!w){alert('Allow pop-ups to preview the PDF');return;} w.document.write(doc); w.document.close();
+}
+render();
+</script>

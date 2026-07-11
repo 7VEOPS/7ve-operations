@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>CTRL · SHOW</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   GRANDMA2-INSPIRED SHOW PANEL
+   Design language: dark gunmetal surfaces, amber/gold
+   accents, grid-based executor buttons with color
+   feedback, persistent command strip at bottom
+═══════════════════════════════════════════════════ */
+:root{
+  /* MA2 palette */
+  --bg:#0d0d0f;
+  --panel:#141416;
+  --panel2:#1a1a1e;
+  --panel3:#202024;
+  --border:#2a2a30;
+  --border2:#38383f;
+  --border3:#48484f;
+
+  /* MA2 accent colors */
+  --gold:#c8a444;
+  --gold2:#e8c050;
+  --gold-dim:#7a6420;
+  --blue-ma:#2255aa;
+  --blue-active:#3377ee;
+  --green-ma:#22aa55;
+  --green-active:#33dd77;
+  --red-ma:#aa2222;
+  --red-active:#ee3333;
+  --cyan-ma:#22aacc;
+
+  /* Fixture color coding */
+  --c-red:#ff3344;
+  --c-grn:#33ff77;
+  --c-blu:#3388ff;
+  --c-amb:#ffaa22;
+  --c-wht:#e8e8f0;
+  --c-uv:#9944ff;
+  --c-mgt:#ff33cc;
+  --c-cyn:#22ddff;
+  --c-ylw:#ffee22;
+  --c-pnk:#ff5599;
+
+  --text:#c8c8d0;
+  --text2:#888890;
+  --text3:#555558;
+  --text-bright:#e8e8f0;
+
+  --btn-h:52px;
+  --btn-h-sm:40px;
+  --exec-h:80px;
+
+  --font-mono:'SF Mono','Fira Code','Consolas',monospace;
+  --font-ui:-apple-system,'Helvetica Neue','Arial',sans-serif;
+  --radius:4px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--font-ui);height:100%;
+  overflow:hidden;font-size:13px;
+}
+#app{
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  height:100vh;height:100dvh;
+}
+
+/* ── TOP BAR ── */
+#topbar{
+  display:flex;align-items:center;gap:0;
+  background:var(--panel);border-bottom:1px solid var(--border2);
+  height:42px;flex-shrink:0;overflow:hidden;
+}
+.tb-section{
+  display:flex;align-items:center;padding:0 12px;height:100%;
+  border-right:1px solid var(--border2);gap:8px;
+}
+.tb-title{
+  font-family:var(--font-mono);font-size:13px;font-weight:700;
+  letter-spacing:.25em;color:var(--gold2);
+}
+.tb-sub{color:var(--text2);font-size:10px;letter-spacing:.1em}
+.tb-spacer{flex:1}
+#ws-pill{
+  display:flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:20px;border:1px solid var(--border2);background:var(--panel2);
+  font-size:10px;color:var(--text2);
+}
+#ws-dot{width:6px;height:6px;border-radius:50%;background:var(--border3);transition:background .3s}
+#ws-dot.on{background:var(--green-active);box-shadow:0 0 5px var(--green-active)}
+#btn-bo{
+  height:100%;padding:0 18px;border:none;
+  background:var(--red-ma);color:var(--text-bright);
+  font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.15em;
+  cursor:pointer;transition:background .1s;border-left:1px solid var(--border2);
+}
+#btn-bo.active{background:var(--red-active);box-shadow:inset 0 0 20px rgba(255,0,0,.3)}
+.master-tb{display:flex;align-items:center;gap:8px;padding:0 14px;border-left:1px solid var(--border2)}
+.master-lbl{font-size:9px;color:var(--text2);letter-spacing:.15em}
+#msl{
+  width:100px;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:var(--border2);outline:none;cursor:pointer;
+}
+#msl::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 6px var(--gold-dim);cursor:pointer;
+}
+#mpct{font-family:var(--font-mono);font-size:11px;color:var(--gold);min-width:34px}
+
+/* ── MAIN AREA: 3-column grid ── */
+#main{
+  display:grid;
+  grid-template-columns:220px 1fr 260px;
+  grid-template-rows:1fr;
+  overflow:hidden;
+  gap:0;
+}
+
+/* ── LEFT: GROUP SELECTOR ── */
+#left-col{
+  background:var(--panel);border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.col-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;background:var(--panel2);
+  border-bottom:1px solid var(--border2);flex-shrink:0;
+}
+.col-title{
+  font-size:10px;color:var(--text2);letter-spacing:.15em;
+  text-transform:uppercase;font-weight:600;
+}
+.col-scroll{flex:1;overflow-y:auto;padding:8px;}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Group buttons — MA2 style: rectangular with colored left bar */
+.grp-btn{
+  display:flex;align-items:center;gap:0;width:100%;margin-bottom:5px;
+  border-radius:var(--radius);overflow:hidden;cursor:pointer;
+  border:1px solid var(--border2);transition:border-color .12s;
+  background:var(--panel2);height:44px;
+}
+.grp-btn:active,.grp-btn.sel{border-color:var(--gold)}
+.grp-btn.sel .grp-bar{background:var(--gold);}
+.grp-btn.sel .grp-label{color:var(--text-bright)}
+.grp-btn.sel{background:var(--panel3)}
+.grp-bar{width:4px;height:100%;background:var(--border2);flex-shrink:0;transition:background .12s}
+.grp-inner{flex:1;padding:0 10px;display:flex;flex-direction:column;gap:2px}
+.grp-label{font-size:12px;font-weight:600;color:var(--text)}
+.grp-sub{font-size:9px;color:var(--text3);letter-spacing:.05em}
+.grp-count{font-family:var(--font-mono);font-size:10px;color:var(--text2);padding-right:8px}
+
+/* Select ALL / CLEAR */
+.grp-tools{display:flex;gap:4px;margin-bottom:8px}
+.gtbtn{
+  flex:1;height:30px;border-radius:var(--radius);border:1px solid var(--border2);
+  background:var(--panel3);color:var(--text2);font-size:10px;
+  letter-spacing:.1em;cursor:pointer;transition:all .1s;
+}
+.gtbtn:active,.gtbtn.hi{background:var(--blue-active);border-color:var(--blue-active);color:#fff}
+
+/* ── CENTER: SHOW SURFACE ── */
+#center-col{
+  display:flex;flex-direction:column;overflow:hidden;background:var(--bg);
+}
+
+/* COLOR PICKER SECTION */
+#color-section{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  padding:10px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border2);
+  flex-shrink:0;align-items:center;
+}
+
+/* HSL wheel */
+#wheel-wrap{position:relative;flex-shrink:0}
+#wheel-cvs{border-radius:50%;cursor:crosshair;touch-action:none;display:block}
+#wheel-cursor{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  border:2px solid #fff;box-shadow:0 0 0 1px #000, 0 0 6px rgba(255,255,255,.5);
+  transform:translate(-50%,-50%);pointer-events:none;
+  transition:box-shadow .1s;
+}
+
+/* Color controls middle */
+#color-ctrls{display:flex;flex-direction:column;gap:7px}
+.cc-row{display:flex;align-items:center;gap:7px}
+.cc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cc-lbl{font-size:9px;color:var(--text2);min-width:16px;letter-spacing:.05em}
+.cc-sl{
+  flex:1;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:var(--border2);outline:none;cursor:pointer;
+}
+.cc-sl::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--panel3);border:2px solid var(--border2);cursor:pointer;
+}
+.cc-sl.r::-webkit-slider-thumb{border-color:var(--c-red);background:color-mix(in srgb,var(--c-red) 30%,var(--panel3))}
+.cc-sl.g::-webkit-slider-thumb{border-color:var(--c-grn);background:color-mix(in srgb,var(--c-grn) 30%,var(--panel3))}
+.cc-sl.b::-webkit-slider-thumb{border-color:var(--c-blu);background:color-mix(in srgb,var(--c-blu) 30%,var(--panel3))}
+.cc-sl.a::-webkit-slider-thumb{border-color:var(--c-amb);background:color-mix(in srgb,var(--c-amb) 30%,var(--panel3))}
+.cc-sl.w::-webkit-slider-thumb{border-color:var(--c-wht);background:color-mix(in srgb,var(--c-wht) 20%,var(--panel3))}
+.cc-sl.u::-webkit-slider-thumb{border-color:var(--c-uv);background:color-mix(in srgb,var(--c-uv) 30%,var(--panel3))}
+.cc-sl.dim::-webkit-slider-thumb{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 30%,var(--panel3))}
+.cc-val{font-family:var(--font-mono);font-size:10px;color:var(--text2);min-width:24px;text-align:right}
+
+/* Color preview swatch */
+#color-preview{
+  width:48px;height:48px;border-radius:var(--radius);
+  border:1px solid var(--border2);background:#000;flex-shrink:0;
+  box-shadow:0 0 0 1px var(--border);
+}
+
+/* ── EXECUTOR GRID ── */
+#exec-section{
+  flex:1;overflow-y:auto;padding:10px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+/* Page label */
+.exec-page-label{
+  font-size:9px;color:var(--text3);letter-spacing:.2em;
+  text-transform:uppercase;padding:2px 0;
+}
+
+/* Executor button rows — MA2 style */
+.exec-row{display:flex;gap:6px;flex-wrap:wrap}
+.exec-btn{
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-width:90px;flex:1;height:var(--exec-h);
+  border-radius:var(--radius);cursor:pointer;
+  border:1px solid var(--border2);
+  background:var(--panel2);
+  padding:6px 8px;
+  transition:border-color .1s,background .1s;
+  position:relative;overflow:hidden;
+}
+.exec-btn::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--border2);transition:background .1s;
+}
+.exec-btn.active::before{background:currentColor}
+.exec-btn.active{border-color:color-mix(in srgb,currentColor 40%,var(--border2))}
+.exec-top{display:flex;justify-content:space-between;align-items:flex-start}
+.exec-num{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.exec-state{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border2);transition:background .15s;
+}
+.exec-btn.active .exec-state{background:currentColor;box-shadow:0 0 4px currentColor}
+.exec-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.2}
+.exec-sub{font-size:9px;color:var(--text3);margin-top:2px}
+.exec-bar{
+  height:4px;border-radius:2px;background:var(--border2);margin-top:4px;
+  position:relative;overflow:hidden;
+}
+.exec-bar-fill{height:100%;border-radius:2px;width:0%;transition:width .1s,background .1s;background:var(--border3)}
+
+/* Executor sections */
+.exec-section-hdr{
+  font-size:9px;color:var(--text3);letter-spacing:.2em;
+  text-transform:uppercase;padding:4px 0 2px;
+  border-bottom:1px solid var(--border);margin-bottom:4px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.exec-section-hdr span{color:var(--text3)}
+
+/* ── RIGHT: FIXTURE STATE + COMMAND ── */
+#right-col{
+  background:var(--panel);border-left:1px solid var(--border2);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Fixture mini-state grid */
+#fixture-state{
+  flex:1;overflow-y:auto;padding:8px;
+}
+.fs-row{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 6px;border-radius:var(--radius);
+  margin-bottom:3px;background:var(--panel2);
+  border:1px solid var(--border);cursor:pointer;
+  transition:border-color .1s;
+}
+.fs-row:active,.fs-row.sel{border-color:var(--gold)}
+.fs-row.sel{background:var(--panel3)}
+.fs-swatch{width:22px;height:22px;border-radius:3px;flex-shrink:0;border:1px solid var(--border2)}
+.fs-info{flex:1;min-width:0}
+.fs-name{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-ch{font-size:9px;color:var(--text3);font-family:var(--font-mono)}
+.fs-dim{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--text2);min-width:26px;text-align:right;
+}
+
+/* ── COMMAND STRIP (bottom) — MA2 style ── */
+#cmdstrip{
+  background:var(--panel);border-top:1px solid var(--border2);
+  flex-shrink:0;padding:0;display:flex;flex-direction:column;
+}
+#cmd-row1{
+  display:flex;align-items:center;gap:0;
+  border-bottom:1px solid var(--border);height:38px;
+}
+.cmd-label{
+  padding:0 12px;font-size:9px;color:var(--text3);
+  letter-spacing:.15em;text-transform:uppercase;border-right:1px solid var(--border);
+  height:100%;display:flex;align-items:center;white-space:nowrap;
+}
+#cmd-line{
+  flex:1;font-family:var(--font-mono);font-size:12px;color:var(--gold2);
+  padding:0 12px;background:transparent;height:100%;
+  display:flex;align-items:center;letter-spacing:.05em;
+}
+#cmd-cursor{
+  display:inline-block;width:8px;height:14px;
+  background:var(--gold2);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:middle;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#cmd-feedback{
+  padding:0 12px;font-size:10px;color:var(--text2);
+  border-left:1px solid var(--border);height:100%;display:flex;align-items:center;
+  min-width:120px;font-style:italic;
+}
+
+/* Bottom quick-fire color buttons */
+#cmd-row2{
+  display:flex;gap:0;height:44px;overflow-x:auto;scrollbar-width:none;
+}
+#cmd-row2::-webkit-scrollbar{display:none}
+.qfbtn{
+  flex:1;min-width:52px;height:100%;border:none;
+  border-right:1px solid var(--border);
+  background:var(--panel2);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;transition:background .08s;
+}
+.qfbtn:last-child{border-right:none}
+.qfbtn:active{filter:brightness(1.4)}
+.qfbtn .qswatch{width:18px;height:10px;border-radius:2px}
+.qfbtn .qname{font-size:8px;color:var(--text2);letter-spacing:.05em}
+.qfbtn.active-q .qname{color:var(--text-bright)}
+
+/* ── MODAL OVERLAY ── */
+#modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  display:none;z-index:100;align-items:center;justify-content:center;
+}
+#modal.open{display:flex}
+#modal-box{
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:6px;padding:20px;min-width:280px;max-width:90vw;
+  box-shadow:0 8px 40px rgba(0,0,0,.8);
+}
+.modal-title{font-size:13px;font-weight:700;color:var(--text-bright);margin-bottom:14px;letter-spacing:.08em}
+.modal-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.modal-lbl{font-size:10px;color:var(--text2);min-width:60px}
+.modal-inp{
+  flex:1;background:var(--panel2);border:1px solid var(--border2);
+  color:var(--text);padding:6px 10px;border-radius:var(--radius);
+  font-family:var(--font-mono);font-size:12px;
+}
+.modal-inp:focus{outline:none;border-color:var(--gold)}
+.modal-acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.ma-btn{
+  padding:8px 18px;border-radius:var(--radius);border:1px solid var(--border2);
+  background:var(--panel2);color:var(--text);font-size:11px;cursor:pointer;
+  transition:all .1s;
+}
+.ma-btn.primary{background:var(--blue-ma);border-color:var(--blue-active);color:#fff}
+.ma-btn.primary:active{background:var(--blue-active)}
+.ma-btn:active{border-color:var(--gold)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(30px);
+  background:var(--panel3);border:1px solid var(--border2);
+  padding:7px 16px;border-radius:20px;font-size:11px;color:var(--text);
+  transition:transform .18s,opacity .18s;opacity:0;pointer-events:none;z-index:200;
+  white-space:nowrap;font-family:var(--font-mono);
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── RESPONSIVE: hide right col on narrow ── */
+@media(max-width:700px){
+  #main{grid-template-columns:180px 1fr}
+  #right-col{display:none}
+}
+@media(max-width:500px){
+  #main{grid-template-columns:1fr}
+  #left-col{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ TOP BAR ══════════════════════════════════════════════ -->
+<div id="topbar">
+  <div class="tb-section">
+    <div class="tb-title">CTRL</div>
+    <div class="tb-sub">SHOW PANEL</div>
+  </div>
+  <div class="tb-section">
+    <div id="ws-pill"><div id="ws-dot"></div><span id="ws-lbl">OFFLINE</span></div>
+  </div>
+  <div class="master-tb">
+    <span class="master-lbl">MASTER</span>
+    <input type="range" id="msl" min="0" max="255" value="255">
+    <span id="mpct">100%</span>
+  </div>
+  <div class="tb-spacer"></div>
+  <button id="btn-bo">⬛ BLACKOUT</button>
+</div>
+
+<!-- ══ MAIN 3-COLUMN LAYOUT ═════════════════════════════════ -->
+<div id="main">
+
+  <!-- ── LEFT: GROUP SELECTOR ── -->
+  <div id="left-col">
+    <div class="col-hdr">
+      <span class="col-title">GROUPS</span>
+      <span style="font-size:9px;color:var(--text3)" id="sel-count">NONE SELECTED</span>
+    </div>
+    <div class="col-scroll">
+      <div class="grp-tools">
+        <button class="gtbtn" id="btn-selall">ALL</button>
+        <button class="gtbtn" id="btn-clear">CLEAR</button>
+      </div>
+      <div id="grp-list"></div>
+    </div>
+  </div>
+
+  <!-- ── CENTER: COLOR + EXECUTORS ── -->
+  <div id="center-col">
+
+    <!-- COLOR PICKER -->
+    <div id="color-section">
+      <!-- HSL Wheel -->
+      <div id="wheel-wrap">
+        <canvas id="wheel-cvs" width="130" height="130"></canvas>
+        <div id="wheel-cursor"></div>
+      </div>
+
+      <!-- RGBAWUV sliders -->
+      <div id="color-ctrls">
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-red)"></div>
+          <span class="cc-lbl">R</span>
+          <input type="range" class="cc-sl r" id="sl-r" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-r">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-grn)"></div>
+          <span class="cc-lbl">G</span>
+          <input type="range" class="cc-sl g" id="sl-g" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-g">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-blu)"></div>
+          <span class="cc-lbl">B</span>
+          <input type="range" class="cc-sl b" id="sl-b" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-b">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-amb)"></div>
+          <span class="cc-lbl">A</span>
+          <input type="range" class="cc-sl a" id="sl-a" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-a">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-wht)"></div>
+          <span class="cc-lbl">W</span>
+          <input type="range" class="cc-sl w" id="sl-w" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-w">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--c-uv)"></div>
+          <span class="cc-lbl">UV</span>
+          <input type="range" class="cc-sl u" id="sl-uv" min="0" max="255" value="0">
+          <span class="cc-val" id="vl-uv">0</span>
+        </div>
+        <div class="cc-row">
+          <div class="cc-dot" style="background:var(--gold)"></div>
+          <span class="cc-lbl">DIM</span>
+          <input type="range" class="cc-sl dim" id="sl-dim" min="0" max="255" value="255">
+          <span class="cc-val" id="vl-dim">255</span>
+        </div>
+      </div>
+
+      <!-- Preview swatch -->
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div id="color-preview"></div>
+        <button id="btn-apply-color" style="
+          width:100%;padding:6px 8px;border-radius:var(--radius);
+          background:var(--blue-ma);border:1px solid var(--blue-active);
+          color:#fff;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer;
+        ">APPLY</button>
+        <button id="btn-full-on" style="
+          width:100%;padding:6px 8px;border-radius:var(--radius);
+          background:var(--panel3);border:1px solid var(--border2);
+          color:var(--text2);font-size:9px;letter-spacing:.08em;cursor:pointer;
+        ">FULL ON</button>
+        <button id="btn-out" style="
+          width:100%;padding:6px 8px;border-radius:var(--radius);
+          background:var(--panel3);border:1px solid var(--border2);
+          color:var(--text2);font-size:9px;letter-spacing:.08em;cursor:pointer;
+        ">OUT</button>
+      </div>
+    </div>
+
+    <!-- EXECUTOR GRID -->
+    <div id="exec-section">
+      <!-- Scenes row -->
+      <div class="exec-section-hdr">SCENES <span id="scene-count">0 stored</span></div>
+      <div class="exec-row" id="scene-exec-row"></div>
+      <!-- Stored looks -->
+      <div class="exec-section-hdr" style="margin-top:10px">COLOR MACROS <span></span></div>
+      <div class="exec-row" id="macro-exec-row"></div>
+      <!-- Group quick fire -->
+      <div class="exec-section-hdr" style="margin-top:10px">GROUP QUICK-FIRE <span></span></div>
+      <div class="exec-row" id="gqf-exec-row"></div>
+    </div>
+
+  </div><!-- /center -->
+
+  <!-- ── RIGHT: FIXTURE STATE ── -->
+  <div id="right-col">
+    <div class="col-hdr">
+      <span class="col-title">FIXTURE STATE</span>
+      <span style="font-size:9px;color:var(--text3)">LIVE</span>
+    </div>
+    <div id="fixture-state"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ COMMAND STRIP (bottom — MA2 style) ══════════════════ -->
+<div id="cmdstrip">
+  <!-- Command line -->
+  <div id="cmd-row1">
+    <div class="cmd-label">CMD</div>
+    <div id="cmd-line"><span id="cmd-text"></span><span id="cmd-cursor"></span></div>
+    <div id="cmd-feedback">Ready</div>
+    <button id="btn-save-scene" style="
+      height:100%;padding:0 14px;border:none;border-left:1px solid var(--border);
+      background:var(--blue-ma);color:#fff;font-size:10px;font-weight:700;
+      letter-spacing:.1em;cursor:pointer;transition:background .1s;white-space:nowrap;
+    ">+ SAVE SCENE</button>
+  </div>
+  <!-- Quick-fire color row -->
+  <div id="cmd-row2"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══ SAVE SCENE MODAL ════════════════════════════════════ -->
+<div id="modal">
+  <div id="modal-box">
+    <div class="modal-title">SAVE SCENE</div>
+    <div class="modal-row">
+      <span class="modal-lbl">Name</span>
+      <input class="modal-inp" id="modal-name" placeholder="Scene name…" type="text">
+    </div>
+    <div class="modal-acts">
+      <button class="ma-btn" id="modal-cancel">Cancel</button>
+      <button class="ma-btn primary" id="modal-confirm">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// FIXTURE DATA & PATCH (same as main controller)
+// ═══════════════════════════════════════════════════════════
+const FX_SHORT_MAP = {
+  'mac250e':  {name:'Martin MAC 250 Entour', cat:'mover', rgbauv:false, hasDim:true},
+  'shwall':   {name:'Shehds Wall Wash',      cat:'par',   rgbauv:true,  hasDim:true},
+  'shmov':    {name:'Shehds Wash Mover',     cat:'mover', rgbauv:false, hasDim:true, hasRGB:true},
+  'ezp64':    {name:'ADJ EZ Par 64',         cat:'par',   rgbauv:false, hasDim:true, hasRGB:true},
+  'slim':     {name:'ADJ Slim Par',          cat:'par',   rgbauv:false, hasDim:true, hasRGB:true},
+  'enc':      {name:'DMX Encoder',           cat:'util',  rgbauv:false, hasDim:true},
+  'fog':      {name:'Fog Machine',           cat:'util',  rgbauv:false, hasDim:true},
+};
+
+const PATCH = [
+  {id:'e1',label:'Entour 1',type:'mac250e',univ:1,addr:1},
+  {id:'e2',label:'Entour 2',type:'mac250e',univ:1,addr:16},
+  {id:'e3',label:'Entour 3',type:'mac250e',univ:1,addr:31},
+  {id:'e4',label:'Entour 4',type:'mac250e',univ:1,addr:46},
+  {id:'e5',label:'Entour 5',type:'mac250e',univ:1,addr:61},
+  {id:'e6',label:'Entour 6',type:'mac250e',univ:1,addr:76},
+  {id:'e7',label:'Entour 7',type:'mac250e',univ:1,addr:91},
+  {id:'e8',label:'Entour 8',type:'mac250e',univ:1,addr:106},
+  {id:'w1',label:'Wall 1',type:'shwall',univ:1,addr:121},
+  {id:'w2',label:'Wall 2',type:'shwall',univ:1,addr:132},
+  {id:'w3',label:'Wall 3',type:'shwall',univ:1,addr:143},
+  {id:'w4',label:'Wall 4',type:'shwall',univ:1,addr:154},
+  {id:'m1',label:'Mover 1',type:'shmov',univ:1,addr:165},
+  {id:'m2',label:'Mover 2',type:'shmov',univ:1,addr:174},
+  {id:'m3',label:'Mover 3',type:'shmov',univ:1,addr:183},
+  {id:'m4',label:'Mover 4',type:'shmov',univ:1,addr:192},
+  ...[...Array(27)].map((_,i)=>({id:'p'+(i+1),label:'EZPar '+(i+1),type:'ezp64',univ:2,addr:1+i*4})),
+  ...[...Array(8)].map((_,i)=>({id:'s'+(i+1),label:'Slim '+(i+1),type:'slim',univ:2,addr:109+i*4})),
+  {id:'enc1',label:'Encoder 1',type:'enc',univ:2,addr:141},
+  {id:'enc2',label:'Encoder 2',type:'enc',univ:2,addr:142},
+  {id:'fog1',label:'Fog Machine',type:'fog',univ:2,addr:143},
+];
+
+const GROUPS = [
+  {id:'ge',  name:'All Entours',  sub:'MAC 250 Entour ×8',   ids:['e1','e2','e3','e4','e5','e6','e7','e8'],   color:'#c8a444'},
+  {id:'gw',  name:'Wall Washes', sub:'Shehds 18×18 ×4',     ids:['w1','w2','w3','w4'],                       color:'#3377ee'},
+  {id:'gm',  name:'Wash Movers', sub:'Shehds 12×12 ×4',     ids:['m1','m2','m3','m4'],                       color:'#22aacc'},
+  {id:'gp',  name:'All EZ Pars', sub:'ADJ EZ Par 64 ×27',   ids:[...Array(27)].map((_,i)=>'p'+(i+1)),       color:'#aa4422'},
+  {id:'gs',  name:'Slim Pars',   sub:'ADJ Slim Par ×8',      ids:[...Array(8)].map((_,i)=>'s'+(i+1)),        color:'#664422'},
+  {id:'gap', name:'All Pars',    sub:'EZPar + Slim ×35',     ids:[...[...Array(27)].map((_,i)=>'p'+(i+1)),...[...Array(8)].map((_,i)=>'s'+(i+1))], color:'#884422'},
+  {id:'gam', name:'All Movers',  sub:'Entours + Movers ×12', ids:['e1','e2','e3','e4','e5','e6','e7','e8','m1','m2','m3','m4'], color:'#226644'},
+  {id:'gall',name:'Full Rig',    sub:'All fixtures',          ids:PATCH.map(p=>p.id),                         color:'#555560'},
+  {id:'gfog',name:'Fog',         sub:'Fog Machine',           ids:['fog1'],                                    color:'#446688'},
+];
+
+const COLOR_MACROS = [
+  {n:'Red',      r:255,g:0,  b:0,  a:0,  w:0,  uv:0,  dim:255, bg:'#ff3344'},
+  {n:'Green',    r:0,  g:255,b:0,  a:0,  w:0,  uv:0,  dim:255, bg:'#33ff77'},
+  {n:'Blue',     r:0,  g:0,  b:255,a:0,  w:0,  uv:0,  dim:255, bg:'#3388ff'},
+  {n:'Cyan',     r:0,  g:255,b:255,a:0,  w:0,  uv:0,  dim:255, bg:'#22ddff'},
+  {n:'Magenta',  r:255,g:0,  b:255,a:0,  w:0,  uv:0,  dim:255, bg:'#ff33cc'},
+  {n:'Yellow',   r:255,g:220,b:0,  a:60, w:0,  uv:0,  dim:255, bg:'#ffee22'},
+  {n:'Amber',    r:255,g:140,b:0,  a:255,w:0,  uv:0,  dim:255, bg:'#ffaa22'},
+  {n:'White',    r:0,  g:0,  b:0,  a:0,  w:255,uv:0,  dim:255, bg:'#e8e8f0'},
+  {n:'Warm W',   r:80, g:40, b:0,  a:200,w:200,uv:0,  dim:255, bg:'#ffcc88'},
+  {n:'UV',       r:0,  g:0,  b:0,  a:0,  w:0,  uv:255,dim:255, bg:'#9944ff'},
+  {n:'Pink',     r:255,g:20, b:150,a:0,  w:30, uv:0,  dim:255, bg:'#ff5599'},
+  {n:'Lavender', r:100,g:0,  b:255,a:0,  w:80, uv:60, dim:255, bg:'#9966ff'},
+  {n:'Sunrise',  r:255,g:80, b:0,  a:180,w:40, uv:0,  dim:255, bg:'#ff8844'},
+  {n:'Ice Blue', r:0,  g:180,b:255,a:0,  w:60, uv:0,  dim:255, bg:'#44aaff'},
+  {n:'Deep Blue',r:0,  g:0,  b:200,a:0,  w:0,  uv:80, dim:255, bg:'#2244cc'},
+  {n:'Off',      r:0,  g:0,  b:0,  a:0,  w:0,  uv:0,  dim:0,   bg:'#333340'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let selectedGroups = new Set();
+let currentColor = {r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+let fixtureColors = {}; // id → {r,g,b,a,w,uv,dim}
+let scenes = JSON.parse(localStorage.getItem('dmx_show_scenes')||'[]');
+let masterVal = 255, blackout = false;
+let activeColorMacro = null;
+let lastCmdText = '';
+
+// init fixture colors
+PATCH.forEach(p => fixtureColors[p.id] = {r:0,g:0,b:0,a:0,w:0,uv:0,dim:255});
+
+// ═══════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════
+let WS, wsOk = false;
+function connectWS(){
+  try{
+    WS = new WebSocket('ws://'+location.hostname+':'+(location.port||3000));
+    WS.onopen = () => {
+      wsOk = true;
+      document.getElementById('ws-dot').classList.add('on');
+      document.getElementById('ws-lbl').textContent = 'LIVE';
+      setCmd('Server connected');
+    };
+    WS.onclose = () => {
+      wsOk = false;
+      document.getElementById('ws-dot').classList.remove('on');
+      document.getElementById('ws-lbl').textContent = 'OFFLINE';
+      setTimeout(connectWS, 3000);
+    };
+    WS.onerror = () => {};
+  } catch(e) {}
+}
+connectWS();
+
+function ws(msg){ if(wsOk) WS.send(JSON.stringify(msg)); }
+
+function sendGroupColor(groupIds, color){
+  groupIds.forEach(fid => {
+    const p = PATCH.find(x=>x.id===fid); if(!p) return;
+    const td = FX_SHORT_MAP[p.type];
+    // Build channel values based on fixture capabilities
+    const vals = buildFixtureVals(p, color);
+    fixtureColors[fid] = {...color};
+    ws({type:'fixture', fixtureId:fid, values:vals});
+  });
+  updateFixtureState();
+}
+
+function buildFixtureVals(p, color){
+  // Return a generic representation — server maps to actual channels
+  // For show panel simplicity, send as named channel types
+  ws({type:'fixtureColor', fixtureId:p.id, color});
+  return null; // server handles mapping
+}
+
+function sendColorToSelection(color){
+  const ids = getSelectedFixtureIds();
+  if(!ids.length){ toast('SELECT A GROUP FIRST'); return; }
+  ids.forEach(fid => {
+    fixtureColors[fid] = {...color};
+    ws({type:'fixtureColor', fixtureId:fid, color});
+  });
+  updateFixtureState();
+  setCmd(`Color → ${ids.length} fixtures`);
+}
+
+function getSelectedFixtureIds(){
+  const ids = new Set();
+  selectedGroups.forEach(gid => {
+    const g = GROUPS.find(x=>x.id===gid);
+    if(g) g.ids.forEach(id => ids.add(id));
+  });
+  return [...ids];
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR WHEEL
+// ═══════════════════════════════════════════════════════════
+const wheelSize = 130;
+let wheelBright = 1;
+
+function drawWheel(bright){
+  const cvs = document.getElementById('wheel-cvs');
+  const ctx = cvs.getContext('2d');
+  const s = wheelSize, cx=s/2, cy=s/2, r=s/2-1;
+  ctx.clearRect(0,0,s,s);
+  for(let a=0;a<360;a+=1){
+    const rad = a*(Math.PI/180);
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    grad.addColorStop(0, `hsla(${a},0%,${Math.round(bright*100)}%,1)`);
+    grad.addColorStop(1, `hsla(${a},100%,${Math.round(bright*50)}%,1)`);
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,rad-.02,rad+.02);
+    ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  }
+  // center white dot
+  const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,r*.12);
+  cg.addColorStop(0,`rgba(255,255,255,${bright})`);
+  cg.addColorStop(1,`rgba(255,255,255,0)`);
+  ctx.beginPath(); ctx.arc(cx,cy,r*.12,0,Math.PI*2);
+  ctx.fillStyle=cg; ctx.fill();
+}
+
+function wheelRGB(x,y,bright){
+  const cx=wheelSize/2, cy=wheelSize/2, r=wheelSize/2;
+  const dx=x-cx, dy=y-cy, dist=Math.sqrt(dx*dx+dy*dy)/r;
+  if(dist>1) return null;
+  const hue = (Math.atan2(dy,dx)*180/Math.PI+360)%360;
+  const sat = dist;
+  const c=bright*sat, xc=c*(1-Math.abs((hue/60)%2-1)), m=bright-c;
+  let ri=0,gi=0,bi=0;
+  if(hue<60){ri=c;gi=xc}else if(hue<120){ri=xc;gi=c}else if(hue<180){gi=c;bi=xc}
+  else if(hue<240){gi=xc;bi=c}else if(hue<300){ri=xc;bi=c}else{ri=c;bi=xc}
+  return {r:Math.round((ri+m)*255),g:Math.round((gi+m)*255),b:Math.round((bi+m)*255)};
+}
+
+function setupWheel(){
+  drawWheel(wheelBright);
+  const cvs = document.getElementById('wheel-cvs');
+  const cursor = document.getElementById('wheel-cursor');
+
+  function pick(ex,ey){
+    const rc = cvs.getBoundingClientRect();
+    const x=ex-rc.left, y=ey-rc.top;
+    const rgb = wheelRGB(x,y,wheelBright);
+    if(!rgb) return;
+    // Move cursor
+    const cx=x/wheelSize*100, cy=y/wheelSize*100;
+    cursor.style.left = cx+'%'; cursor.style.top = cy+'%';
+    // Update sliders
+    setSlider('r', rgb.r); setSlider('g', rgb.g); setSlider('b', rgb.b);
+    updatePreview();
+    activeColorMacro = null;
+  }
+  cvs.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];pick(t.clientX,t.clientY)},{passive:false});
+  cvs.addEventListener('touchmove', e=>{e.preventDefault();const t=e.touches[0];pick(t.clientX,t.clientY)},{passive:false});
+  cvs.addEventListener('mousedown', e=>pick(e.clientX,e.clientY));
+  cvs.addEventListener('mousemove', e=>{if(e.buttons===1)pick(e.clientX,e.clientY)});
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR SLIDERS
+// ═══════════════════════════════════════════════════════════
+const SLIDER_IDS = ['r','g','b','a','w','uv','dim'];
+function setSlider(id, val){
+  const sl = document.getElementById('sl-'+id);
+  const vl = document.getElementById('vl-'+id);
+  if(sl) sl.value = val;
+  if(vl) vl.textContent = val;
+  if(id!=='dim') currentColor[id] = val;
+  else currentColor.dim = val;
+}
+function updatePreview(){
+  const {r,g,b,a,w,uv} = currentColor;
+  const mix_r = Math.min(255,r+(a*0.5|0)+(w*0.4|0));
+  const mix_g = Math.min(255,g+(w*0.4|0));
+  const mix_b = Math.min(255,b+(uv*0.4|0)+(w*0.4|0));
+  document.getElementById('color-preview').style.background =
+    `rgb(${mix_r},${mix_g},${mix_b})`;
+}
+SLIDER_IDS.forEach(id=>{
+  const sl = document.getElementById('sl-'+id);
+  if(!sl) return;
+  sl.addEventListener('input',()=>{
+    const v = parseInt(sl.value);
+    document.getElementById('vl-'+id).textContent = v;
+    if(id!=='dim') currentColor[id]=v;
+    else currentColor.dim=v;
+    updatePreview();
+    activeColorMacro = null;
+    // Update macro exec highlight
+    document.querySelectorAll('#macro-exec-row .exec-btn').forEach(b=>b.classList.remove('active'));
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// GROUPS PANEL
+// ═══════════════════════════════════════════════════════════
+function buildGroups(){
+  const list = document.getElementById('grp-list');
+  GROUPS.forEach(g=>{
+    const btn = document.createElement('div'); btn.className='grp-btn'; btn.id='grp-'+g.id;
+    btn.style.setProperty('--bar-color', g.color);
+    btn.innerHTML = `
+      <div class="grp-bar" style="background:${g.color}88"></div>
+      <div class="grp-inner">
+        <div class="grp-label">${g.name}</div>
+        <div class="grp-sub">${g.sub}</div>
+      </div>
+      <div class="grp-count">${g.ids.length}</div>
+    `;
+    btn.addEventListener('click',()=>toggleGroup(g.id));
+    list.appendChild(btn);
+  });
+
+  document.getElementById('btn-selall').addEventListener('click',()=>{
+    GROUPS.forEach(g=>selectedGroups.add(g.id));
+    updateGroupUI();
+  });
+  document.getElementById('btn-clear').addEventListener('click',()=>{
+    selectedGroups.clear();
+    updateGroupUI();
+  });
+}
+
+function toggleGroup(gid){
+  if(selectedGroups.has(gid)) selectedGroups.delete(gid);
+  else selectedGroups.add(gid);
+  updateGroupUI();
+}
+
+function updateGroupUI(){
+  GROUPS.forEach(g=>{
+    const btn = document.getElementById('grp-'+g.id);
+    if(!btn) return;
+    btn.classList.toggle('sel', selectedGroups.has(g.id));
+    const bar = btn.querySelector('.grp-bar');
+    if(bar) bar.style.background = selectedGroups.has(g.id) ? GROUPS.find(x=>x.id===g.id).color : GROUPS.find(x=>x.id===g.id).color+'55';
+  });
+  const n = selectedGroups.size;
+  const ids = getSelectedFixtureIds();
+  document.getElementById('sel-count').textContent = n ? `${n} GRP · ${ids.length} FIX` : 'NONE SELECTED';
+  setCmd(n ? `${ids.length} fixtures selected` : 'No selection');
+}
+
+// ═══════════════════════════════════════════════════════════
+// GROUP QUICK-FIRE EXECUTORS
+// ═══════════════════════════════════════════════════════════
+function buildGroupQF(){
+  const row = document.getElementById('gqf-exec-row');
+  GROUPS.slice(0,6).forEach((g,i)=>{
+    const btn = document.createElement('div'); btn.className='exec-btn';
+    btn.style.color = g.color;
+    btn.innerHTML = `
+      <div class="exec-top">
+        <span class="exec-num">${i+1}</span>
+        <div class="exec-state"></div>
+      </div>
+      <div class="exec-name">${g.name}</div>
+      <div class="exec-sub">${g.ids.length} fx</div>
+      <div class="exec-bar"><div class="exec-bar-fill" style="width:0%;background:${g.color}"></div></div>
+    `;
+    btn.addEventListener('click',()=>{
+      // Toggle select this group
+      if(selectedGroups.has(g.id)) selectedGroups.delete(g.id);
+      else selectedGroups.add(g.id);
+      btn.classList.toggle('active', selectedGroups.has(g.id));
+      document.getElementById('grp-'+g.id)?.classList.toggle('sel', selectedGroups.has(g.id));
+      updateGroupUI();
+    });
+    row.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR MACRO EXECUTORS
+// ═══════════════════════════════════════════════════════════
+function buildColorMacros(){
+  const row = document.getElementById('macro-exec-row');
+  COLOR_MACROS.forEach((cm,i)=>{
+    const btn = document.createElement('div'); btn.className='exec-btn'; btn.id='cm-'+i;
+    btn.style.color = cm.bg;
+    btn.innerHTML = `
+      <div class="exec-top">
+        <span class="exec-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="exec-state"></div>
+      </div>
+      <div class="exec-name">${cm.n}</div>
+      <div class="exec-sub">RGBAWUV</div>
+      <div class="exec-bar"><div class="exec-bar-fill" style="width:100%;background:${cm.bg}77"></div></div>
+    `;
+    btn.addEventListener('click',()=>{
+      // Apply to selection
+      const color = {r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};
+      currentColor = {...color};
+      // Update sliders
+      Object.entries({r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim}).forEach(([k,v])=>setSlider(k,v));
+      updatePreview();
+      sendColorToSelection(color);
+      // Highlight
+      document.querySelectorAll('#macro-exec-row .exec-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeColorMacro = i;
+      toast(cm.n+' → selection');
+      // update QR
+      document.getElementById('cmd-row2').querySelectorAll('.qfbtn').forEach(b=>b.classList.remove('active-q'));
+    });
+    row.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK-FIRE COLOR BOTTOM STRIP
+// ═══════════════════════════════════════════════════════════
+function buildQuickFire(){
+  const row = document.getElementById('cmd-row2');
+  COLOR_MACROS.forEach((cm,i)=>{
+    const btn = document.createElement('button'); btn.className='qfbtn';
+    btn.innerHTML = `<div class="qswatch" style="background:${cm.bg}"></div><div class="qname">${cm.n}</div>`;
+    btn.addEventListener('click',()=>{
+      const color = {r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim};
+      currentColor = {...color};
+      Object.entries({r:cm.r,g:cm.g,b:cm.b,a:cm.a,w:cm.w,uv:cm.uv,dim:cm.dim}).forEach(([k,v])=>setSlider(k,v));
+      updatePreview();
+      sendColorToSelection(color);
+      row.querySelectorAll('.qfbtn').forEach(b=>b.classList.remove('active-q'));
+      btn.classList.add('active-q');
+      document.getElementById('cm-'+i)?.classList.add('active');
+      document.querySelectorAll('#macro-exec-row .exec-btn').forEach((b,j)=>{if(j!==i)b.classList.remove('active')});
+    });
+    row.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENES (executor buttons top section)
+// ═══════════════════════════════════════════════════════════
+function buildSceneRow(){
+  const row = document.getElementById('scene-exec-row');
+  row.innerHTML = '';
+  // Add-new slot always first
+  const addBtn = document.createElement('div');
+  addBtn.className='exec-btn';
+  addBtn.style.cssText='border-style:dashed;cursor:pointer;min-width:80px';
+  addBtn.innerHTML=`<div class="exec-top"><span class="exec-num">NEW</span></div>
+    <div class="exec-name" style="color:var(--text3);font-size:18px;text-align:center;padding-top:4px">+</div>
+    <div class="exec-sub">SAVE SCENE</div>
+    <div class="exec-bar"></div>`;
+  addBtn.addEventListener('click',openSaveModal);
+  row.appendChild(addBtn);
+
+  scenes.forEach((s,i)=>{
+    const btn = document.createElement('div'); btn.className='exec-btn';
+    btn.style.color = s.color||'#c8a444';
+    btn.innerHTML = `
+      <div class="exec-top">
+        <span class="exec-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="exec-state"></div>
+      </div>
+      <div class="exec-name">${s.name}</div>
+      <div class="exec-sub">${s.groups} GRP</div>
+      <div class="exec-bar"><div class="exec-bar-fill" style="width:100%;background:${s.color||'#c8a44477'}"></div></div>
+    `;
+    // Single tap → recall
+    btn.addEventListener('click',()=>{
+      recallScene(i);
+      document.querySelectorAll('#scene-exec-row .exec-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    // Long press → delete
+    let lt; 
+    btn.addEventListener('pointerdown',()=>{lt=setTimeout(()=>{scenes.splice(i,1);saveScenes();buildSceneRow();toast('Scene deleted');},900)});
+    btn.addEventListener('pointerup',()=>clearTimeout(lt));
+    btn.addEventListener('pointerleave',()=>clearTimeout(lt));
+    row.appendChild(btn);
+  });
+  document.getElementById('scene-count').textContent = scenes.length+' stored';
+}
+
+function openSaveModal(){
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-name').value = '';
+  setTimeout(()=>document.getElementById('modal-name').focus(),100);
+}
+document.getElementById('modal-cancel').addEventListener('click',()=>document.getElementById('modal').classList.remove('open'));
+document.getElementById('modal-confirm').addEventListener('click',()=>saveScene());
+document.getElementById('modal-name').addEventListener('keydown',e=>{if(e.key==='Enter')saveScene()});
+document.getElementById('btn-save-scene').addEventListener('click',openSaveModal);
+
+function saveScene(){
+  const name = document.getElementById('modal-name').value.trim()||'Scene '+(scenes.length+1);
+  // Capture current fixture color state
+  const state = {};
+  PATCH.forEach(p=>state[p.id]={...fixtureColors[p.id]});
+  const grpIds = [...selectedGroups];
+  // Pick color from selection or first selected group
+  const firstGrp = GROUPS.find(g=>selectedGroups.has(g.id));
+  scenes.push({
+    name, groups:grpIds.length||0, state,
+    color: firstGrp?.color||'#c8a444',
+    selGroups: [...selectedGroups],
+    color_val: {...currentColor}
+  });
+  saveScenes(); buildSceneRow();
+  document.getElementById('modal').classList.remove('open');
+  toast('Scene saved: '+name);
+}
+
+function recallScene(i){
+  const s = scenes[i];
+  // Restore fixture colors
+  for(const[fid,col] of Object.entries(s.state||{})){
+    fixtureColors[fid]={...col};
+    ws({type:'fixtureColor', fixtureId:fid, color:col});
+  }
+  // Restore group selection
+  if(s.selGroups){
+    selectedGroups.clear();
+    s.selGroups.forEach(gid=>selectedGroups.add(gid));
+    updateGroupUI();
+  }
+  // Restore color sliders
+  if(s.color_val){
+    Object.entries(s.color_val).forEach(([k,v])=>setSlider(k,v));
+    currentColor={...s.color_val};
+    updatePreview();
+  }
+  updateFixtureState();
+  setCmd('Recalled: '+s.name);
+  toast('↩ '+s.name);
+}
+
+function saveScenes(){ localStorage.setItem('dmx_show_scenes',JSON.stringify(scenes)); }
+
+// ═══════════════════════════════════════════════════════════
+// FIXTURE STATE (right column)
+// ═══════════════════════════════════════════════════════════
+function updateFixtureState(){
+  const el = document.getElementById('fixture-state');
+  el.innerHTML = '';
+  const ids = getSelectedFixtureIds();
+  const showAll = ids.length===0;
+  PATCH.filter(p=>showAll||ids.includes(p.id)).forEach(p=>{
+    const col = fixtureColors[p.id]||{r:0,g:0,b:0,a:0,w:0,uv:0,dim:255};
+    const mr=Math.min(255,col.r+(col.a*0.5|0)+(col.w*0.4|0));
+    const mg=Math.min(255,col.g+(col.w*0.4|0));
+    const mb=Math.min(255,col.b+(col.uv*0.4|0)+(col.w*0.4|0));
+    const swatchBg = `rgb(${mr},${mg},${mb})`;
+    const dimPct = Math.round((col.dim||0)/2.55);
+    const row = document.createElement('div'); row.className='fs-row';
+    row.innerHTML = `
+      <div class="fs-swatch" style="background:${swatchBg}"></div>
+      <div class="fs-info">
+        <div class="fs-name">${p.label}</div>
+        <div class="fs-ch">U${p.univ}·${p.addr}</div>
+      </div>
+      <div class="fs-dim">${dimPct}%</div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// APPLY / FULL ON / OUT buttons
+// ═══════════════════════════════════════════════════════════
+document.getElementById('btn-apply-color').addEventListener('click',()=>{
+  sendColorToSelection({...currentColor});
+  toast('Color applied');
+});
+document.getElementById('btn-full-on').addEventListener('click',()=>{
+  setSlider('r',255);setSlider('g',255);setSlider('b',255);
+  setSlider('a',255);setSlider('w',255);setSlider('uv',0);setSlider('dim',255);
+  updatePreview();
+  sendColorToSelection({r:255,g:255,b:255,a:255,w:255,uv:0,dim:255});
+  toast('Full On');
+});
+document.getElementById('btn-out').addEventListener('click',()=>{
+  setSlider('r',0);setSlider('g',0);setSlider('b',0);
+  setSlider('a',0);setSlider('w',0);setSlider('uv',0);setSlider('dim',0);
+  updatePreview();
+  sendColorToSelection({r:0,g:0,b:0,a:0,w:0,uv:0,dim:0});
+  toast('Out');
+});
+
+// ═══════════════════════════════════════════════════════════
+// MASTER + BLACKOUT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('msl').addEventListener('input',function(){
+  masterVal = parseInt(this.value);
+  document.getElementById('mpct').textContent = Math.round(masterVal/2.55)+'%';
+  ws({type:'master', value:masterVal});
+});
+document.getElementById('btn-bo').addEventListener('click',function(){
+  blackout = !blackout;
+  this.classList.toggle('active', blackout);
+  this.textContent = blackout ? '⬛ LIVE' : '⬛ BLACKOUT';
+  ws({type:'blackout', active:blackout});
+  setCmd(blackout ? 'BLACKOUT ACTIVE' : 'BLACKOUT CLEAR');
+  toast(blackout ? '⬛ BLACKOUT' : 'BLACKOUT CLEAR');
+});
+
+// ═══════════════════════════════════════════════════════════
+// CMD LINE FEEDBACK
+// ═══════════════════════════════════════════════════════════
+let cmdTimer;
+function setCmd(text){
+  document.getElementById('cmd-text').textContent = text;
+  document.getElementById('cmd-feedback').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  lastCmdText = text;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let tTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(tTimer); tTimer = setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+setupWheel();
+updatePreview();
+buildGroups();
+buildGroupQF();
+buildColorMacros();
+buildQuickFire();
+buildSceneRow();
+updateFixtureState();
+setCmd('Ready — select groups, pick color, apply');
+</script>
+</body>
+</html>
