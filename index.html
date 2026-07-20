@@ -742,6 +742,20 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
               <button class="btn btn-ghost" onclick="csInternalPDF()">📊 Internal Report</button>
               <button class="btn btn-ghost" onclick="csClientInvoice()">🧾 Client Invoice</button>
+              <select id="csNetTerms" class="fs" style="width:auto;min-width:150px" onchange="csSetNetTerms(this.value)">
+                <option value="dos">Due Day of Show</option>
+                <option value="0">Due on Receipt</option>
+                <option value="7">Net 7</option>
+                <option value="8">Net 8</option>
+                <option value="10">Net 10</option>
+                <option value="14">Net 14</option>
+                <option value="15" selected>Net 15</option>
+                <option value="20">Net 20</option>
+                <option value="30">Net 30</option>
+                <option value="45">Net 45</option>
+                <option value="60">Net 60</option>
+                <option value="90">Net 90</option>
+              </select>
               <button id="csTaxToggleBtn" class="btn" style="font-weight:700" onclick="csToggleTax()">Taxes On</button>
               <button class="btn btn-primary" onclick="csSave()">Save schedule</button>
             </div>
@@ -5166,6 +5180,7 @@ function csToggleOff(tid){ if(!CS.cur)return; const a=CS.off[tid]||(CS.off[tid]=
 
 function csRender(){
   csSyncTaxBtn();
+  csSyncNetTermsSel();
   // day rail
   document.getElementById('csDays').innerHTML = CS.days.length ? CS.days.map(d=>{
     const f=csFilled(d.id), ok=f>=d.needed;
@@ -5257,6 +5272,33 @@ async function csLoad(id){
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
+}
+
+
+function csSetNetTerms(v){
+  CS.netTerms = v;
+  toast('Payment terms set', v==='dos' ? 'Due day of show' : (v==='0' ? 'Due on receipt' : 'Net ' + v));
+}
+function csSyncNetTermsSel(){
+  const sel=document.getElementById('csNetTerms'); if(!sel) return;
+  sel.value = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+}
+function csNetTermsLabel(){
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+  if (v==='dos') return 'Due Day of Show';
+  if (v==='0') return 'Due on Receipt';
+  return 'Net ' + v;
+}
+function csDueDate(showLabel){
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+  const fmtD = d => d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  if (v==='dos') {
+    let sd = null;
+    if (showLabel) { const parsed = new Date(showLabel + ', ' + new Date().getFullYear()); if (!isNaN(parsed)) sd = parsed; }
+    return sd ? fmtD(sd) : fmtD(new Date());
+  }
+  const days = v==='0' ? 0 : (parseInt(v,10)||15);
+  return fmtD(new Date(Date.now()+days*864e5));
 }
 
 function csSyncTaxBtn(){
@@ -5573,7 +5615,8 @@ function csClientInvoice(){
   const tax=grandSubtotal*taxRate;
   const total=grandSubtotal+tax;
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const due=new Date(Date.now()+15*864e5).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const firstShowLabel=(CS.days[0] && CS.days[0].label) ? CS.days[0].label : null;
+  const due=csDueDate(firstShowLabel);
   const invNum='7VE-'+Date.now().toString().slice(-6);
   const fmt=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -5638,7 +5681,7 @@ function csClientInvoice(){
         <div style="font-family:Saira,sans-serif;font-weight:800;font-size:28px;text-transform:uppercase;letter-spacing:.08em">Invoice</div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b7280;margin-top:4px">${invNum}</div>
         <div style="font-size:10px;color:#9ca3af;margin-top:3px">Issued: ${today}</div>
-        <div style="font-size:10px;font-weight:700;color:#e70b0e;margin-top:4px">Due: ${due} (Net-15)</div>
+        <div style="font-size:10px;font-weight:700;color:#e70b0e;margin-top:4px">Due: ${due} (${csNetTermsLabel()})</div>
       </div>
     </div>
 
