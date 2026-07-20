@@ -367,7 +367,12 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           </div>
           <button class="btn btn-primary admin-only" onclick="rentalEditId=null;openModal('addRentalModal')">+ New Rental</button>
         </div>
-
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+          <div class="tab active" onclick="setRentTab('track',this)">Gear Tracking</div>
+          <div class="tab" onclick="setRentTab('orders',this)">Rental Orders</div>
+          <div class="tab" onclick="setRentTab('pricing',this)">Pricing Calculator</div>
+        </div>
+        <div id="rentTab-track">
         <!-- RENTAL STATS -->
         <div class="stats-row" style="margin-bottom:20px">
           <div class="stat-card"><div class="stat-label">Out to Clients</div><div class="stat-val" id="rOut" style="color:var(--accent)">—</div><div class="stat-sub">Gear rented out</div></div>
@@ -404,6 +409,24 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <div class="empty-title">No rentals yet</div>
             <div style="font-size:12px">Track gear going out to clients or coming in from vendors.</div>
           </div>
+        </div>
+        </div>
+
+        <!-- RENTAL ORDERS TAB -->
+        <div id="rentTab-orders" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+            <button class="btn btn-primary" onclick="openRentalOrder(null)">+ New Rental Order</button>
+          </div>
+          <div id="rentalOrdersList"></div>
+          <div id="roEmpty" class="empty" style="display:none">
+            <div class="empty-title">No rental orders yet</div>
+            <div style="font-size:12px">Create an order to generate the client invoice, internal report, and driver pull sheet.</div>
+          </div>
+        </div>
+
+        <!-- PRICING TAB -->
+        <div id="rentTab-pricing" style="display:none">
+          <div id="rentPricingPanel"></div>
         </div>
       </div>
 
@@ -1678,6 +1701,73 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
     </div>
   </div>
 </div>
+
+<!-- RENTAL ORDER MODAL -->
+<div class="overlay" id="rentalOrderModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="roModalTitle">New Rental Order</div><div class="modal-sub">Client quote, internal report, and pull sheet generate from this order</div></div>
+      <button class="modal-close" onclick="closeModal('rentalOrderModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Client / Group Name</label><input class="fi" id="roClient" placeholder="Client or group name"></div>
+        <div class="fg"><label class="fl">POC for Booking</label><input class="fi" id="roContact" placeholder="Point of contact"></div>
+        <div class="fg"><label class="fl">Phone</label><input class="fi" id="roPhone"></div>
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="roEmail"></div>
+        <div class="fg"><label class="fl">Venue / Location</label><input class="fi" id="roVenue"></div>
+        <div class="fg"><label class="fl">Delivery Address</label><input class="fi" id="roAddress"></div>
+        <div class="fg"><label class="fl">Delivery Date (OUT)</label><input class="fi" id="roStart" type="date"></div>
+        <div class="fg"><label class="fl">Pickup Date (IN)</label><input class="fi" id="roEnd" type="date"></div>
+      </div>
+      <div style="margin:16px 0 6px;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em">Gear Line Items</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select class="fs" id="roInvDept" style="flex:1;min-width:120px" onchange="roFillInvSelect()">
+          <option value="">All Worlds</option><option>Audio</option><option>Video</option><option>Lighting</option><option>Power</option><option>Scenic</option><option>General Labor</option><option>Office</option>
+        </select>
+        <select class="fs" id="roInvAsset" style="flex:2;min-width:170px"></select>
+        <button class="btn btn-ghost" onclick="roAddFromInventory()">+ From Inventory</button>
+      </div>
+      <div id="roItemsWrap"></div>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="roAddItem()">+ Add Item</button>
+      <div id="roMarginBar" style="font-size:11px;margin-top:8px;color:var(--steel)"></div>
+      <div style="margin:16px 0 6px;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em">Delivery + Tax</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Round-Trip Miles</label><input class="fi" id="roMiles" type="number" value="0" oninput="roUpdateMargin()"></div>
+        <div class="fg"><label class="fl">Vehicle MPG</label><input class="fi" id="roMpg" type="number" value="12" oninput="roUpdateMargin()"></div>
+        <div class="fg"><label class="fl">Fuel $/gal</label><input class="fi" id="roGas" type="number" value="3.60" step="0.05" oninput="roUpdateMargin()"></div>
+        <div class="fg"><label class="fl">Driver Flat $/Load</label><input class="fi" id="roDriver" type="number" value="150" oninput="roUpdateMargin()"></div>
+        <div class="fg"><label class="fl"># Loads</label><input class="fi" id="roLoads" type="number" value="2" oninput="roUpdateMargin()"></div>
+        <div class="fg"><label class="fl">Tax Jurisdiction</label>
+          <select class="fs" id="roState">
+            <option value="dc">Washington DC</option>
+            <option value="md">Maryland</option>
+            <option value="va-nova">VA - Northern</option>
+            <option value="va">VA - Standard</option>
+            <option value="va-ht">VA - Historic Triangle</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Sales Tax</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:9px 0">
+            <input type="checkbox" id="roTaxOn" checked onchange="roUpdateMargin()"> Charge sales tax on invoice
+          </label>
+        </div>
+      </div>
+      <div class="fg" style="margin-top:12px"><label class="fl">Notes</label><textarea class="ft" id="roNotes" rows="2"></textarea></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:10px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:0.07em">Export:</span>
+      <button class="btn btn-ghost" onclick="roExportFromForm('invoice')">Client Invoice</button>
+      <button class="btn btn-ghost" onclick="roExportFromForm('internal')">Internal Report</button>
+      <button class="btn btn-ghost" onclick="roExportFromForm('pull')">Pull Sheet</button>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('rentalOrderModal')">Cancel</button>
+      <button class="btn btn-primary" id="roSaveBtn" onclick="saveRentalOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── CONFIG ──
 const SUPA_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co';
@@ -5582,6 +5672,484 @@ function csClientInvoice(){
   </div></body></html>`;
   const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for invoices.'); return; }
   w.document.write(doc3); w.document.close();
+}
+
+
+// -- RENTAL ORDERS + PRICING (no house-model labels on exports) --
+let rentalOrders = []; let roEditId = null; let roItems = [];
+const RO_STATUSES = ['quote','confirmed','out','returned','paid'];
+const RO_STATUS_COLORS = { quote:'#7A8494', confirmed:'#3B82F6', out:'#F5A623', returned:'#A855F7', paid:'#22C55E' };
+
+function setRentTab(tab, el) {
+  document.querySelectorAll('#view-rentals .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('rentTab-track').style.display = tab === 'track' ? 'block' : 'none';
+  document.getElementById('rentTab-orders').style.display = tab === 'orders' ? 'block' : 'none';
+  document.getElementById('rentTab-pricing').style.display = tab === 'pricing' ? 'block' : 'none';
+  if (tab === 'orders') loadRentalOrders();
+  if (tab === 'pricing') renderRentalPanel();
+}
+
+async function loadRentalOrders() {
+  try { rentalOrders = await sbGet('rental_orders?select=*&order=created_at.desc'); renderRentalOrders(); }
+  catch(e) { toast('Error', 'Rental orders table missing - run the SQL'); }
+}
+function roNum(o) { return 'RO-' + (o.id||'').toString().replace(/-/g,'').substring(0,6).toUpperCase(); }
+
+function roTotals(o) {
+  const items = o.items || [];
+  const gear = items.reduce((s,i) => s + (parseFloat(i.qty)||0) * (parseFloat(i.rate)||0) * (parseFloat(i.days)||1), 0);
+  const cost = items.reduce((s,i) => s + (parseFloat(i.cost)||0), 0);
+  const fuel = (parseFloat(o.delivery_miles)||0) / (parseFloat(o.mpg)||12) * (parseFloat(o.fuel_price)||0);
+  const driver = (parseFloat(o.driver_rate)||0) * (parseFloat(o.loads)||0);
+  const delivery = fuel + driver;
+  const sub = gear + delivery;
+  const taxDel = o.tax_state === 'dc';
+  const taxable = taxDel ? sub : gear;
+  const tax = taxable * (parseFloat(o.tax_pct)||0) / 100;
+  const total = sub + tax;
+  const totalCost = cost + fuel + driver;
+  return { gear, cost, fuel, driver, delivery, sub, tax, total, totalCost, margin: sub - totalCost };
+}
+
+function renderRentalOrders() {
+  const wrap = document.getElementById('rentalOrdersList');
+  document.getElementById('roEmpty').style.display = rentalOrders.length ? 'none' : 'block';
+  wrap.innerHTML = rentalOrders.map(o => {
+    const t = roTotals(o);
+    const sc = RO_STATUS_COLORS[o.status] || '#7A8494';
+    return `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
+      <div style="min-width:200px;flex:1">
+        <div style="font-weight:600;font-size:14px">${o.client||'(no client)'} <span style="font-family:monospace;font-size:10px;color:var(--muted)">${roNum(o)}</span></div>
+        <div style="font-size:11px;color:var(--steel)">${o.venue||''} ${o.start_date||''}${o.end_date ? ' to ' + o.end_date : ''}</div>
+      </div>
+      <div style="font-weight:700;font-size:15px;font-family:monospace">$${t.total.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+      <span onclick="roCycleStatus('${o.id}')" style="cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 10px;border-radius:12px;background:${sc}22;color:${sc};border:1px solid ${sc}55">${o.status}</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="openRentalOrder('${o.id}')">Edit</button>
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','invoice')">Invoice</button>
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','internal')">Internal</button>
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','pull')">Pull Sheet</button>
+        <button class="btn btn-danger" style="padding:5px 9px;font-size:11px" onclick="deleteRentalOrder('${o.id}')">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function roCycleStatus(id) {
+  const o = rentalOrders.find(x => x.id === id); if (!o) return;
+  const next = RO_STATUSES[(RO_STATUSES.indexOf(o.status)+1) % RO_STATUSES.length];
+  o.status = next; renderRentalOrders();
+  try { await sbPatch('rental_orders?id=eq.'+id, {status: next}); } catch(e) {}
+}
+
+let roInvAssets = [];
+async function roLoadInventory() {
+  if (!roInvAssets.length) { try { roInvAssets = await sbGet('assets?select=id,name,department,asset_id&order=name'); } catch(e) { roInvAssets = []; } }
+  roFillInvSelect();
+}
+function roFillInvSelect() {
+  const dept = document.getElementById('roInvDept').value;
+  const list = dept ? roInvAssets.filter(a => a.department === dept) : roInvAssets;
+  document.getElementById('roInvAsset').innerHTML = list.length
+    ? list.map(a => `<option value="${a.id}">${a.asset_id} - ${a.name}</option>`).join('')
+    : '<option value="">No gear in this world</option>';
+}
+function roAddFromInventory() {
+  const id = document.getElementById('roInvAsset').value; if (!id) return;
+  const a = roInvAssets.find(x => x.id === id); if (!a) return;
+  roItems.push({ name: a.asset_id + ' ' + a.name, qty: 1, rate: '', days: 1, cost: '' });
+  roRenderItems();
+}
+
+function roRenderItems() {
+  document.getElementById('roItemsWrap').innerHTML = roItems.map((it,i) => `
+    <div style="display:grid;grid-template-columns:2fr 60px 80px 60px 80px 30px;gap:6px;margin-bottom:6px;align-items:center">
+      <input class="fi" placeholder="Item" value="${(it.name||'').replace(/"/g,'&quot;')}" oninput="roItems[${i}].name=this.value;roUpdateMargin()">
+      <input class="fi" type="number" placeholder="Qty" value="${it.qty||1}" oninput="roItems[${i}].qty=this.value;roUpdateMargin()">
+      <input class="fi" type="number" placeholder="$/day" value="${it.rate||''}" oninput="roItems[${i}].rate=this.value;roUpdateMargin()">
+      <input class="fi" type="number" placeholder="Days" value="${it.days||1}" oninput="roItems[${i}].days=this.value;roUpdateMargin()">
+      <input class="fi" type="number" placeholder="Cost$" title="Internal cost (cross-rent)" value="${it.cost||''}" oninput="roItems[${i}].cost=this.value;roUpdateMargin()">
+      <span onclick="roItems.splice(${i},1);roRenderItems()" style="cursor:pointer;color:var(--muted);text-align:center">&times;</span>
+    </div>`).join('');
+  roUpdateMargin();
+}
+function roAddItem() { roItems.push({name:'',qty:1,rate:'',days:1,cost:''}); roRenderItems(); }
+
+function roFormBody() {
+  const stateRates = { 'dc': (new Date() >= new Date('2026-10-01')) ? 7.0 : 6.0, 'md': 6.0, 'va-nova': 6.0, 'va': 5.3, 'va-ht': 7.0 };
+  const st = document.getElementById('roState').value;
+  return {
+    client: document.getElementById('roClient').value.trim() || null,
+    contact: document.getElementById('roContact').value.trim() || null,
+    phone: document.getElementById('roPhone').value.trim() || null,
+    email: document.getElementById('roEmail').value.trim() || null,
+    venue: document.getElementById('roVenue').value.trim() || null,
+    address: document.getElementById('roAddress').value.trim() || null,
+    start_date: document.getElementById('roStart').value || null,
+    end_date: document.getElementById('roEnd').value || null,
+    delivery_miles: parseFloat(document.getElementById('roMiles').value) || 0,
+    mpg: parseFloat(document.getElementById('roMpg').value) || 12,
+    fuel_price: parseFloat(document.getElementById('roGas').value) || 0,
+    driver_rate: parseFloat(document.getElementById('roDriver').value) || 0,
+    loads: parseFloat(document.getElementById('roLoads').value) || 0,
+    tax_state: st,
+    tax_pct: (document.getElementById('roTaxOn') && !document.getElementById('roTaxOn').checked) ? 0 : stateRates[st],
+    items: roItems.filter(i => i.name),
+    notes: document.getElementById('roNotes').value.trim() || null
+  };
+}
+
+function roExportFromForm(kind) {
+  const o = roFormBody();
+  o.id = roEditId || ('draft-' + Date.now());
+  roDocFromOrder(o, kind);
+}
+
+async function saveRentalOrder() {
+  const body = roFormBody();
+  if (!body.client) { toast('Error','Client name required'); return; }
+  const btn = document.getElementById('roSaveBtn'); btn.disabled = true;
+  try {
+    if (roEditId) { await sbPatch('rental_orders?id=eq.'+roEditId, body); toast('Order updated', body.client); }
+    else { body.status = 'quote'; await sbPost('rental_orders', body); toast('Order created', body.client); }
+    closeModal('rentalOrderModal');
+    await loadRentalOrders();
+  } catch(e) { toast('Error', 'Could not save order'); }
+  btn.disabled = false;
+}
+
+async function deleteRentalOrder(id) {
+  if (!confirm('Delete this rental order?')) return;
+  try { await sbDelete('rental_orders?id=eq.'+id); await loadRentalOrders(); toast('Order deleted',''); } catch(e) { toast('Error','Could not delete'); }
+}
+
+function openRentalOrder(id) {
+  roEditId = id;
+  const o = id ? rentalOrders.find(x => x.id === id) : null;
+  document.getElementById('roModalTitle').textContent = o ? 'Edit Rental Order' : 'New Rental Order';
+  document.getElementById('roClient').value = o?.client || '';
+  document.getElementById('roContact').value = o?.contact || '';
+  document.getElementById('roPhone').value = o?.phone || '';
+  document.getElementById('roEmail').value = o?.email || '';
+  document.getElementById('roVenue').value = o?.venue || '';
+  document.getElementById('roAddress').value = o?.address || '';
+  document.getElementById('roStart').value = o?.start_date || '';
+  document.getElementById('roEnd').value = o?.end_date || '';
+  document.getElementById('roMiles').value = o?.delivery_miles ?? 0;
+  document.getElementById('roMpg').value = o?.mpg ?? 12;
+  document.getElementById('roGas').value = o?.fuel_price ?? 3.60;
+  document.getElementById('roDriver').value = o?.driver_rate ?? 150;
+  document.getElementById('roLoads').value = o?.loads ?? 2;
+  document.getElementById('roState').value = o?.tax_state || 'dc';
+  document.getElementById('roTaxOn').checked = o ? (parseFloat(o.tax_pct) || 0) > 0 : true;
+  document.getElementById('roNotes').value = o?.notes || '';
+  roItems = o ? JSON.parse(JSON.stringify(o.items || [])) : [{name:'',qty:1,rate:'',days:1,cost:''}];
+  roRenderItems();
+  roLoadInventory();
+  openModal('rentalOrderModal');
+}
+
+function roUpdateMargin() {
+  const el = document.getElementById('roMarginBar'); if (!el) return;
+  try {
+    const o = roFormBody(); o.id = 'x';
+    const t = roTotals(o);
+    const pct = t.sub > 0 ? (t.margin / t.sub * 100) : 0;
+    const color = pct >= 65 ? 'var(--green)' : (pct >= 50 ? 'var(--accent)' : '#F87171');
+    el.innerHTML = 'Projected gross margin: <b style="color:' + color + '">' + pct.toFixed(1) + '%</b> &nbsp;<span style="color:var(--muted)">Eastern seaboard AV target: 65-75% owned gear, 25-35% cross-rent markup</span>';
+  } catch(e) {}
+}
+
+// -- DOCS: Invoice / Internal / Pull Sheet (no house-model text anywhere) --
+function roDocShell(title, accent, body, footNote) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>body{font-family:'Saira',sans-serif;margin:0;color:#111}.mono{font-family:'IBM Plex Mono',monospace}
+  table{width:100%;border-collapse:collapse;font-size:12px}th{padding:8px 12px;text-align:left;background:#f3f4f6;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:0.05em}
+  td{padding:9px 12px;border-bottom:1px solid #e5e7eb}
+  @media print{.pgbreak{page-break-before:always}}</style></head><body>
+  <div style="background:#0D0F12;color:#fff;padding:22px 32px;display:flex;justify-content:space-between;align-items:center">
+    <div><span style="font-size:24px;font-weight:800"><span style="color:${accent}">7</span> VIRTUES</span>
+    <div style="font-size:10px;color:#7A8494;letter-spacing:0.15em;text-transform:uppercase">Entertainment - Stafford, VA</div></div>
+    <div style="text-align:right"><div style="font-size:16px;font-weight:800;color:${accent};text-transform:uppercase;letter-spacing:0.08em">${title}</div></div>
+  </div>
+  <div style="padding:24px 32px">${body}</div>
+  <div style="border-top:1px solid #e5e7eb;padding:14px 32px;display:flex;justify-content:space-between">
+    <div style="font-size:10px;color:#9ca3af">${footNote}</div>
+    <div style="font-size:10px;color:#9ca3af">${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+  </div></body></html>`;
+}
+
+function roDoc(id, kind) {
+  const o = rentalOrders.find(x => x.id === id); if (!o) return;
+  roDocFromOrder(o, kind);
+}
+function roDocFromOrder(o, kind) {
+  const t = roTotals(o);
+  const fmt = (n) => '$' + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const items = o.items || [];
+  const stateLabels = {'dc':'Washington DC','md':'Maryland','va-nova':'Northern Virginia','va':'Virginia','va-ht':'Virginia (Historic Triangle)'};
+  let html = '';
+
+  if (kind === 'invoice') {
+    const rows = items.map(i => `<tr><td>${i.name}</td><td class="mono">${i.qty}</td><td class="mono">${fmt(parseFloat(i.rate)||0)}</td><td class="mono">${i.days}</td><td class="mono" style="text-align:right">${fmt((parseFloat(i.qty)||0)*(parseFloat(i.rate)||0)*(parseFloat(i.days)||1))}</td></tr>`).join('');
+    html = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+        <div><div style="font-size:10px;color:#6b7280;text-transform:uppercase">Bill To</div>
+        <div style="font-weight:600;font-size:14px">${o.client||''}</div>
+        <div style="font-size:12px;color:#374151">${o.contact||''}<br>${o.phone||''}<br>${o.email||''}</div></div>
+        <div style="text-align:right"><div class="mono" style="font-size:13px;font-weight:600">${roNum(o)}</div>
+        <div style="font-size:12px;color:#374151">Out: ${o.start_date||'TBD'}<br>Return: ${o.end_date||'TBD'}<br>${o.venue||''}</div></div>
+      </div>
+      <table><thead><tr><th>Item</th><th>Qty</th><th>Rate/Day</th><th>Days</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}
+      <tr><td colspan="4">Delivery, Pickup + Driver (${o.delivery_miles||0} mi round trip, ${o.loads||0} loads)</td><td class="mono" style="text-align:right">${fmt(t.delivery)}</td></tr></tbody></table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px"><div style="min-width:260px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span>Subtotal</span><span class="mono">${fmt(t.sub)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span>${(parseFloat(o.tax_pct)||0)>0 ? 'Sales Tax - '+(stateLabels[o.tax_state]||'')+' ('+o.tax_pct+'%)' : 'Sales Tax - Not Charged'}</span><span class="mono">${fmt(t.tax)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;border-top:2px solid #0D0F12;margin-top:6px;padding-top:8px"><span>TOTAL</span><span class="mono">${fmt(t.total)}</span></div>
+      </div></div>
+      ${o.notes ? '<div style="margin-top:18px;font-size:11px;color:#374151"><strong>Notes:</strong> ' + o.notes + '</div>' : ''}`;
+    const w = window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups.'); return; }
+    w.document.write(roDocShell('Rental Invoice', '#E84040', html, '7 Virtues Entertainment - Rental Invoice ' + roNum(o)));
+    w.document.close(); setTimeout(()=>w.print(),500);
+  }
+
+  if (kind === 'internal') {
+    const rows = items.map(i => {
+      const rev = (parseFloat(i.qty)||0)*(parseFloat(i.rate)||0)*(parseFloat(i.days)||1);
+      const cost = parseFloat(i.cost)||0;
+      return `<tr><td>${i.name}</td><td class="mono">${i.qty}</td><td class="mono" style="text-align:right">${fmt(rev)}</td><td class="mono" style="text-align:right">${fmt(cost)}</td><td class="mono" style="text-align:right;color:${rev-cost>=0?'#16a34a':'#dc2626'}">${fmt(rev-cost)}</td></tr>`;
+    }).join('');
+    const mpct = t.sub > 0 ? (t.margin / t.sub * 100).toFixed(1) : '0';
+    html = `
+      <div style="background:#fef3c7;border:1px solid #fde68a;padding:8px 14px;font-size:11px;font-weight:700;color:#92400e;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.05em">Internal Only - Do Not Send to Client</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">${o.client||''} - ${roNum(o)} - ${o.start_date||''} to ${o.end_date||''}</div>
+      <div style="font-size:11px;color:#6b7280;margin-bottom:14px">${o.venue||''} ${o.address||''}</div>
+      <table><thead><tr><th>Item</th><th>Qty</th><th style="text-align:right">Revenue</th><th style="text-align:right">Our Cost</th><th style="text-align:right">Margin</th></tr></thead><tbody>${rows}</tbody></table>
+      <table style="margin-top:16px"><thead><tr><th>Ops Cost Breakdown</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+        <tr><td>Fuel (${o.delivery_miles||0} mi / ${o.mpg||12} mpg x ${fmt(parseFloat(o.fuel_price)||0)}/gal)</td><td class="mono" style="text-align:right">${fmt(t.fuel)}</td></tr>
+        <tr><td>Driver (${o.loads||0} loads x ${fmt(parseFloat(o.driver_rate)||0)} flat)</td><td class="mono" style="text-align:right">${fmt(t.driver)}</td></tr>
+        <tr><td>Item costs (cross-rent / consumables)</td><td class="mono" style="text-align:right">${fmt(t.cost)}</td></tr>
+      </tbody></table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px"><div style="min-width:300px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span>Client Subtotal (pre-tax)</span><span class="mono">${fmt(t.sub)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span>Total Cost</span><span class="mono">${fmt(t.totalCost)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;border-top:2px solid #0D0F12;margin-top:6px;padding-top:8px"><span>GROSS MARGIN</span><span class="mono" style="color:${t.margin>=0?'#16a34a':'#dc2626'}">${fmt(t.margin)} (${mpct}%)</span></div>
+      </div></div>`;
+    const w = window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups.'); return; }
+    w.document.write(roDocShell('Internal Report', '#F5A623', html, 'Confidential - 7 Virtues Entertainment Internal'));
+    w.document.close(); setTimeout(()=>w.print(),500);
+  }
+
+  if (kind === 'pull') {
+    const rows = items.map(i => `<tr><td style="width:34px;text-align:center;font-size:16px">&#9744;</td><td class="mono" style="width:50px">${i.qty}x</td><td style="font-weight:600">${i.name}</td><td style="width:120px;border-bottom:1px solid #e5e7eb"></td></tr>`).join('');
+    const headerBlock = (label) => `
+      <div style="display:flex;justify-content:space-between;margin-bottom:18px">
+        <div><div style="font-size:10px;color:#6b7280;text-transform:uppercase">${label}</div>
+        <div style="font-weight:800;font-size:16px">${o.venue||o.client||''}</div>
+        <div style="font-size:13px">${o.address||''}</div>
+        <div style="font-size:12px;color:#374151">Contact: ${o.contact||''} ${o.phone||''}</div></div>
+        <div style="text-align:right"><div class="mono" style="font-size:13px;font-weight:600">${roNum(o)}</div>
+        <div style="font-size:13px"><strong>OUT:</strong> ${o.start_date||'TBD'}</div>
+        <div style="font-size:13px"><strong>RETURN:</strong> ${o.end_date||'TBD'}</div>
+        <div style="font-size:11px;color:#6b7280">${o.delivery_miles||0} mi RT - ${o.loads||0} loads</div></div>
+      </div>`;
+    const gearTable = `<table><thead><tr><th></th><th>Qty</th><th>Item</th><th>Case / Zone</th></tr></thead><tbody>${rows}</tbody></table>`;
+    html = `
+      <div style="font-size:13px;font-weight:800;color:#E84040;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Page 1 of 2 - Gear Out (Delivery)</div>
+      ${headerBlock('Deliver To')}
+      ${gearTable}
+      ${o.notes ? '<div style="margin-top:14px;font-size:12px"><strong>Notes:</strong> ' + o.notes + '</div>' : ''}
+      <div style="margin-top:28px;border:2px solid #0D0F12">
+        <div style="background:#0D0F12;color:#fff;padding:6px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em">Delivery Sign-Off</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:26px 14px 12px">
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Delivered By (Driver) / Date</div>
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Received By (Renter) / Date</div>
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Time / Condition Notes</div>
+        </div>
+        <div style="padding:0 14px 10px;font-size:9px;color:#6b7280">Renter signature confirms all items above were received in the quantity and condition listed.</div>
+      </div>
+
+      <div class="pgbreak"></div>
+      <div style="font-size:13px;font-weight:800;color:#E84040;text-transform:uppercase;letter-spacing:0.08em;margin:20px 0 10px">Page 2 of 2 - Gear In (Pickup)</div>
+      ${headerBlock('Pick Up From')}
+      ${gearTable}
+      <div style="margin-top:28px;border:2px solid #0D0F12">
+        <div style="background:#0D0F12;color:#fff;padding:6px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em">Pickup Sign-Off</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:26px 14px 12px">
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Picked Up By (Driver) / Date</div>
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Released By (Renter) / Date</div>
+          <div style="border-top:1px solid #111;padding-top:5px;font-size:10px">Time / Condition Notes</div>
+        </div>
+        <div style="padding:0 14px 10px;font-size:9px;color:#6b7280">Driver signature confirms all items were recovered; damage or missing items noted above before departure.</div>
+      </div>`;
+    const w = window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups.'); return; }
+    w.document.write(roDocShell('Pull Sheet', '#E84040', html, 'No pricing on this document - crew copy'));
+    w.document.close(); setTimeout(()=>w.print(),500);
+  }
+}
+
+// -- PRICING CALCULATOR (percent-based, no house-model text on screen or export) --
+function renderRentalPanel() {
+  const m = document.getElementById('rentPricingPanel'); if (!m) return;
+  m.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Rental Rate Calculator</div>
+      <div style="font-size:11px;color:var(--steel);margin-bottom:14px">Daily rate = % of gear replacement value. Weekly = 3x daily. Monthly = 3x weekly.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:14px">
+        <div style="flex:1;min-width:120px">
+          <div class="fl" style="margin-bottom:5px">% of Value / Day</div>
+          <input class="fi" id="rentPct" type="number" value="10" step="0.5" oninput="calcRentalRates()">
+        </div>
+        <div style="flex:1;min-width:150px">
+          <div class="fl" style="margin-bottom:5px">Gear Replacement Value $</div>
+          <input class="fi" id="rentValue" type="number" placeholder="e.g. 2500" oninput="calcRentalRates()">
+        </div>
+      </div>
+      <div class="stats-row" style="margin-bottom:10px">
+        <div class="stat-card"><div class="stat-label">Daily Rate</div><div class="stat-val" id="rrDay" style="font-size:22px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Weekly (3x day)</div><div class="stat-val" id="rrWeek" style="font-size:22px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Monthly (3x week)</div><div class="stat-val" id="rrMonth" style="font-size:22px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Rentals to Pay Off</div><div class="stat-val" id="rrPayback" style="font-size:22px">-</div></div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Cross-Rent / Sub-Rental Margin</div>
+      <div style="font-size:11px;color:var(--steel);margin-bottom:14px">When you rent gear wholesale and re-bill the client: standard markup is 25-35% over your cost.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
+        <div style="flex:1;min-width:150px">
+          <div class="fl" style="margin-bottom:5px">Your Wholesale Cost $</div>
+          <input class="fi" id="xrCost" type="number" placeholder="e.g. 800" oninput="calcCrossRent()">
+        </div>
+        <div style="flex:1;min-width:120px">
+          <div class="fl" style="margin-bottom:5px">Markup %</div>
+          <input class="fi" id="xrPct" type="number" value="30" step="1" oninput="calcCrossRent()">
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Client Price</div><div class="stat-val" id="xrPrice" style="font-size:22px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Your Margin $</div><div class="stat-val" id="xrMargin" style="font-size:22px;color:var(--green)">$0</div></div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Delivery + Tax Quote Builder</div>
+      <div style="font-size:11px;color:var(--steel);margin-bottom:14px">HQ: Stafford, VA. Rental + driver + fuel = subtotal, then state tax.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
+        <div><div class="fl" style="margin-bottom:5px">Rental Subtotal $</div><input class="fi" id="dqRental" type="number" placeholder="e.g. 400" oninput="calcDeliveryQuote()"></div>
+        <div><div class="fl" style="margin-bottom:5px">Round-Trip Miles</div><input class="fi" id="dqMiles" type="number" placeholder="e.g. 90" oninput="calcDeliveryQuote()"></div>
+        <div><div class="fl" style="margin-bottom:5px">Vehicle MPG</div><input class="fi" id="dqMpg" type="number" value="12" oninput="calcDeliveryQuote()"></div>
+        <div><div class="fl" style="margin-bottom:5px">Fuel $/gal</div><input class="fi" id="dqGas" type="number" value="3.60" step="0.05" oninput="calcDeliveryQuote()"></div>
+        <div><div class="fl" style="margin-bottom:5px">Driver Flat $/Load</div><input class="fi" id="dqDriver" type="number" placeholder="e.g. 150" oninput="calcDeliveryQuote()"></div>
+        <div><div class="fl" style="margin-bottom:5px"># Loads</div><input class="fi" id="dqLoads" type="number" value="2" oninput="calcDeliveryQuote()"></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px">
+        <div style="flex:2;min-width:220px">
+          <div class="fl" style="margin-bottom:5px">Client Tax Jurisdiction</div>
+          <select class="fs" id="dqState" onchange="dqStateDefaults();calcDeliveryQuote()">
+            <option value="dc">Washington DC</option>
+            <option value="md">Maryland</option>
+            <option value="va-nova">Virginia - Northern VA</option>
+            <option value="va">Virginia - Standard</option>
+            <option value="va-ht">Virginia - Historic Triangle</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:100px">
+          <div class="fl" style="margin-bottom:5px">Tax Rate %</div>
+          <input class="fi" id="dqTaxPct" type="number" step="0.1" value="6" oninput="calcDeliveryQuote()">
+        </div>
+        <div style="min-width:170px">
+          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--steel);cursor:pointer;padding-bottom:10px">
+            <input type="checkbox" id="dqTaxDelivery" onchange="calcDeliveryQuote()"> Tax the delivery line
+          </label>
+        </div>
+      </div>
+      <div class="stats-row" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+        <div class="stat-card"><div class="stat-label">Fuel</div><div class="stat-val" id="dqFuel" style="font-size:18px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Driver</div><div class="stat-val" id="dqDrv" style="font-size:18px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Delivery Total</div><div class="stat-val" id="dqDel" style="font-size:18px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Subtotal (pre-tax)</div><div class="stat-val" id="dqSub" style="font-size:18px">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Tax</div><div class="stat-val" id="dqTax" style="font-size:18px">$0</div></div>
+        <div class="stat-card" style="border-color:var(--accent)"><div class="stat-label" style="color:var(--accent)">Client Total</div><div class="stat-val" id="dqTotal" style="font-size:18px;color:var(--accent)">$0</div></div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)">Eastern Seaboard AV Market Benchmarks</div>
+      <table>
+        <thead><tr><th>Rate Type</th><th>Range</th><th class="hide-mobile">Notes</th></tr></thead>
+        <tbody>
+          <tr><td style="font-size:12px">Daily Rental Rate</td><td style="font-size:12px">8-12% of value</td><td class="hide-mobile" style="font-size:11px;color:var(--steel)">Standard event/retail pricing</td></tr>
+          <tr><td style="font-size:12px">Production Package Rate</td><td style="font-size:12px">6-8% of value</td><td class="hide-mobile" style="font-size:11px;color:var(--steel)">Multi-day show packages</td></tr>
+          <tr><td style="font-size:12px">Wholesale / Volume Rate</td><td style="font-size:12px">3-5% of value</td><td class="hide-mobile" style="font-size:11px;color:var(--steel)">High-volume, repeat clients</td></tr>
+          <tr><td style="font-size:12px">Cross-Rent Markup</td><td style="font-size:12px">25-35% over cost</td><td class="hide-mobile" style="font-size:11px;color:var(--steel)">Sub-rented gear re-billed to client</td></tr>
+          <tr><td style="font-size:12px">Target Gross Margin</td><td style="font-size:12px">65-75% of revenue</td><td class="hide-mobile" style="font-size:11px;color:var(--steel)">After prep labor, wear, transport</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  calcRentalRates();
+  dqStateDefaults();
+  calcDeliveryQuote();
+}
+function calcRentalRates() {
+  const val = parseFloat(document.getElementById('rentValue').value) || 0;
+  const pct = parseFloat(document.getElementById('rentPct').value) || 0;
+  const day = val * pct / 100;
+  const fmt = (n) => '$' + n.toLocaleString(undefined, {maximumFractionDigits:0});
+  document.getElementById('rrDay').textContent = fmt(day);
+  document.getElementById('rrWeek').textContent = fmt(day * 3);
+  document.getElementById('rrMonth').textContent = fmt(day * 9);
+  document.getElementById('rrPayback').textContent = day > 0 ? Math.ceil(val / day) + ' days' : '-';
+}
+function calcCrossRent() {
+  const cost = parseFloat(document.getElementById('xrCost').value) || 0;
+  const pct = parseFloat(document.getElementById('xrPct').value) || 0;
+  const price = cost * (1 + pct / 100);
+  const fmt = (n) => '$' + n.toLocaleString(undefined, {maximumFractionDigits:0});
+  document.getElementById('xrPrice').textContent = fmt(price);
+  document.getElementById('xrMargin').textContent = fmt(price - cost);
+}
+function dqRates() {
+  const dcRate = (new Date() >= new Date('2026-10-01')) ? 7.0 : 6.0;
+  return {
+    'dc':      { pct: dcRate, taxDel: true },
+    'md':      { pct: 6.0,   taxDel: false },
+    'va-nova': { pct: 6.0,   taxDel: false },
+    'va':      { pct: 5.3,   taxDel: false },
+    'va-ht':   { pct: 7.0,   taxDel: false }
+  };
+}
+function dqStateDefaults() {
+  const r = dqRates()[document.getElementById('dqState').value];
+  if (!r) return;
+  document.getElementById('dqTaxPct').value = r.pct;
+  document.getElementById('dqTaxDelivery').checked = r.taxDel;
+}
+function calcDeliveryQuote() {
+  const rental = parseFloat(document.getElementById('dqRental').value) || 0;
+  const miles = parseFloat(document.getElementById('dqMiles').value) || 0;
+  const mpg = parseFloat(document.getElementById('dqMpg').value) || 1;
+  const gas = parseFloat(document.getElementById('dqGas').value) || 0;
+  const driver = parseFloat(document.getElementById('dqDriver').value) || 0;
+  const loads = parseFloat(document.getElementById('dqLoads').value) || 0;
+  const taxPct = parseFloat(document.getElementById('dqTaxPct').value) || 0;
+  const taxDel = document.getElementById('dqTaxDelivery').checked;
+  const fuel = miles / mpg * gas;
+  const drv = driver * loads;
+  const del = fuel + drv;
+  const sub = rental + del;
+  const taxable = taxDel ? sub : rental;
+  const tax = taxable * taxPct / 100;
+  const total = sub + tax;
+  const fmt = (n) => '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('dqFuel').textContent = fmt(fuel);
+  document.getElementById('dqDrv').textContent = fmt(drv);
+  document.getElementById('dqDel').textContent = fmt(del);
+  document.getElementById('dqSub').textContent = fmt(sub);
+  document.getElementById('dqTax').textContent = fmt(tax);
+  document.getElementById('dqTotal').textContent = fmt(total);
 }
 
 </script>
