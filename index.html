@@ -742,6 +742,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
               <button class="btn btn-ghost" onclick="csInternalPDF()">📊 Internal Report</button>
               <button class="btn btn-ghost" onclick="csClientInvoice()">🧾 Client Invoice</button>
+              <button id="csTaxToggleBtn" class="btn" style="font-weight:700" onclick="csToggleTax()">Taxes On</button>
               <button class="btn btn-primary" onclick="csSave()">Save schedule</button>
             </div>
           </div>
@@ -5164,6 +5165,7 @@ function csToggleSkill(tid,sk){ const a=CS.skills[tid]||(CS.skills[tid]=[]); con
 function csToggleOff(tid){ if(!CS.cur)return; const a=CS.off[tid]||(CS.off[tid]=[]); const j=a.indexOf(CS.cur); if(j<0)a.push(CS.cur); else a.splice(j,1); csRender(); }
 
 function csRender(){
+  csSyncTaxBtn();
   // day rail
   document.getElementById('csDays').innerHTML = CS.days.length ? CS.days.map(d=>{
     const f=csFilled(d.id), ok=f>=d.needed;
@@ -5256,6 +5258,21 @@ async function csLoad(id){
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
 }
+
+function csSyncTaxBtn(){
+  const b=document.getElementById('csTaxToggleBtn'); if(!b) return;
+  const on = CS.taxOn !== false;
+  b.textContent = on ? 'Taxes On' : 'Taxes Off';
+  b.style.background = on ? 'var(--green)' : '#E84040';
+  b.style.color = '#fff';
+  b.style.border = 'none';
+}
+function csToggleTax(){
+  CS.taxOn = (CS.taxOn === false) ? true : false;
+  csSyncTaxBtn();
+  toast(CS.taxOn ? 'Taxes On' : 'Taxes Off', CS.taxOn ? 'Invoices will include 6% sales tax' : 'Invoices will print without sales tax');
+}
+
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
@@ -5552,8 +5569,7 @@ function csClientInvoice(){
     dayData.push({label:d.label,lines,dayTotal,dayHrs,techCount:slots.length});
   });
 
-  const chargeTax=confirm('Charge 6% sales tax on this invoice?\n\nOK = include tax\nCancel = print WITHOUT tax');
-  const taxRate=chargeTax?0.06:0;
+  const taxRate=(CS.taxOn!==false)?0.06:0;
   const tax=grandSubtotal*taxRate;
   const total=grandSubtotal+tax;
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
