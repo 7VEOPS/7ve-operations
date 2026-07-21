@@ -5924,7 +5924,10 @@ function roUpdateMargin() {
     const t = roTotals(o);
     const pct = t.marginPct;
     const color = pct >= 65 ? 'var(--green)' : (pct >= 50 ? 'var(--accent)' : '#F87171');
-    const repFmt = t.replaceValue > 0 ? ' &nbsp;|&nbsp; Total replacement value: <b>
+    const repFmt = t.replaceValue > 0 ? ('  &nbsp;|&nbsp;  Total replacement value: <b>$' + t.replaceValue.toLocaleString(undefined,{maximumFractionDigits:0}) + '</b>') : '';
+    el.innerHTML = 'Projected gross margin: <b style="color:' + color + '">' + pct.toFixed(1) + '%</b> &nbsp;<span style="color:var(--muted)">Eastern seaboard AV target: 65-75% owned gear, 25-35% cross-rent markup</span>' + repFmt;
+  } catch(e) {}
+}
 
 // -- DOCS: Invoice / Internal / Pull Sheet (no house-model text anywhere) --
 function roDocShell(title, accent, body, footNote) {
@@ -6538,4 +6541,4 @@ function calcDeliveryQuote() {
 
 </script>
 </body>
-</html>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gc9Q8JNHYd7cfmqsPaF8y7q2jXUG" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
