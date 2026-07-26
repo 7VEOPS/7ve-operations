@@ -5924,8 +5924,7 @@ function roUpdateMargin() {
     const t = roTotals(o);
     const pct = t.marginPct;
     const color = pct >= 65 ? 'var(--green)' : (pct >= 50 ? 'var(--accent)' : '#F87171');
-    const repFmt = t.replaceValue > 0 ? ('  &nbsp;|&nbsp;  Total replacement value: <b>$' + t.replaceValue.toLocaleString(undefined,{maximumFractionDigits:0}) + '</b>') : '';
-    el.innerHTML = 'Projected gross margin: <b style="color:' + color + '">' + pct.toFixed(1) + '%</b> &nbsp;<span style="color:var(--muted)">Eastern seaboard AV target: 65-75% owned gear, 25-35% cross-rent markup</span>' + repFmt;
+    el.innerHTML = 'Projected gross margin: <b style="color:' + color + '">' + pct.toFixed(1) + '%</b> &nbsp;<span style="color:var(--muted)">Eastern seaboard AV target: 65-75% owned gear, 25-35% cross-rent markup</span>';
   } catch(e) {}
 }
 
