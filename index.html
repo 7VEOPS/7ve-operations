@@ -5588,9 +5588,10 @@ function csInternalPDF(){
 }
 
 /* ---- CLIENT INVOICE PDF — Option B: Bold Production ---- */
-function csPayrollPDF(){
+async function csPayrollPDF(){
   if(!CS.days.length){ toast('Nothing to print','Add days and assign crew first.'); return; }
   const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
+
   const parseHrs=(timeStr)=>{
     if(!timeStr) return 0;
     const parts=timeStr.split(/[\u2013\u2014-]/).map(s=>s.trim());
@@ -5607,7 +5608,16 @@ function csPayrollPDF(){
     let diff=endH-startH; if(diff<0) diff+=24;
     return diff;
   };
-  const rateFor=(pos)=> (pos||'').toLowerCase().includes('setup') ? (CS.rateSetup||0) : (CS.rateSkilled||0);
+
+  // Pull actual pay-out rate per technician (NOT the client billing rate)
+  const techIds=[...new Set(Object.values(CS.assign).flat().filter(s=>s.tech).map(s=>String(s.tech)))];
+  let payRates={};
+  if(techIds.length){
+    try{
+      const rows=await sbGet('staff_people?select=id,pay_rate&id=in.('+techIds.join(',')+')');
+      rows.forEach(r=>{ payRates[String(r.id)]=parseFloat(r.pay_rate)||0; });
+    }catch(e){}
+  }
 
   const perPerson={};
   CS.days.forEach(d=>{
@@ -5616,7 +5626,7 @@ function csPayrollPDF(){
       const key=String(s.tech);
       if(!perPerson[key]) perPerson[key]={dates:[],hrs:0,pay:0};
       const hrs=parseHrs(s.time);
-      const rate=rateFor(s.pos);
+      const rate=payRates[key]||0;
       perPerson[key].dates.push(d.label);
       perPerson[key].hrs+=hrs;
       perPerson[key].pay+=hrs*rate;
@@ -5624,22 +5634,24 @@ function csPayrollPDF(){
   });
 
   const nameOf=(id)=>{ const p=peopleMap[id]; return p?(p.first_name+' '+p.last_name):('Unknown ('+id+')'); };
-  const rows=Object.keys(perPerson).map(id=>({id,name:nameOf(id),...perPerson[id]}))
+  const rows2=Object.keys(perPerson).map(id=>({id,name:nameOf(id),rate:payRates[id]||0,...perPerson[id]}))
     .sort((a,b)=>a.name.localeCompare(b.name));
 
   const fmt=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   let grandHrs=0, grandPay=0;
-  const tableRows=rows.map(r=>{
+  const tableRows=rows2.map(r=>{
     grandHrs+=r.hrs; grandPay+=r.pay;
     return '<tr><td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-weight:600">'+r.name+'</td>'
       +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280">'+r.dates.join(', ')+'</td>'
       +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\'IBM Plex Mono\',monospace">'+r.hrs.toFixed(1)+'</td>'
+      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\'IBM Plex Mono\',monospace;color:#6b7280">'+fmt(r.rate)+'/hr</td>'
       +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\'IBM Plex Mono\',monospace;font-weight:700">'+fmt(r.pay)+'</td></tr>';
   }).join('');
 
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const eventName=CS.event||'Event';
   const rangeLabel=(CS.days[0]?CS.days[0].label:'')+' \u2013 '+(CS.days[CS.days.length-1]?CS.days[CS.days.length-1].label:'');
+  const missingRates=rows2.filter(r=>!r.rate).map(r=>r.name);
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Payroll Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -5653,13 +5665,15 @@ function csPayrollPDF(){
     <div style="font-size:10px;color:#9ca3af">${rangeLabel}</div></div>
   </div>
   <div style="padding:24px 32px">
-    <table><thead><tr><th>Technician</th><th>Dates Worked</th><th style="text-align:right">Total Hrs</th><th style="text-align:right">Total Pay</th></tr></thead>
+    ${missingRates.length?'<div style="background:#fef3c7;border:1px solid #fde68a;padding:8px 14px;font-size:11px;font-weight:700;color:#92400e;margin-bottom:16px">No pay_rate on file for: '+missingRates.join(', ')+' - showing $0.00, please update People profile.</div>':''}
+    <table><thead><tr><th>Technician</th><th>Dates Worked</th><th style="text-align:right">Total Hrs</th><th style="text-align:right">Pay Rate</th><th style="text-align:right">Total Pay</th></tr></thead>
     <tbody>${tableRows}</tbody>
     <tfoot><tr><td colspan="2" style="padding:12px;font-weight:800;border-top:2px solid #0D0F12">TOTAL</td>
       <td style="padding:12px;text-align:right;font-weight:800;border-top:2px solid #0D0F12;font-family:'IBM Plex Mono',monospace">${grandHrs.toFixed(1)}</td>
+      <td style="border-top:2px solid #0D0F12"></td>
       <td style="padding:12px;text-align:right;font-weight:800;border-top:2px solid #0D0F12;font-family:'IBM Plex Mono',monospace;color:#F5A623">${fmt(grandPay)}</td></tr></tfoot>
     </table>
-    <div style="margin-top:20px;font-size:10px;color:#9ca3af">Setup rate: ${fmt(CS.rateSetup||0)}/hr &nbsp;|&nbsp; Skilled rate: ${fmt(CS.rateSkilled||0)}/hr</div>
+    <div style="margin-top:20px;font-size:10px;color:#9ca3af">Pay rate shown is each technician's individual rate on file - this is crew payout, not the client billing rate.</div>
   </div>
   <div style="border-top:1px solid #e5e7eb;padding:14px 32px;display:flex;justify-content:space-between">
     <div style="font-size:10px;color:#9ca3af">7 Virtues Entertainment - Confidential Payroll</div>
@@ -6325,4 +6339,4 @@ function calcDeliveryQuote() {
 }
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
