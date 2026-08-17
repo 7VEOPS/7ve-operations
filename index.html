@@ -741,6 +741,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <button class="btn btn-ghost" onclick="csAutoFill()">✨ Auto-suggest</button>
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
               <button class="btn btn-ghost" onclick="csInternalPDF()">📊 Internal Report</button>
+              <button class="btn btn-ghost" onclick="csPayrollPDF()">💵 Payroll Summary</button>
               <button class="btn btn-ghost" onclick="csClientInvoice()">🧾 Client Invoice</button>
               <select id="csNetTerms" class="fs" style="width:auto;min-width:150px" onchange="csSetNetTerms(this.value)">
                 <option value="dos">Due Day of Show</option>
@@ -5587,6 +5588,89 @@ function csInternalPDF(){
 }
 
 /* ---- CLIENT INVOICE PDF — Option B: Bold Production ---- */
+function csPayrollPDF(){
+  if(!CS.days.length){ toast('Nothing to print','Add days and assign crew first.'); return; }
+  const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
+  const parseHrs=(timeStr)=>{
+    if(!timeStr) return 0;
+    const parts=timeStr.split(/[\u2013\u2014-]/).map(s=>s.trim());
+    if(parts.length<2) return 0;
+    const to24=(t)=>{
+      const m=t.match(/(\d+):?(\d{0,2})\s*([ap])/i);
+      if(!m) return null;
+      let hh=parseInt(m[1],10); const mm=parseInt(m[2]||'0',10); const ap=m[3].toLowerCase();
+      if(ap==='p'&&hh!==12) hh+=12; if(ap==='a'&&hh===12) hh=0;
+      return hh+mm/60;
+    };
+    const startH=to24(parts[0]), endH=to24(parts[1]);
+    if(startH===null||endH===null) return 0;
+    let diff=endH-startH; if(diff<0) diff+=24;
+    return diff;
+  };
+  const rateFor=(pos)=> (pos||'').toLowerCase().includes('setup') ? (CS.rateSetup||0) : (CS.rateSkilled||0);
+
+  const perPerson={};
+  CS.days.forEach(d=>{
+    const slots=(CS.assign[d.id]||[]).filter(s=>s.tech);
+    slots.forEach(s=>{
+      const key=String(s.tech);
+      if(!perPerson[key]) perPerson[key]={dates:[],hrs:0,pay:0};
+      const hrs=parseHrs(s.time);
+      const rate=rateFor(s.pos);
+      perPerson[key].dates.push(d.label);
+      perPerson[key].hrs+=hrs;
+      perPerson[key].pay+=hrs*rate;
+    });
+  });
+
+  const nameOf=(id)=>{ const p=peopleMap[id]; return p?(p.first_name+' '+p.last_name):('Unknown ('+id+')'); };
+  const rows=Object.keys(perPerson).map(id=>({id,name:nameOf(id),...perPerson[id]}))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+
+  const fmt=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  let grandHrs=0, grandPay=0;
+  const tableRows=rows.map(r=>{
+    grandHrs+=r.hrs; grandPay+=r.pay;
+    return '<tr><td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-weight:600">'+r.name+'</td>'
+      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-size:11px;color:#6b7280">'+r.dates.join(', ')+'</td>'
+      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\'IBM Plex Mono\',monospace">'+r.hrs.toFixed(1)+'</td>'
+      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-family:\'IBM Plex Mono\',monospace;font-weight:700">'+fmt(r.pay)+'</td></tr>';
+  }).join('');
+
+  const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const eventName=CS.event||'Event';
+  const rangeLabel=(CS.days[0]?CS.days[0].label:'')+' \u2013 '+(CS.days[CS.days.length-1]?CS.days[CS.days.length-1].label:'');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Payroll Summary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>body{font-family:'Saira',sans-serif;margin:0;color:#111}table{width:100%;border-collapse:collapse;font-size:13px}
+  th{padding:9px 12px;text-align:left;background:#f3f4f6;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:0.05em}</style></head><body>
+  <div style="background:#0D0F12;color:#fff;padding:22px 32px;display:flex;justify-content:space-between;align-items:center">
+    <div><span style="font-size:24px;font-weight:800"><span style="color:#F5A623">7</span> VIRTUES</span>
+    <div style="font-size:10px;color:#7A8494;letter-spacing:0.15em;text-transform:uppercase">Entertainment - Payroll Summary</div></div>
+    <div style="text-align:right"><div style="font-size:16px;font-weight:800;color:#F5A623;text-transform:uppercase;letter-spacing:0.08em">Payroll Summary</div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:4px">${eventName}</div>
+    <div style="font-size:10px;color:#9ca3af">${rangeLabel}</div></div>
+  </div>
+  <div style="padding:24px 32px">
+    <table><thead><tr><th>Technician</th><th>Dates Worked</th><th style="text-align:right">Total Hrs</th><th style="text-align:right">Total Pay</th></tr></thead>
+    <tbody>${tableRows}</tbody>
+    <tfoot><tr><td colspan="2" style="padding:12px;font-weight:800;border-top:2px solid #0D0F12">TOTAL</td>
+      <td style="padding:12px;text-align:right;font-weight:800;border-top:2px solid #0D0F12;font-family:'IBM Plex Mono',monospace">${grandHrs.toFixed(1)}</td>
+      <td style="padding:12px;text-align:right;font-weight:800;border-top:2px solid #0D0F12;font-family:'IBM Plex Mono',monospace;color:#F5A623">${fmt(grandPay)}</td></tr></tfoot>
+    </table>
+    <div style="margin-top:20px;font-size:10px;color:#9ca3af">Setup rate: ${fmt(CS.rateSetup||0)}/hr &nbsp;|&nbsp; Skilled rate: ${fmt(CS.rateSkilled||0)}/hr</div>
+  </div>
+  <div style="border-top:1px solid #e5e7eb;padding:14px 32px;display:flex;justify-content:space-between">
+    <div style="font-size:10px;color:#9ca3af">7 Virtues Entertainment - Confidential Payroll</div>
+    <div style="font-size:10px;color:#9ca3af">${today}</div>
+  </div></body></html>`;
+
+  const win=window.open('','_blank'); if(!win){ toast('Popup blocked','Allow popups for this site.'); return; }
+  win.document.write(html); win.document.close();
+  setTimeout(()=>win.print(),500);
+}
+
 function csClientInvoice(){
   if(!CS.days.length){ toast('Nothing to print','Add days and assign crew first.'); return; }
   const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
@@ -6241,4 +6325,4 @@ function calcDeliveryQuote() {
 }
 </script>
 </body>
-</html>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
