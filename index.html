@@ -218,6 +218,8 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 <meta name="apple-mobile-web-app-title" content="7VE Ops">
 </head>
 <body>
+<datalist id="csRoomsDL"></datalist>
+<datalist id="csPosDL"></datalist>
 
 <!-- LOGIN -->
 <div id="loginScreen" class="screen" style="display:none">
@@ -5145,6 +5147,44 @@ const CS_POS=[
   {t:'Audio Tech',needs:['A1']},{t:'Setup/AV Test',needs:[]}
 ];
 const CS_ROOMS=['Vessey Ballroom','1105','1101/02','Other'];
+let csRoomsPool=[...CS_ROOMS];
+let csPosPool=[...CS_POS.map(p=>p.t)];
+let csPoolLoaded=false;
+
+function csRenderOptionLists(){
+  const rEl=document.getElementById('csRoomsDL'), pEl=document.getElementById('csPosDL');
+  if(rEl) rEl.innerHTML = csRoomsPool.map(r=>'<option value="'+String(r).replace(/"/g,'&quot;')+'">').join('');
+  if(pEl) pEl.innerHTML = csPosPool.map(p=>'<option value="'+String(p).replace(/"/g,'&quot;')+'">').join('');
+}
+
+async function csLoadOptionPool(){
+  if(csPoolLoaded) return;
+  csPoolLoaded=true;
+  try{
+    const allSched = await sbGet('crew_schedules?select=data');
+    const roomSet=new Set(csRoomsPool);
+    const posSet=new Set(csPosPool);
+    allSched.forEach(row=>{
+      const assign=(row.data&&row.data.assign)||{};
+      Object.values(assign).forEach(slots=>{
+        (slots||[]).forEach(s=>{
+          if(s.room) roomSet.add(s.room);
+          if(s.pos) posSet.add(s.pos);
+        });
+      });
+    });
+    csRoomsPool=[...roomSet].sort();
+    csPosPool=[...posSet].sort();
+    csRenderOptionLists();
+  }catch(e){}
+}
+
+function csRememberOption(type,val){
+  if(!val) return;
+  if(type==='room' && !csRoomsPool.includes(val)){ csRoomsPool.push(val); csRenderOptionLists(); }
+  if(type==='pos' && !csPosPool.includes(val)){ csPosPool.push(val); csRenderOptionLists(); }
+}
+
 const CS={ id:null, event:'', budget:'', rateSetup:50, rateSkilled:60, days:[], cur:null, assign:{}, skills:{}, off:{} };
 let crewLoaded=false;
 
@@ -5178,13 +5218,15 @@ function csDelDay(id){ CS.days=CS.days.filter(d=>d.id!==id); delete CS.assign[id
 function csSelDay(id){ CS.cur=id; csRender(); }
 function csAddSlot(){ if(!CS.cur)return; CS.assign[CS.cur].push({tech:'',pos:'In-room Video/Hybrid',time:'6:00a–6:00p',room:'Vessey Ballroom'}); csRender(); }
 function csDelSlot(i){ CS.assign[CS.cur].splice(i,1); csRender(); }
-function csSetSlot(i,f,v){ CS.assign[CS.cur][i][f]=v; csRender(); }
+function csSetSlot(i,f,v){ CS.assign[CS.cur][i][f]=v; if(f==='room'||f==='pos') csRememberOption(f,v); csRender(); }
 function csToggleSkill(tid,sk){ const a=CS.skills[tid]||(CS.skills[tid]=[]); const j=a.indexOf(sk); if(j<0)a.push(sk); else a.splice(j,1); csRender(); }
 function csToggleOff(tid){ if(!CS.cur)return; const a=CS.off[tid]||(CS.off[tid]=[]); const j=a.indexOf(CS.cur); if(j<0)a.push(CS.cur); else a.splice(j,1); csRender(); }
 
 function csRender(){
   csSyncTaxBtn();
   csSyncRateModeBtn();
+  csRenderOptionLists();
+  csLoadOptionPool();
   csSyncNetTermsSel();
   // day rail
   document.getElementById('csDays').innerHTML = CS.days.length ? CS.days.map(d=>{
@@ -5224,9 +5266,9 @@ function csRender(){
           return `<tr>
             <td style="padding:6px 8px;color:var(--muted2);font-family:monospace;font-size:12px">${i+1}</td>
             <td style="padding:6px 8px"><select class="fi" onchange="csSetSlot(${i},'tech',this.value)"><option value="">— select tech —</option>${opts(s.tech)}</select>${flag}</td>
-            <td style="padding:6px 8px"><select class="fi" onchange="csSetSlot(${i},'pos',this.value)">${CS_POS.map(p=>`<option ${p.t===s.pos?'selected':''}>${p.t}</option>`).join('')}</select></td>
+            <td style="padding:6px 8px"><input class="fi" list="csPosDL" value="${s.pos||''}" onchange="csSetSlot(${i},'pos',this.value)"></td>
             <td style="padding:6px 8px"><input class="fi" value="${s.time}" onchange="csSetSlot(${i},'time',this.value)" style="min-width:110px"></td>
-            <td style="padding:6px 8px"><select class="fi" onchange="csSetSlot(${i},'room',this.value)">${CS_ROOMS.map(r=>`<option ${r===s.room?'selected':''}>${r}</option>`).join('')}${CS_ROOMS.includes(s.room)?'':`<option selected>${s.room}</option>`}</select></td>
+            <td style="padding:6px 8px"><input class="fi" list="csRoomsDL" value="${s.room||''}" onchange="csSetSlot(${i},'room',this.value)"></td>
             <td style="padding:6px 8px"><button onclick="csDelSlot(${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px">×</button></td>
           </tr>`;
         }).join('')}</tbody>
@@ -6385,4 +6427,4 @@ function calcDeliveryQuote() {
 }
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
