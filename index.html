@@ -952,6 +952,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           </select>
           <button class="btn btn-primary" style="margin-left:auto" onclick="openDealModal(null)">+ Add Deal</button>
           <button class="btn btn-ghost" onclick="openStaffModal()">Manage Staff</button>
+          <button class="btn btn-ghost" onclick="openAttributeModal()">Who Sold This?</button>
         </div>
 
         <div class="stats-row" id="commStatsRow" style="margin-bottom:16px"></div>
@@ -1877,6 +1878,27 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
     <div class="modal-ftr">
       <button class="btn btn-ghost" onclick="closeModal('staffModal')">Close</button>
       <button class="btn btn-primary" onclick="saveAllStaff()">Save All</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATTRIBUTE SALE MODAL -->
+<div class="overlay" id="attrModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-hdr">
+      <div><div class="modal-title">Who Sold This?</div><div class="modal-sub">Select or edit the originator on any Sale, Rental, or Crew Schedule - invoice or not</div></div>
+      <button class="modal-close" onclick="closeModal('attrModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+        <div class="tab active" id="attrTabBtn-sales" onclick="attrSetTab('sales',this)">Sales</div>
+        <div class="tab" id="attrTabBtn-rentals" onclick="attrSetTab('rentals',this)">Rentals</div>
+        <div class="tab" id="attrTabBtn-sched" onclick="attrSetTab('sched',this)">Crew Schedules</div>
+      </div>
+      <div id="attrListWrap" style="max-height:420px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('attrModal')">Close</button>
     </div>
   </div>
 </div>
@@ -6792,6 +6814,79 @@ async function saveAllStaff(){
   }catch(e){ toast('Error','Could not save staff'); }
 }
 
+
+// -- ATTRIBUTE SALE (Sales / Rentals / Crew Schedules) --
+let attrTab='sales';
+let attrCache={sales:[],rentals:[],sched:[]};
+
+async function openAttributeModal(){
+  if(!commStaff || !commStaff.length){
+    try{ commStaff = await sbGet('commission_staff?select=*&order=sort_order'); }catch(e){ commStaff=[]; }
+  }
+  attrTab='sales';
+  document.querySelectorAll('#attrModal .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('attrTabBtn-sales').classList.add('active');
+  await attrLoadAndRender('sales');
+  openModal('attrModal');
+}
+
+function attrSetTab(tab, el){
+  attrTab=tab;
+  document.querySelectorAll('#attrModal .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  attrLoadAndRender(tab);
+}
+
+async function attrLoadAndRender(tab){
+  const wrap=document.getElementById('attrListWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Loading...</div>';
+  try{
+    if(tab==='sales'){
+      attrCache.sales = await sbGet('show_finances?select=id,name,show_type,show_date,revenue,originated_by&order=show_date.desc');
+      attrRenderRows(attrCache.sales, (r)=>r.name, (r)=>(r.show_type||'')+' - '+(r.show_date||''), (r)=>'$'+(parseFloat(r.revenue)||0).toLocaleString(), 'show_finances');
+    } else if(tab==='rentals'){
+      attrCache.rentals = await sbGet('rental_orders?select=id,client,venue,start_date,items,originated_by&order=start_date.desc');
+      attrRenderRows(attrCache.rentals, (r)=>r.client, (r)=>(r.venue||'')+' - '+(r.start_date||''), (r)=>{
+        const items=r.items||[];
+        const total=items.reduce((s,i)=>s+(parseFloat(i.qty)||0)*(parseFloat(i.rate)||0)*(parseFloat(i.days)||1),0);
+        return '$'+total.toLocaleString(undefined,{maximumFractionDigits:0});
+      }, 'rental_orders');
+    } else if(tab==='sched'){
+      attrCache.sched = await sbGet('crew_schedules?select=id,event_name,data,originated_by&order=created_at.desc');
+      attrRenderRows(attrCache.sched, (r)=>r.event_name, (r)=>{
+        const days=(r.data&&r.data.days)||[];
+        return days.length ? (days[0].label+' - '+days[days.length-1].label) : '';
+      }, ()=>'-', 'crew_schedules');
+    }
+  }catch(e){
+    wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Could not load - '+e.message+'</div>';
+  }
+}
+
+function attrRenderRows(list, titleFn, subFn, amtFn, tableName){
+  const wrap=document.getElementById('attrListWrap');
+  if(!list.length){ wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Nothing here yet.</div>'; return; }
+  wrap.innerHTML = list.map(r=>{
+    const opts = '<option value=""'+(!r.originated_by?' selected':'')+'>- Unassigned -</option>' + commStaff.map(s=>'<option value="'+s.id+'"'+(r.originated_by===s.id?' selected':'')+'>'+s.name+'</option>').join('');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">'
+      +'<div style="flex:1;min-width:180px">'
+      +'<div style="font-size:13px;font-weight:600">'+(titleFn(r)||'(untitled)')+'</div>'
+      +'<div style="font-size:11px;color:var(--steel)">'+subFn(r)+'</div>'
+      +'</div>'
+      +'<div style="font-size:12px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);min-width:80px;text-align:right">'+amtFn(r)+'</div>'
+      +'<select class="fs" style="width:auto;min-width:170px" onchange="attrSave(\''+tableName+'\',\''+r.id+'\',this.value)">'+opts+'</select>'
+      +'</div>';
+  }).join('');
+}
+
+async function attrSave(tableName, id, staffId){
+  try{
+    await sbPatch(tableName+'?id=eq.'+id, { originated_by: staffId || null });
+    toast('Saved','Originator updated');
+  }catch(e){
+    toast('Error','Could not save - '+e.message);
+  }
+}
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
