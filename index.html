@@ -6609,6 +6609,9 @@ function calcDeliveryQuote() {
 // -- COMMISSIONS (database-backed) --
 let commStaff=[];
 let commDeals=[];
+let commSales=[];
+let commRentals=[];
+let commScheds=[];
 let commEditId=null;
 
 const COMM_TYPE_LABELS={rental:'Rental',wedding:'Wedding',show:'Show / Labor Call',corporate:'Corporate',touring:'Touring'};
@@ -6647,13 +6650,56 @@ async function commInit(){
   try{
     commDeals = await sbGet('commission_deals?select=*&order=deal_date.desc');
   }catch(e){ commDeals=[]; }
+  try{
+    commSales = await sbGet('show_finances?select=*&originated_by=not.is.null');
+  }catch(e){ commSales=[]; }
+  try{
+    commRentals = await sbGet('rental_orders?select=*&originated_by=not.is.null');
+  }catch(e){ commRentals=[]; }
+  try{
+    commScheds = await sbGet('crew_schedules?select=*&originated_by=not.is.null');
+  }catch(e){ commScheds=[]; }
   commRender();
+}
+
+function commGuessType(showType, name){
+  const t=(showType||'').toLowerCase();
+  const n=(name||'').toLowerCase();
+  if(n.includes('wedding')) return 'wedding';
+  if(t.includes('corporate')) return 'corporate';
+  if(t.includes('rental')) return 'rental';
+  if(t.includes('touring')) return 'touring';
+  if(t.includes('labor')) return 'show';
+  return 'show';
+}
+
+function commRentalInvoice(items){
+  const list=items||[];
+  return list.reduce((s,i)=>s+(parseFloat(i.qty)||0)*(parseFloat(i.rate)||0)*(parseFloat(i.days)||1),0);
+}
+
+function commAllDealsForStaff(staffId){
+  const out=[];
+  commDeals.filter(d=>d.staff_id===staffId).forEach(d=>{
+    out.push({ id:d.id, source:'manual', show:d.show_name, type:d.deal_type, date:d.deal_date, invoice:parseFloat(d.invoice)||0, passThrough:parseFloat(d.pass_through)||0, crews:!!d.crews, originated:!!d.originated, status:d.status||'pending' });
+  });
+  commSales.filter(s=>s.originated_by===staffId).forEach(s=>{
+    out.push({ id:s.id, source:'show_finances', show:s.name, type:commGuessType(s.show_type,s.name), date:s.show_date, invoice:parseFloat(s.revenue)||0, passThrough:parseFloat(s.commission_pass_through)||0, crews:!!s.commission_crews, originated:s.commission_originated!==false, status:'earned' });
+  });
+  commRentals.filter(r=>r.originated_by===staffId).forEach(r=>{
+    out.push({ id:r.id, source:'rental_orders', show:r.client, type:'rental', date:r.start_date, invoice:commRentalInvoice(r.items), passThrough:parseFloat(r.commission_pass_through)||0, crews:!!r.commission_crews, originated:r.commission_originated!==false, status: r.status==='paid' ? 'paid' : 'pending' });
+  });
+  commScheds.filter(sc=>sc.originated_by===staffId).forEach(sc=>{
+    const days=(sc.data&&sc.data.days)||[];
+    out.push({ id:sc.id, source:'crew_schedules', show:sc.event_name, type:'show', date: days.length ? days[0].label : null, invoice:attrSchedTotal(sc.data), passThrough:parseFloat(sc.commission_pass_through)||0, crews:!!sc.commission_crews, originated:sc.commission_originated!==false, status:'pending' });
+  });
+  return out;
 }
 
 function commDealInPeriod(deal, period){
   if(period==='all') return true;
-  if(!deal.deal_date) return false;
-  const d=new Date(deal.deal_date);
+  if(!deal.date) return false;
+  const d=new Date(deal.date);
   const y=d.getFullYear(), m=d.getMonth()+1;
   if(period==='2026') return y===2026;
   if(period==='q1-2026') return y===2026 && m>=1 && m<=3;
@@ -6664,39 +6710,41 @@ function commDealInPeriod(deal, period){
 function commRender(){
   const staffId = document.getElementById('commStaffSel').value;
   const period = document.getElementById('commPeriodSel').value || 'all';
-  const deals = commDeals.filter(d=>d.staff_id===staffId && commDealInPeriod(d,period));
+  const allDeals = commAllDealsForStaff(staffId);
+  const deals = allDeals.filter(d=>commDealInPeriod(d,period));
 
   const fmt=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   let revenueGenerated=0, totalEarned=0, pendingPayout=0, totalPaidOut=0;
   const rowsHtml = deals.map(d=>{
-    const c=commCalc(d.deal_type,d.invoice,d.pass_through,d.crews,d.originated);
-    revenueGenerated += parseFloat(d.invoice)||0;
+    const c=commCalc(d.type,d.invoice,d.passThrough,d.crews,d.originated);
+    revenueGenerated += d.invoice;
     if(d.status==='earned'){ totalEarned += c.commission; pendingPayout += c.commission; }
     else if(d.status==='pending'){ pendingPayout += c.commission; }
     else if(d.status==='paid'){ totalPaidOut += c.commission; totalEarned += c.commission; }
     const sc = COMM_STATUS_COLORS[d.status] || '#7A8494';
-    return '<tr style="cursor:pointer" onclick="openDealModal(\''+d.id+'\')"><td style="font-weight:600">'+d.show_name+'</td>'
-      +'<td>'+(COMM_TYPE_LABELS[d.deal_type]||d.deal_type)+'</td>'
-      +'<td class="mono" style="font-size:11px">'+(d.deal_date||'')+'</td>'
-      +'<td class="mono">'+fmt(parseFloat(d.invoice)||0)+'</td>'
-      +'<td class="hide-mobile mono" style="color:var(--steel)">'+fmt(parseFloat(d.pass_through)||0)+'</td>'
+    const sourceTag = d.source==='manual' ? '' : ' <span style="font-size:9px;color:var(--muted);font-weight:400;text-transform:none">('+d.source.replace('_',' ')+')</span>';
+    const clickAttr = d.source==='manual' ? ' onclick="openDealModal(\''+d.id+'\')" style="cursor:pointer"' : '';
+    const delBtn = d.source==='manual' ? '<button onclick="event.stopPropagation();deleteDeal(\''+d.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">&times;</button>' : '<span style="font-size:9px;color:var(--muted)" title="Edit in Who Sold This">auto</span>';
+    return '<tr'+clickAttr+'><td style="font-weight:600">'+d.show+sourceTag+'</td>'
+      +'<td>'+(COMM_TYPE_LABELS[d.type]||d.type)+'</td>'
+      +'<td class="mono" style="font-size:11px">'+(d.date||'')+'</td>'
+      +'<td class="mono">'+fmt(d.invoice)+'</td>'
+      +'<td class="hide-mobile mono" style="color:var(--steel)">'+fmt(d.passThrough||0)+'</td>'
       +'<td class="hide-mobile mono">'+fmt(c.commissionable)+'</td>'
       +'<td class="mono" style="font-weight:700;color:var(--accent)">'+fmt(c.commission)+'</td>'
       +'<td class="hide-mobile mono" style="color:var(--steel)">'+c.effRate.toFixed(1)+'%</td>'
       +'<td><span style="font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:10px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'55">'+d.status+'</span></td>'
-      +'<td onclick="event.stopPropagation()"><button onclick="deleteDeal(\''+d.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">&times;</button></td></tr>';
+      +'<td>'+delBtn+'</td></tr>';
   }).join('');
 
   document.getElementById('commDealsBody').innerHTML = rowsHtml;
   document.getElementById('commDealsEmpty').style.display = deals.length ? 'none' : 'block';
 
-  document.getElementById('commStatsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Revenue Generated</div><div class="stat-val" style="color:var(--green)">${fmt(revenueGenerated)}</div></div>
-    <div class="stat-card"><div class="stat-label">Total Earned</div><div class="stat-val" style="color:var(--accent)">${fmt(totalEarned)}</div></div>
-    <div class="stat-card"><div class="stat-label">Pending Payout</div><div class="stat-val" style="color:#3B82F6">${fmt(pendingPayout)}</div></div>
-    <div class="stat-card"><div class="stat-label">Total Paid Out</div><div class="stat-val">${fmt(totalPaidOut)}</div></div>
-  `;
+  document.getElementById('commStatsRow').innerHTML = '<div class="stat-card"><div class="stat-label">Revenue Generated</div><div class="stat-val" style="color:var(--green)">'+fmt(revenueGenerated)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total Earned</div><div class="stat-val" style="color:var(--accent)">'+fmt(totalEarned)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Pending Payout</div><div class="stat-val" style="color:#3B82F6">'+fmt(pendingPayout)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total Paid Out</div><div class="stat-val">'+fmt(totalPaidOut)+'</div></div>';
 
   const threshold=500;
   const pct=Math.min(100, pendingPayout/threshold*100);
@@ -6868,15 +6916,31 @@ function attrRenderRows(list, titleFn, subFn, amtFn, tableName){
   if(!list.length){ wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Nothing here yet.</div>'; return; }
   wrap.innerHTML = list.map(r=>{
     const opts = '<option value=""'+(!r.originated_by?' selected':'')+'>- Unassigned -</option>' + commStaff.map(s=>'<option value="'+s.id+'"'+(r.originated_by===s.id?' selected':'')+'>'+s.name+'</option>').join('');
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">'
+    const pt = r.commission_pass_through||0;
+    const crewsChecked = r.commission_crews ? ' checked' : '';
+    const assignedRow = r.originated_by ? '' : ' style="opacity:0.55"';
+    return '<div'+assignedRow+' style="padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">'
       +'<div style="flex:1;min-width:180px">'
       +'<div style="font-size:13px;font-weight:600">'+(titleFn(r)||'(untitled)')+'</div>'
       +'<div style="font-size:11px;color:var(--steel)">'+subFn(r)+'</div>'
       +'</div>'
       +'<div style="font-size:12px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);min-width:80px;text-align:right">'+amtFn(r)+'</div>'
       +'<select class="fs" style="width:auto;min-width:170px" onchange="attrSave(\''+tableName+'\',\''+r.id+'\',this.value)">'+opts+'</select>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:14px;padding-left:2px;flex-wrap:wrap">'
+      +'<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--steel);cursor:pointer">Pass-through $ <input class="fi" type="number" value="'+pt+'" style="width:90px;padding:5px 8px" onchange="attrSaveField(\''+tableName+'\',\''+r.id+'\',\'commission_pass_through\',this.value)"></label>'
+      +'<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--steel);cursor:pointer"><input type="checkbox"'+crewsChecked+' onchange="attrSaveField(\''+tableName+'\',\''+r.id+'\',\'commission_crews\',this.checked)"> Also crews</label>'
+      +'</div>'
       +'</div>';
   }).join('');
+}
+async function attrSaveField(tableName, id, field, value){
+  try{
+    const body={}; body[field]=value;
+    await sbPatch(tableName+'?id=eq.'+id, body);
+    toast('Saved','');
+  }catch(e){ toast('Error','Could not save'); }
 }
 
 async function attrSave(tableName, id, staffId){
@@ -6918,4 +6982,4 @@ function attrSchedTotal(data){
 }
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_72j9EFRLzjekxy5vmT1sA55FxocA" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
