@@ -950,6 +950,8 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <option value="q2-2026">Q2 2026</option>
             <option value="q1-2026">Q1 2026</option>
           </select>
+          <button class="btn btn-primary" style="margin-left:auto" onclick="openDealModal(null)">+ Add Deal</button>
+          <button class="btn btn-ghost" onclick="openStaffModal()">Manage Staff</button>
         </div>
 
         <div class="stats-row" id="commStatsRow" style="margin-bottom:16px"></div>
@@ -968,7 +970,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px">
           <div style="padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border)">Deals</div>
           <div style="overflow-x:auto">
-          <table><thead><tr><th>Show / Event</th><th>Type</th><th>Date</th><th>Invoice</th><th class="hide-mobile">Pass-Throughs</th><th class="hide-mobile">Commissionable</th><th>Commission</th><th class="hide-mobile">Eff. Rate</th><th>Status</th></tr></thead>
+          <table><thead><tr><th>Show / Event</th><th>Type</th><th>Date</th><th>Invoice</th><th class="hide-mobile">Pass-Throughs</th><th class="hide-mobile">Commissionable</th><th>Commission</th><th class="hide-mobile">Eff. Rate</th><th>Status</th><th></th></tr></thead>
           <tbody id="commDealsBody"></tbody></table>
           </div>
           <div id="commDealsEmpty" style="display:none;text-align:center;color:var(--muted);padding:32px;font-size:13px">No deals for this staff member / period.</div>
@@ -1814,6 +1816,70 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
   </div>
 </div>
 
+
+<!-- DEAL MODAL -->
+<div class="overlay" id="dealModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="dealModalTitle">New Deal</div><div class="modal-sub">Commission calculates automatically from these values</div></div>
+      <button class="modal-close" onclick="closeModal('dealModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Staff Member</label>
+          <select class="fs" id="dealStaff"></select>
+        </div>
+        <div class="fg"><label class="fl">Show / Event</label><input class="fi" id="dealShow" placeholder="Client or event name"></div>
+        <div class="fg"><label class="fl">Deal Type</label>
+          <select class="fs" id="dealType" onchange="dealCalcPreview()">
+            <option value="rental">Rental</option>
+            <option value="wedding">Wedding</option>
+            <option value="show">Show / Labor Call</option>
+            <option value="corporate">Corporate / Large Show</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="dealDate" type="date"></div>
+        <div class="fg"><label class="fl">Invoice Amount $</label><input class="fi" id="dealInvoice" type="number" value="0" oninput="dealCalcPreview()"></div>
+        <div class="fg"><label class="fl">Pass-Through Costs $</label><input class="fi" id="dealPassThrough" type="number" value="0" oninput="dealCalcPreview()"></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fs" id="dealStatus">
+            <option value="pending">Pending</option>
+            <option value="earned">Earned</option>
+            <option value="paid">Paid Out</option>
+          </select>
+        </div>
+        <div class="fg" style="display:flex;align-items:end;gap:16px;padding-bottom:9px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="dealCrews" onchange="dealCalcPreview()"> Also crews</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="dealOriginated" checked onchange="dealCalcPreview()"> Originated</label>
+        </div>
+      </div>
+      <div id="dealPreview" style="margin-top:8px;font-size:12px;color:var(--steel)"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('dealModal')">Cancel</button>
+      <button class="btn btn-danger" id="dealDeleteBtn" style="display:none" onclick="deleteDeal()">Delete</button>
+      <button class="btn btn-primary" onclick="saveDeal()">Save Deal</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="overlay" id="staffModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div><div class="modal-title">Manage Staff</div><div class="modal-sub">Add or edit commission staff members</div></div>
+      <button class="modal-close" onclick="closeModal('staffModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="staffListWrap"></div>
+      <button class="btn btn-ghost" style="margin-top:10px" onclick="addStaffRow()">+ Add Staff Member</button>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('staffModal')">Close</button>
+      <button class="btn btn-primary" onclick="saveAllStaff()">Save All</button>
+    </div>
+  </div>
+</div>
 <!-- RENTAL ORDER MODAL -->
 <div class="overlay" id="rentalOrderModal">
   <div class="modal" style="max-width:680px">
@@ -6518,21 +6584,13 @@ function calcDeliveryQuote() {
   document.getElementById('dqTotal').textContent = fmt(total);
 }
 
-// -- COMMISSIONS --
-const COMM_STAFF=[
-  {id:'nicolas',name:'Nicolas R.',role:'Sales / Tech',initials:'N',color:'#f5a623'},
-  {id:'rob',name:'Rob',role:'CEO',initials:'R',color:'#60a5fa'},
-  {id:'brandon',name:'Brandon',role:'Tech',initials:'B',color:'#34d399'},
-  {id:'ben',name:'Ben',role:'Tech',initials:'B',color:'#a78bfa'}
-];
-const COMM_DEALS=[
-  {staff:'nicolas',show:'Outsidedays Lighting',type:'corporate',date:'2026-05-29',invoice:9800,passThrough:4131.32,crews:true,originated:true,status:'earned'},
-  {staff:'nicolas',show:'DNVR',type:'rental',date:'2026-06-28',invoice:800,passThrough:0,crews:false,originated:true,status:'pending'},
-  {staff:'nicolas',show:'Charlie Mac Wedding',type:'wedding',date:'2026-06-26',invoice:1500,passThrough:0,crews:false,originated:true,status:'pending'},
-  {staff:'nicolas',show:'The Fluffy Cloud Joezi',type:'show',date:'2026-06-13',invoice:732.57,passThrough:0,crews:true,originated:true,status:'pending'}
-];
+// -- COMMISSIONS (database-backed) --
+let commStaff=[];
+let commDeals=[];
+let commEditId=null;
+
 const COMM_TYPE_LABELS={rental:'Rental',wedding:'Wedding',show:'Show / Labor Call',corporate:'Corporate',touring:'Touring'};
-const COMM_STATUS_COLORS={earned:'#22C55E',pending:'#F5A623','paid out':'#3B82F6',paid:'#3B82F6'};
+const COMM_STATUS_COLORS={earned:'#22C55E',pending:'#F5A623',paid:'#3B82F6'};
 
 function commCalc(type,invoice,passThrough,crews,originated){
   invoice=parseFloat(invoice)||0; passThrough=parseFloat(passThrough)||0;
@@ -6558,19 +6616,22 @@ function commCalc(type,invoice,passThrough,crews,originated){
   return {commissionable,commission,effRate};
 }
 
-function commInit(){
+async function commInit(){
+  try{
+    commStaff = await sbGet('commission_staff?select=*&order=sort_order');
+  }catch(e){ commStaff=[]; }
   const sel=document.getElementById('commStaffSel');
-  if(sel && !sel.dataset.filled){
-    sel.innerHTML = COMM_STAFF.map(s=>'<option value="'+s.id+'">'+s.name+' - '+s.role+'</option>').join('');
-    sel.dataset.filled='1';
-  }
+  sel.innerHTML = commStaff.map(s=>'<option value="'+s.id+'">'+s.name+' - '+(s.role||'')+'</option>').join('');
+  try{
+    commDeals = await sbGet('commission_deals?select=*&order=deal_date.desc');
+  }catch(e){ commDeals=[]; }
   commRender();
-  commCalcUpdate();
 }
 
 function commDealInPeriod(deal, period){
   if(period==='all') return true;
-  const d=new Date(deal.date);
+  if(!deal.deal_date) return false;
+  const d=new Date(deal.deal_date);
   const y=d.getFullYear(), m=d.getMonth()+1;
   if(period==='2026') return y===2026;
   if(period==='q1-2026') return y===2026 && m>=1 && m<=3;
@@ -6579,33 +6640,34 @@ function commDealInPeriod(deal, period){
 }
 
 function commRender(){
-  const staffId = document.getElementById('commStaffSel').value || COMM_STAFF[0].id;
+  const staffId = document.getElementById('commStaffSel').value;
   const period = document.getElementById('commPeriodSel').value || 'all';
-  const deals = COMM_DEALS.filter(d=>d.staff===staffId && commDealInPeriod(d,period));
+  const deals = commDeals.filter(d=>d.staff_id===staffId && commDealInPeriod(d,period));
 
   const fmt=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   let revenueGenerated=0, totalEarned=0, pendingPayout=0, totalPaidOut=0;
-  const rows = deals.map(d=>{
-    const c=commCalc(d.type,d.invoice,d.passThrough,d.crews,d.originated);
-    revenueGenerated += d.invoice;
+  const rowsHtml = deals.map(d=>{
+    const c=commCalc(d.deal_type,d.invoice,d.pass_through,d.crews,d.originated);
+    revenueGenerated += parseFloat(d.invoice)||0;
     if(d.status==='earned'){ totalEarned += c.commission; pendingPayout += c.commission; }
     else if(d.status==='pending'){ pendingPayout += c.commission; }
-    else if(d.status==='paid' || d.status==='paid out'){ totalPaidOut += c.commission; totalEarned += c.commission; }
+    else if(d.status==='paid'){ totalPaidOut += c.commission; totalEarned += c.commission; }
     const sc = COMM_STATUS_COLORS[d.status] || '#7A8494';
-    return {d,c,row:'<tr><td style="font-weight:600">'+d.show+'</td>'
-      +'<td>'+(COMM_TYPE_LABELS[d.type]||d.type)+'</td>'
-      +'<td class="mono" style="font-size:11px">'+d.date+'</td>'
-      +'<td class="mono">'+fmt(d.invoice)+'</td>'
-      +'<td class="hide-mobile mono" style="color:var(--steel)">'+fmt(d.passThrough||0)+'</td>'
+    return '<tr style="cursor:pointer" onclick="openDealModal(\''+d.id+'\')"><td style="font-weight:600">'+d.show_name+'</td>'
+      +'<td>'+(COMM_TYPE_LABELS[d.deal_type]||d.deal_type)+'</td>'
+      +'<td class="mono" style="font-size:11px">'+(d.deal_date||'')+'</td>'
+      +'<td class="mono">'+fmt(parseFloat(d.invoice)||0)+'</td>'
+      +'<td class="hide-mobile mono" style="color:var(--steel)">'+fmt(parseFloat(d.pass_through)||0)+'</td>'
       +'<td class="hide-mobile mono">'+fmt(c.commissionable)+'</td>'
       +'<td class="mono" style="font-weight:700;color:var(--accent)">'+fmt(c.commission)+'</td>'
       +'<td class="hide-mobile mono" style="color:var(--steel)">'+c.effRate.toFixed(1)+'%</td>'
-      +'<td><span style="font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:10px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'55">'+d.status+'</span></td></tr>'};
-  });
+      +'<td><span style="font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 9px;border-radius:10px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'55">'+d.status+'</span></td>'
+      +'<td onclick="event.stopPropagation()"><button onclick="deleteDeal(\''+d.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">&times;</button></td></tr>';
+  }).join('');
 
-  document.getElementById('commDealsBody').innerHTML = rows.map(r=>r.row).join('');
-  document.getElementById('commDealsEmpty').style.display = rows.length ? 'none' : 'block';
+  document.getElementById('commDealsBody').innerHTML = rowsHtml;
+  document.getElementById('commDealsEmpty').style.display = deals.length ? 'none' : 'block';
 
   document.getElementById('commStatsRow').innerHTML = `
     <div class="stat-card"><div class="stat-label">Revenue Generated</div><div class="stat-val" style="color:var(--green)">${fmt(revenueGenerated)}</div></div>
@@ -6632,6 +6694,104 @@ function commCalcUpdate(){
   document.getElementById('calcCommission').textContent = fmt(c.commission);
   document.getElementById('calcEffRate').textContent = c.effRate.toFixed(1)+'%';
 }
+
+// -- DEAL CRUD --
+function openDealModal(id){
+  commEditId=id;
+  const d = id ? commDeals.find(x=>x.id===id) : null;
+  document.getElementById('dealModalTitle').textContent = d ? 'Edit Deal' : 'New Deal';
+  document.getElementById('dealDeleteBtn').style.display = d ? 'inline-flex' : 'none';
+  const sel=document.getElementById('dealStaff');
+  sel.innerHTML = commStaff.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
+  sel.value = d ? d.staff_id : (document.getElementById('commStaffSel').value || (commStaff[0]&&commStaff[0].id));
+  document.getElementById('dealShow').value = d ? d.show_name : '';
+  document.getElementById('dealType').value = d ? d.deal_type : 'rental';
+  document.getElementById('dealDate').value = d ? (d.deal_date||'') : '';
+  document.getElementById('dealInvoice').value = d ? d.invoice : 0;
+  document.getElementById('dealPassThrough').value = d ? d.pass_through : 0;
+  document.getElementById('dealStatus').value = d ? d.status : 'pending';
+  document.getElementById('dealCrews').checked = d ? !!d.crews : false;
+  document.getElementById('dealOriginated').checked = d ? !!d.originated : true;
+  dealCalcPreview();
+  openModal('dealModal');
+}
+function dealCalcPreview(){
+  const type=document.getElementById('dealType').value;
+  const invoice=document.getElementById('dealInvoice').value;
+  const passThrough=document.getElementById('dealPassThrough').value;
+  const crews=document.getElementById('dealCrews').checked;
+  const originated=document.getElementById('dealOriginated').checked;
+  const c=commCalc(type,invoice,passThrough,crews,originated);
+  const fmt=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('dealPreview').innerHTML = 'Commissionable: <b style="color:var(--text)">'+fmt(c.commissionable)+'</b> &nbsp;|&nbsp; Commission: <b style="color:var(--accent)">'+fmt(c.commission)+'</b> ('+c.effRate.toFixed(1)+'%)';
+}
+async function saveDeal(){
+  const body={
+    staff_id: document.getElementById('dealStaff').value,
+    show_name: document.getElementById('dealShow').value.trim(),
+    deal_type: document.getElementById('dealType').value,
+    deal_date: document.getElementById('dealDate').value || null,
+    invoice: parseFloat(document.getElementById('dealInvoice').value)||0,
+    pass_through: parseFloat(document.getElementById('dealPassThrough').value)||0,
+    crews: document.getElementById('dealCrews').checked,
+    originated: document.getElementById('dealOriginated').checked,
+    status: document.getElementById('dealStatus').value
+  };
+  if(!body.show_name){ toast('Error','Show / event name required'); return; }
+  try{
+    if(commEditId){ await sbPatch('commission_deals?id=eq.'+commEditId, body); toast('Deal updated', body.show_name); }
+    else { await sbPost('commission_deals', body); toast('Deal added', body.show_name); }
+    closeModal('dealModal');
+    await commInit();
+  }catch(e){ toast('Error','Could not save deal'); }
+}
+async function deleteDeal(id){
+  const targetId = id || commEditId;
+  if(!targetId) return;
+  if(!confirm('Delete this deal?')) return;
+  try{
+    await sbDelete('commission_deals?id=eq.'+targetId);
+    closeModal('dealModal');
+    toast('Deal deleted','');
+    await commInit();
+  }catch(e){ toast('Error','Could not delete'); }
+}
+
+// -- STAFF CRUD --
+let staffPending=[];
+function openStaffModal(){
+  staffPending = commStaff.map(s=>({...s}));
+  renderStaffList();
+  openModal('staffModal');
+}
+function renderStaffList(){
+  document.getElementById('staffListWrap').innerHTML = staffPending.map((s,i)=>`
+    <div style="display:grid;grid-template-columns:2fr 1.5fr 60px 60px 30px;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="fi" placeholder="Name" value="${(s.name||'').replace(/"/g,'&quot;')}" oninput="staffPending[${i}].name=this.value">
+      <input class="fi" placeholder="Role" value="${(s.role||'').replace(/"/g,'&quot;')}" oninput="staffPending[${i}].role=this.value">
+      <input class="fi" placeholder="Init" maxlength="2" value="${(s.initials||'').replace(/"/g,'&quot;')}" oninput="staffPending[${i}].initials=this.value">
+      <input type="color" value="${s.color||'#F5A623'}" oninput="staffPending[${i}].color=this.value" style="width:100%;height:34px;border:none;border-radius:6px;background:none">
+      <span onclick="staffPending.splice(${i},1);renderStaffList()" style="cursor:pointer;color:var(--muted);text-align:center">&times;</span>
+    </div>`).join('');
+}
+function addStaffRow(){
+  staffPending.push({name:'',role:'',initials:'',color:'#F5A623',sort_order:staffPending.length+1});
+  renderStaffList();
+}
+async function saveAllStaff(){
+  try{
+    for(const s of staffPending){
+      if(!s.name) continue;
+      const body={name:s.name,role:s.role||null,initials:s.initials||null,color:s.color||'#F5A623',sort_order:s.sort_order||0};
+      if(s.id){ await sbPatch('commission_staff?id=eq.'+s.id, body); }
+      else { await sbPost('commission_staff', body); }
+    }
+    toast('Staff saved','');
+    closeModal('staffModal');
+    await commInit();
+  }catch(e){ toast('Error','Could not save staff'); }
+}
+
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
