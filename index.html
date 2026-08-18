@@ -6856,7 +6856,7 @@ async function attrLoadAndRender(tab){
       attrRenderRows(attrCache.sched, (r)=>r.event_name, (r)=>{
         const days=(r.data&&r.data.days)||[];
         return days.length ? (days[0].label+' - '+days[days.length-1].label) : '';
-      }, ()=>'-', 'crew_schedules');
+      }, (r)=>'$'+attrSchedTotal(r.data).toLocaleString(undefined,{maximumFractionDigits:0}), 'crew_schedules');
     }
   }catch(e){
     wrap.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Could not load - '+e.message+'</div>';
@@ -6887,6 +6887,35 @@ async function attrSave(tableName, id, staffId){
     toast('Error','Could not save - '+e.message);
   }
 }
+
+function attrSchedTotal(data){
+  if(!data || !data.days) return 0;
+  const parseHrs=(timeStr)=>{
+    if(!timeStr) return 0;
+    const parts=timeStr.split(/[\u2013\u2014-]/).map(s=>s.trim());
+    if(parts.length<2) return 0;
+    const to24=(t)=>{
+      const m=t.match(/(\d+):?(\d{0,2})\s*([ap])/i);
+      if(!m) return null;
+      let hh=parseInt(m[1],10); const mm=parseInt(m[2]||'0',10); const ap=m[3].toLowerCase();
+      if(ap==='p'&&hh!==12) hh+=12; if(ap==='a'&&hh===12) hh=0;
+      return hh+mm/60;
+    };
+    const startH=to24(parts[0]), endH=to24(parts[1]);
+    if(startH===null||endH===null) return 0;
+    let diff=endH-startH; if(diff<0) diff+=24;
+    return diff;
+  };
+  const rateFor=(pos)=> (pos||'').toLowerCase().includes('setup') ? (data.rateSetup||0) : (data.rateSkilled||0);
+  let total=0;
+  data.days.forEach(d=>{
+    (data.assign && data.assign[d.id] || []).forEach(s=>{
+      if(!s.tech) return;
+      total += parseHrs(s.time) * rateFor(s.pos);
+    });
+  });
+  return total;
+}
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
