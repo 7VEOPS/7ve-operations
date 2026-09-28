@@ -5447,7 +5447,7 @@ function csRender(){
             <td style="padding:6px 8px;color:var(--muted2);font-family:monospace;font-size:12px">${i+1}</td>
             <td style="padding:6px 8px"><select class="fi" onchange="csSetSlot(${i},'tech',this.value)"><option value="">— select tech —</option>${opts(s.tech)}</select>${flag}</td>
             <td style="padding:6px 8px"><input class="fi" list="csPosDL" value="${s.pos||''}" onchange="csSetSlot(${i},'pos',this.value)"></td>
-            <td style="padding:6px 8px"><input class="fi" value="${s.time}" onchange="csSetSlot(${i},'time',this.value)" style="min-width:110px"></td>
+            <td style="padding:6px 8px"><input class="fi" value="${s.time}" onchange="csSetSlot(${i},'time',this.value)" style="min-width:110px"><div style="font-size:10px;margin-top:3px">${csShiftLabel(s.time)}</div></td>
             <td style="padding:6px 8px"><input class="fi" list="csRoomsDL" value="${s.room||''}" onchange="csSetSlot(${i},'room',this.value)"></td>
             <td style="padding:6px 8px"><button onclick="csDelSlot(${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px">×</button></td>
           </tr>`;
@@ -5638,13 +5638,43 @@ function csCreateJobFromSchedule(){
 }
 
 /* ---- parse time range to hours e.g. "9:00a-5:30p" -> 8.5 ---- */
+function csClockCandidates(t){
+  t=String(t).trim().toLowerCase();
+  if(/^(12(:00)?\s*)?midnight$/.test(t)) return {c:[0],assumed:false};
+  if(/^(12(:00)?\s*)?noon$/.test(t)) return {c:[720],assumed:false};
+  const m=t.match(/^(\d{1,2})(?::(\d{2}))?\s*(?:([ap])(?:\.?m\.?)?)?$/);
+  if(!m) return null;
+  const h=parseInt(m[1],10), mn=parseInt(m[2]||'0',10);
+  if(h<1||h>12||mn>59) return null;
+  const conv=function(ap){ let hr=h; if(ap==='p'&&hr!==12) hr+=12; if(ap==='a'&&hr===12) hr=0; return hr*60+mn; };
+  if(m[3]) return {c:[conv(m[3])],assumed:false};
+  return {c:[conv('a'),conv('p')],assumed:true};
+}
+function csShiftRead(timeStr){
+  if(!timeStr) return null;
+  const s=String(timeStr).replace(/[\u2013\u2014]/g,'-');
+  const R=/(\d{1,2}(?::\d{2})?\s*[ap](?:\.?m\.?)?|(?:12(?::00)?\s*)?(?:midnight|noon))\s*(?:-|\bto\b)\s*((?:12(?::00)?\s*)?(?:midnight|noon)|\d{1,2}(?::\d{2})?\s*(?:[ap](?:\.?m\.?)?)?)/i;
+  const m=s.match(R);
+  if(!m) return null;
+  const A=csClockCandidates(m[1]), B=csClockCandidates(m[2]);
+  if(!A||!B||A.assumed) return null;
+  const a=A.c[0];
+  const opts=B.c.map(function(b){ let d=b-a; if(d<0) d+=1440; return d; });
+  const pos=opts.filter(function(d){ return d>0; });
+  const d=pos.length ? Math.min.apply(null,pos) : 0;
+  return {hours:d/60,assumed:B.assumed};
+}
 function parseHours(timeStr){
-  if(!timeStr) return 8;
-  const s=timeStr.replace('–','-').replace('—','-');
-  const m=s.match(/(\d+):(\d+)\s*([ap])m?\s*[-–—]\s*(\d+):(\d+)\s*([ap])m?/i);
-  if(!m) return 8;
-  const toMin=(h,mn,ap)=>{let hr=parseInt(h);const m2=parseInt(mn);if(ap.toLowerCase()==='p'&&hr!==12)hr+=12;if(ap.toLowerCase()==='a'&&hr===12)hr=0;return hr*60+m2;};
-  return Math.max(0,(toMin(m[4],m[5],m[6])-toMin(m[1],m[2],m[3]))/60);
+  const r=csShiftRead(timeStr);
+  return r ? r.hours : 8;
+}
+function csShiftLabel(timeStr){
+  if(!timeStr || !String(timeStr).trim()) return '<span style="color:#F5A623">no time - bills default 8.00 hrs</span>';
+  const r=csShiftRead(timeStr);
+  if(!r) return '<span style="color:#F87171">cannot read time - bills default 8.00 hrs</span>';
+  const h=r.hours.toFixed(2);
+  if(r.assumed) return '<span style="color:#F5A623">'+h+' hrs (no am/pm on end - assumed)</span>';
+  return '<span style="color:var(--muted)">'+h+' hrs</span>';
 }
 
 /* ---- billing rate by position (Setup=$50, Skilled=$60 by default) ---- */
@@ -5850,22 +5880,7 @@ async function csPayrollPDF(){
   if(!CS.days.length){ toast('Nothing to print','Add days and assign crew first.'); return; }
   const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
 
-  const parseHrs=(timeStr)=>{
-    if(!timeStr) return 0;
-    const parts=timeStr.split(/[\u2013\u2014-]/).map(s=>s.trim());
-    if(parts.length<2) return 0;
-    const to24=(t)=>{
-      const m=t.match(/(\d+):?(\d{0,2})\s*([ap])/i);
-      if(!m) return null;
-      let hh=parseInt(m[1],10); const mm=parseInt(m[2]||'0',10); const ap=m[3].toLowerCase();
-      if(ap==='p'&&hh!==12) hh+=12; if(ap==='a'&&hh===12) hh=0;
-      return hh+mm/60;
-    };
-    const startH=to24(parts[0]), endH=to24(parts[1]);
-    if(startH===null||endH===null) return 0;
-    let diff=endH-startH; if(diff<0) diff+=24;
-    return diff;
-  };
+  const parseHrs=(t)=>parseHours(t);
 
   const payMode = CS.payMode || 'dedicated';
   const techIds=[...new Set(Object.values(CS.assign).flat().filter(s=>s.tech).map(s=>String(s.tech)))];
@@ -6954,22 +6969,7 @@ async function attrSave(tableName, id, staffId){
 
 function attrSchedTotal(data){
   if(!data || !data.days) return 0;
-  const parseHrs=(timeStr)=>{
-    if(!timeStr) return 0;
-    const parts=timeStr.split(/[\u2013\u2014-]/).map(s=>s.trim());
-    if(parts.length<2) return 0;
-    const to24=(t)=>{
-      const m=t.match(/(\d+):?(\d{0,2})\s*([ap])/i);
-      if(!m) return null;
-      let hh=parseInt(m[1],10); const mm=parseInt(m[2]||'0',10); const ap=m[3].toLowerCase();
-      if(ap==='p'&&hh!==12) hh+=12; if(ap==='a'&&hh===12) hh=0;
-      return hh+mm/60;
-    };
-    const startH=to24(parts[0]), endH=to24(parts[1]);
-    if(startH===null||endH===null) return 0;
-    let diff=endH-startH; if(diff<0) diff+=24;
-    return diff;
-  };
+  const parseHrs=(t)=>parseHours(t);
   const rateFor=(pos)=> (pos||'').toLowerCase().includes('setup') ? (data.rateSetup||0) : (data.rateSkilled||0);
   let total=0;
   data.days.forEach(d=>{
