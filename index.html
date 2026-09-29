@@ -6172,7 +6172,7 @@ function renderRentalOrders() {
       <div style="font-weight:700;font-size:15px;font-family:monospace">$${t.total.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
       <span onclick="roCycleStatus('${o.id}')" style="cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 10px;border-radius:12px;background:${sc}22;color:${sc};border:1px solid ${sc}55">${o.status}</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="openRentalOrder('${o.id}')">Edit</button>
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="openRentalOrder('${o.id}')">Edit</button><button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="repeatRentalOrder('${o.id}')" title="Create a new order pre-filled with this client, items and settings">🔁 Repeat</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','invoice')">Invoice</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','internal')">Internal</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','pull')">Pull Sheet</button>
@@ -6296,6 +6296,14 @@ function openRentalOrder(id) {
   roRenderItems();
   roLoadInventory();
   openModal('rentalOrderModal');
+}
+
+function repeatRentalOrder(id){
+  openRentalOrder(id);
+  roEditId = null;
+  document.getElementById('roStart').value = '';
+  document.getElementById('roEnd').value = '';
+  document.getElementById('roModalTitle').textContent = 'Repeat Order - set new dates';
 }
 
 function roUpdateMargin() {
