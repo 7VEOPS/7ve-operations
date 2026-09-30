@@ -303,6 +303,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       <div class="topbar-actions">
         <button class="btn btn-ghost admin-only" onclick="openLibrary()">📚 Library</button>
         <button class="btn btn-primary admin-only" onclick="openAdd()">+ Add Asset</button>
+        <button class="btn btn-ghost" onclick="printInventoryRateSheet()">📄 Print Price Sheet</button>
       </div>
     </div>
 
@@ -1085,6 +1086,15 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <div class="fg"><label class="fl">Case</label><input type="text" class="fi" id="fCase" placeholder="e.g. CASE-AUD-001"></div>
           <div class="fg"><label class="fl">Weight (lbs)</label><input type="number" step="0.1" class="fi" id="fWeight" placeholder="auto-estimate"></div>
         <div class="fg"><label class="fl">Location</label><input type="text" class="fi" id="fLoc" placeholder="e.g. SR-RACK-01"></div>
+        <div class="fg"><label class="fl">Replacement Value $</label><input type="number" class="fi" id="fReplaceValue" placeholder="e.g. 950"></div>
+        <div class="fg"><label class="fl">Rate %/day</label><input type="number" step="0.1" class="fi" id="fRatePct" placeholder="e.g. 15.8"></div>
+        <div class="fg" style="grid-column:1/-1"><label class="fl">Rate Sheet Tags</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="fBandsGear"> Bands</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="fHotelGear"> Hotel AV</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="fPrivateGear"> Private Contracts</label>
+          </div>
+        </div>
         <div class="fg"><label class="fl">Criticality *</label>
           <select class="fs" id="fCrit"><option>Mission Critical</option><option>Show Critical</option><option>Convenience</option><option>Consumable</option></select>
         </div>
@@ -1141,6 +1151,15 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div class="fg"><label class="fl">Case</label><input type="text" class="fi" id="eCase"></div>
           <div class="fg"><label class="fl">Weight (lbs)</label><input type="number" step="0.1" class="fi" id="eWeight"></div>
           <div class="fg"><label class="fl">Location</label><input type="text" class="fi" id="eLoc"></div>
+          <div class="fg"><label class="fl">Replacement Value $</label><input type="number" class="fi" id="eReplaceValue"></div>
+          <div class="fg"><label class="fl">Rate %/day</label><input type="number" step="0.1" class="fi" id="eRatePct"></div>
+          <div class="fg" style="grid-column:1/-1"><label class="fl">Rate Sheet Tags</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:6px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="eBandsGear"> Bands</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="eHotelGear"> Hotel AV</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);cursor:pointer"><input type="checkbox" id="ePrivateGear"> Private Contracts</label>
+            </div>
+          </div>
           <div class="fg"><label class="fl">Criticality</label><select class="fs" id="eCrit"><option>Mission Critical</option><option>Show Critical</option><option>Convenience</option><option>Consumable</option></select></div>
           <div class="fg"><label class="fl">Status</label><select class="fs" id="eStatus"><option>Operational</option><option>Repair</option><option>Missing</option><option>Rental</option></select></div>
           <div class="fg"><label class="fl">Qty</label><input type="number" class="fi" id="eQty" min="1"></div>
@@ -2251,6 +2270,11 @@ async function saveAsset() {
       case_id: document.getElementById('fCase').value.trim()||null,
       weight_lbs: parseFloat(document.getElementById('fWeight').value) || estimateWeight(name),
       criticality: document.getElementById('fCrit').value,
+        replacement_value: parseFloat(document.getElementById('fReplaceValue').value) || null,
+        rental_rate_pct: parseFloat(document.getElementById('fRatePct').value) || null,
+        bands_gear: document.getElementById('fBandsGear').checked,
+        hotel_av_gear: document.getElementById('fHotelGear').checked,
+        private_contract_gear: document.getElementById('fPrivateGear').checked,
       status: document.getElementById('fStatus').value,
       color: document.getElementById('fColor').value || null,
       location: document.getElementById('fLoc').value.trim()||null,
@@ -2289,6 +2313,11 @@ function openDetail(id) {
   document.getElementById('eLoc').value=a.location||''; document.getElementById('eCrit').value=a.criticality;
   document.getElementById('eStatus').value=a.status;
   document.getElementById('eQty').value=a.qty||1; document.getElementById('eNotes').value=a.notes||'';
+  document.getElementById('eReplaceValue').value=a.replacement_value||'';
+  document.getElementById('eRatePct').value=a.rental_rate_pct||'';
+  document.getElementById('eBandsGear').checked=!!a.bands_gear;
+  document.getElementById('eHotelGear').checked=!!a.hotel_av_gear;
+  document.getElementById('ePrivateGear').checked=!!a.private_contract_gear;
   const hist=(a.asset_history||[]).sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
   document.getElementById('historyList').innerHTML=hist.length?hist.map(h=>`
     <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px">
@@ -2311,6 +2340,11 @@ async function updateAsset() {
       location:document.getElementById('eLoc').value.trim()||null,
       criticality:document.getElementById('eCrit').value,
       status:document.getElementById('eStatus').value,
+    replacement_value: parseFloat(document.getElementById('eReplaceValue').value) || null,
+    rental_rate_pct: parseFloat(document.getElementById('eRatePct').value) || null,
+    bands_gear: document.getElementById('eBandsGear').checked,
+    hotel_av_gear: document.getElementById('eHotelGear').checked,
+    private_contract_gear: document.getElementById('ePrivateGear').checked,
     qty:parseInt(document.getElementById('eQty').value)||1,
       notes:document.getElementById('eNotes').value.trim()||null
     });
@@ -3239,6 +3273,11 @@ async function saveAsset() {
         system_name: document.getElementById('fSystem').value.trim()||null,
         case_id: document.getElementById('fCase').value.trim()||null,
         criticality: document.getElementById('fCrit').value,
+        replacement_value: parseFloat(document.getElementById('fReplaceValue').value) || null,
+        rental_rate_pct: parseFloat(document.getElementById('fRatePct').value) || null,
+        bands_gear: document.getElementById('fBandsGear').checked,
+        hotel_av_gear: document.getElementById('fHotelGear').checked,
+        private_contract_gear: document.getElementById('fPrivateGear').checked,
         status: document.getElementById('fStatus').value,
         location: document.getElementById('fLoc').value.trim()||null,
         notes: document.getElementById('fNotes').value.trim()||null,
@@ -3266,6 +3305,11 @@ async function saveAsset() {
           system_name: document.getElementById('fSystem').value.trim()||null,
           case_id: caseId,
           criticality: document.getElementById('fCrit').value,
+        replacement_value: parseFloat(document.getElementById('fReplaceValue').value) || null,
+        rental_rate_pct: parseFloat(document.getElementById('fRatePct').value) || null,
+        bands_gear: document.getElementById('fBandsGear').checked,
+        hotel_av_gear: document.getElementById('fHotelGear').checked,
+        private_contract_gear: document.getElementById('fPrivateGear').checked,
           status: document.getElementById('fStatus').value,
           location: document.getElementById('fLoc').value.trim()||null,
           notes: document.getElementById('fNotes').value.trim()||null,
@@ -6988,6 +7032,60 @@ function attrSchedTotal(data){
   });
   return total;
 }
+
+async function printInventoryRateSheet(){
+  let rows = [];
+  try { rows = await sbGet('assets?select=*&order=department,name'); } catch(e) { toast('Error','Could not load inventory'); return; }
+  const priced = rows.filter(r => (parseFloat(r.replacement_value)||0) > 0 && (parseFloat(r.rental_rate_pct)||0) > 0);
+  const unpriced = rows.length - priced.length;
+
+  const fmt = (n) => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const groups = {};
+  priced.forEach(r => {
+    const dept = r.department || 'Other';
+    if (!groups[dept]) groups[dept] = [];
+    const val = parseFloat(r.replacement_value)||0;
+    const pct = parseFloat(r.rental_rate_pct)||0;
+    const day = val * pct / 100;
+    groups[dept].push({ name: r.name, asset_id: r.asset_id, day, week: day*3, month: day*9 });
+  });
+  const deptOrder = ['Audio','Video','Lighting','Power','Scenic','Consumables'];
+  const deptNames = Object.keys(groups).sort((a,b) => {
+    const ia = deptOrder.indexOf(a), ib = deptOrder.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1; if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  const sections = deptNames.map(dept => {
+    const items = groups[dept];
+    const rowsHtml = items.map(it => '<tr><td>'+it.name+'</td><td class="mono" style="text-align:right">'+fmt(it.day)+'</td><td class="mono" style="text-align:right">'+fmt(it.week)+'</td><td class="mono" style="text-align:right">'+fmt(it.month)+'</td></tr>').join('');
+    return '<div style="font-size:12px;font-weight:800;color:#F5A623;text-transform:uppercase;letter-spacing:0.08em;margin:22px 0 8px">'+dept+'</div>'
+      + '<table><thead><tr><th>Item</th><th style="text-align:right">Daily</th><th style="text-align:right">Weekly</th><th style="text-align:right">Monthly</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>';
+  }).join('');
+
+  const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const note = unpriced > 0 ? '<div style="margin-top:20px;font-size:10px;color:#9ca3af">'+unpriced+' inventory item(s) do not yet have a rate set and are not shown on this sheet.</div>' : '';
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Rental Price Sheet</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">'
+    + '<style>body{font-family:\'Saira\',sans-serif;margin:0;color:#111}table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px}'
+    + 'th{padding:8px 12px;text-align:left;background:#f3f4f6;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:0.05em}'
+    + 'td{padding:7px 12px;border-bottom:1px solid #e5e7eb}</style></head><body>'
+    + '<div style="background:#0D0F12;color:#fff;padding:22px 32px;display:flex;justify-content:space-between;align-items:center">'
+    + '<div><span style="font-size:24px;font-weight:800"><span style="color:#F5A623">7</span> VIRTUES</span>'
+    + '<div style="font-size:10px;color:#7A8494;letter-spacing:0.15em;text-transform:uppercase">Entertainment - Rental Equipment</div></div>'
+    + '<div style="text-align:right"><div style="font-size:16px;font-weight:800;color:#F5A623;text-transform:uppercase;letter-spacing:0.08em">Rental Price Sheet</div>'
+    + '<div style="font-size:10px;color:#9ca3af;margin-top:4px">'+today+'</div></div></div>'
+    + '<div style="padding:24px 32px">'+sections+note+'</div>'
+    + '<div style="border-top:1px solid #e5e7eb;padding:14px 32px;font-size:10px;color:#9ca3af">Rates subject to availability. Delivery, setup, and technician labor billed separately. 7 Virtues Entertainment, LLC.</div>'
+    + '</body></html>';
+
+  const win = window.open('', '_blank');
+  if (!win) { toast('Popup blocked','Allow popups for this site.'); return; }
+  win.document.write(html); win.document.close();
+  setTimeout(() => win.print(), 500);
+}
 </script>
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_72j9EFRLzjekxy5vmT1sA55FxocA" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_72j9EFRLzjekxy5vmT1sA55FxocA" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6atm9J6UcoYKbVfh6PmUJJvoaQgg" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
