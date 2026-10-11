@@ -749,6 +749,9 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <button id="csRateModeBtn" class="btn" style="font-weight:700" onclick="csToggleRateMode()">Rate: Dedicated</button>
               <button class="btn btn-ghost" onclick="csEditContractRates()">Set Contract Rates</button>
               <button class="btn btn-ghost" onclick="csClientInvoice()">🧾 Client Invoice</button>
+              <button class="btn btn-ghost" onclick="csClientEstimatePDF()">📄 Client Labor Estimate</button>
+              <button class="btn btn-ghost" onclick="csLaborGuidePDF()">📘 Labor Rates Guide</button>
+              <button id="csCardBtn" class="btn" style="font-weight:700" onclick="csToggleCard()">Rate Card: V4</button>
               <select id="csNetTerms" class="fs" style="width:auto;min-width:150px" onchange="csSetNetTerms(this.value)">
                 <option value="dos">Due Day of Show</option>
                 <option value="0">Due on Receipt</option>
@@ -3535,6 +3538,7 @@ function renderPeople() {
         </div>
         <div style="font-size:12px;font-weight:600;color:var(--accent);font-family:monospace;white-space:nowrap">${payLabel}</div>
       </div>
+      ${p.rate_review==='needs_revision' ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-4px 0 10px;padding:6px 8px;border-radius:6px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);font-size:10px;font-weight:700;color:#F5A623"><span>⚑ RATE CARD REVIEW · V4 target $${V4.tiers[v4Tier((p.title||'')+' '+(p.department||''))].pay}/hr</span><button class="btn btn-ghost" style="padding:2px 8px;font-size:10px" onclick="csMarkRateReviewed('${p.id}',event)">Mark reviewed</button></div>` : ''}
       <!-- CONTACT -->
       <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:10px">
         ${p.phone ? `<span>📞 ${p.phone}</span>` : ''}
@@ -5409,7 +5413,7 @@ function csRememberOption(type,val){
   if(type==='pos' && !csPosPool.includes(val)){ csPosPool.push(val); csRenderOptionLists(); }
 }
 
-const CS={ id:null, event:'', budget:'', rateSetup:50, rateSkilled:60, days:[], cur:null, assign:{}, skills:{}, off:{} };
+const CS={ id:null, event:'', budget:'', rateCard:'v4', rateSetup:50, rateSkilled:60, days:[], cur:null, assign:{}, skills:{}, off:{} };
 let crewLoaded=false;
 
 function csTechs(){ return (people||[]).filter(p=>p.status==='staff').map(p=>({id:String(p.id),name:((p.first_name||'')+' '+(p.last_name||'')).trim()||'(unnamed)'})); }
@@ -5521,7 +5525,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -5539,7 +5543,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{};
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{};
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -5589,7 +5593,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
+  const row={event_name:CS.event, data:{rateCard:CS.rateCard, budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -5598,7 +5602,7 @@ async function csSave(){
       const rows=await r.json(); if(rows[0]&&rows[0].id) CS.id=rows[0].id;
     }
     toast('Schedule saved', CS.event+' — saved & persisted.'); csList();
-    if(isNew){ await loadJobs(); csCreateJobFromSchedule(); }
+    if(isNew){ csFlagRateCards(); await loadJobs(); csCreateJobFromSchedule(); }
   }catch(e){ toast('Saved locally','Shown now, not persisted — create the crew_schedules table.');
     if(isNew) csCreateJobFromSchedule(); }
 }
@@ -5649,11 +5653,9 @@ function csCreateJobFromSchedule(){
   CS.days.forEach(d=>{
     (CS.assign[d.id]||[]).forEach(s=>{
       if(!s.tech) return;
-      const p=peopleMap[s.tech]||{};
-      const payRate=parseFloat(p.pay_rate)||40;
-      const hrs=parseHours(s.time);
-      totalLabor+=payRate*hrs;
-      totalRevenue+=csBillRate(s.pos)*hrs;
+      const L=csLine(s,peopleMap[s.tech]||{});
+      totalLabor+=L.pay;
+      totalRevenue+=L.bill;
     });
   });
 
@@ -5726,6 +5728,159 @@ function csBillRate(pos){
   return /setup/i.test(pos||'') ? (CS.rateSetup||50) : (CS.rateSkilled||60);
 }
 
+/* ===== V4 RATE CARD (7VE-2027-V4) — labor pay / client billing ===== */
+const V4={ver:'V4',base:10,otTo:12,otX:1.5,dtX:2,burden:0.15,floor:0.35,
+  tiers:{
+    gen:{label:'General Stagehand',pay:33,bill:60},
+    skl:{label:'Skilled Stagehand / AV Tech',pay:40,bill:72},
+    a2:{label:'A2 / L2 / V2',pay:48,bill:88},
+    a1:{label:'A1 / L1 / V1 / Crew Chief / Technical Lead',pay:60,bill:110},
+    spc:{label:'Specialist / Designer / Production Manager',pay:70,bill:125},
+    td:{label:'Technical Director',pay:80,bill:142}}};
+function v4Tier(txt){
+  const t=String(txt||'').toLowerCase();
+  if(/technical director|\btd\b/.test(t)) return 'td';
+  if(/production manager|designer|specialist|\bpm\b|\bld\b/.test(t)) return 'spc';
+  if(/a1|v1|l1|crew chief|technical lead|lead/.test(t)) return 'a1';
+  if(/a2|v2|l2|in-room|audio tech|hybrid/.test(t)) return 'a2';
+  if(/skilled|av tech|stream|ptz|camera|video|audio|lighting/.test(t)) return 'skl';
+  return 'gen';
+}
+/* hours -> rate-hours: 10-hr guaranteed base, OT 1.5x hrs 11-12, DT 2x hr 13+ */
+function v4Split(hrs){
+  const paid=Math.max(hrs,V4.base);
+  const reg=V4.base, ot=Math.min(Math.max(paid-V4.base,0),V4.otTo-V4.base), dt=Math.max(paid-V4.otTo,0);
+  return {worked:hrs,paid,reg,ot,dt,units:reg+ot*V4.otX+dt*V4.dtX};
+}
+function csLine(s,p){
+  p=p||{};
+  const hrs=parseHours(s.time);
+  const pr=parseFloat(p.pay_rate);
+  const hourly=!p.pay_type||p.pay_type==='hourly';
+  if(CS.rateCard==='legacy'){
+    const payRate=pr||40, billRate=csBillRate(s.pos);
+    return {hrs,tier:null,payRate,billRate,pay:payRate*hrs,bill:billRate*hrs,split:null};
+  }
+  const tier=v4Tier(s.pos), T=V4.tiers[tier];
+  const payRate=(pr>0&&hourly)?pr:T.pay;
+  const sp=v4Split(hrs);
+  return {hrs,tier,T,payRate,billRate:T.bill,pay:payRate*sp.units,bill:T.bill*sp.units,split:sp};
+}
+function csSyncCardBtn(){
+  const b=document.getElementById('csCardBtn'); if(!b) return;
+  const v4=CS.rateCard!=='legacy';
+  b.textContent=v4?'Rate Card: V4':'Rate Card: Legacy';
+  b.style.background=v4?'var(--green)':'var(--accent)'; b.style.color='#0D0F12'; b.style.border='none';
+}
+function csToggleCard(){
+  CS.rateCard=(CS.rateCard==='legacy')?'v4':'legacy'; csSyncCardBtn(); csHoursSummary();
+  toast('Rate card', CS.rateCard==='legacy'?'Legacy flat billing (setup/skilled rates)':'V4 — 10-hr base, OT 1.5×, DT 2×');
+}
+
+/* ---- Task 2: flag staff rate cards for revision (run when a schedule is created) ---- */
+async function csFlagRateCards(){
+  try{
+    await sbPatch('staff_people?or=(rate_card_version.is.null,rate_card_version.neq.V4)',{rate_review:'needs_revision',rate_review_at:new Date().toISOString()});
+    if(typeof loadPeople==='function') loadPeople();
+    toast('Rate cards flagged','Staff not yet on V4 are flagged for revision in People.');
+  }catch(e){ toast('Rate flag not saved','Run rate_card_v4.sql in Supabase, then save a schedule again.'); }
+}
+async function csMarkRateReviewed(id,ev){
+  if(ev) ev.stopPropagation();
+  try{ await sbPatch('staff_people?id=eq.'+id,{rate_card_version:'V4',rate_review:null,rate_review_at:null}); await loadPeople(); toast('Rate card reviewed','Marked as V4.'); }
+  catch(e){ toast('Could not update','Run rate_card_v4.sql in Supabase first.'); }
+}
+
+/* ---- shared print shell for client-facing V4 documents ---- */
+function v4Shell(title,sub,body){
+  const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  return `<!DOCTYPE html><html><head><meta charset=utf-8><title>${title}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Saira:wght@700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel=stylesheet>
+  <style>
+  body{font-family:Inter,sans-serif;color:#111827;margin:0;background:#e5e7eb;padding:20px}
+  .sheet{max-width:850px;margin:0 auto;background:#fff;padding:40px 48px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #E70B0E;padding-bottom:14px;margin-bottom:22px}
+  .logo{font-family:Saira;font-weight:800;font-size:22px;text-transform:uppercase}.logo span{color:#E70B0E}
+  .lsub{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6b7280;margin-top:3px}
+  h1{font-family:Saira;font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.05em;margin:0;text-align:right}
+  .meta{font-size:11px;color:#6b7280;text-align:right;margin-top:4px}
+  h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin:22px 0 8px}
+  table{width:100%;border-collapse:collapse}
+  th{background:#111827;color:#fff;font-family:Saira;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:8px 9px;text-align:left}
+  td{padding:8px 9px;border-bottom:1px solid #f3f4f6;font-size:11.5px;vertical-align:top}
+  .r{text-align:right;font-family:'IBM Plex Mono',monospace}
+  .tot td{font-weight:700;border-top:2px solid #111827;background:#f9fafb}
+  .note{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;font-size:11.5px;line-height:1.55;margin-top:8px}
+  .note b{color:#111827}
+  .foot{margin-top:26px;font-size:9px;color:#9ca3af;display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:10px}
+  @media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none}@page{margin:12mm}}
+  </style></head><body onload="setTimeout(function(){window.print()},400)"><div class=sheet>
+  <div class=hdr><div><div class=logo><span>7 Virtues</span> Entertainment</div><div class=lsub>Production · Audio · Video · Lighting</div></div>
+  <div><h1>${title}</h1><div class=meta>${sub}<br>${today}</div></div></div>
+  ${body}
+  <div class=foot><span>7 Virtues Entertainment LLC · admin@7virtuesentertainment.com · 202-306-4375</span><span>Rate card ${V4.ver}</span></div>
+  </div></body></html>`;
+}
+const v4m=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const v4Policy=`<h2>How Labor Is Charged</h2><div class=note>
+<b>10-hour day.</b> Labor is booked in a 10-hour day. A call shorter than 10 hours is billed as 10 hours, because crew are guaranteed a full day.<br>
+<b>Overtime (1.5×).</b> Hours 11 and 12 of a day are billed at 1.5 times the hourly rate.<br>
+<b>Double time (2×).</b> Every hour after hour 12 is billed at 2 times the hourly rate.<br>
+<b>Meal penalty.</b> Crew must receive a meal break. If a required meal is missed or delayed, one additional hour at the standard hourly rate is billed for each occurrence, per person.<br>
+<b>Final billing.</b> Estimates are based on scheduled call times. The final invoice reflects actual hours worked.</div>`;
+
+/* ---- Task 1: client labor estimate PDF ---- */
+function csClientEstimatePDF(){
+  if(!CS.days.length){ toast('Nothing to print','Add days and assign crew first.'); return; }
+  const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
+  let sub=0, rows='', usedTiers={};
+  CS.days.forEach(d=>{
+    (CS.assign[d.id]||[]).forEach(s=>{
+      if(!s.tech) return;
+      const L=csLine(s,peopleMap[s.tech]||{});
+      sub+=L.bill;
+      const sp=L.split;
+      const detail=sp?`${sp.reg} base${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
+      if(L.tier) usedTiers[L.tier]=1;
+      rows+=`<tr><td>${d.label}</td><td>${String(s.pos||'').replace(/</g,'&lt;')}${L.T?`<div style="font-size:10px;color:#6b7280">${L.T.label}</div>`:''}</td><td>${String(s.time||'').replace(/</g,'&lt;')}</td><td>${L.hrs.toFixed(1)}<div style="font-size:10px;color:#6b7280">${detail}</div></td><td class=r>${v4m(L.billRate)}</td><td class=r>${v4m(L.bill)}</td></tr>`;
+    });
+  });
+  if(!rows){ toast('No crew assigned','Assign technicians to days first.'); return; }
+  const taxRate=(CS.taxOn!==false)?0.06:0, tax=sub*taxRate, total=sub+tax;
+  const ladder=Object.keys(usedTiers).map(k=>V4.tiers[k]);
+  const ladderRows=ladder.map(T=>{const o=T.bill*1.5,d=T.bill*2;return `<tr><td>${T.label}</td><td class=r>${v4m(T.bill)}</td><td class=r>${v4m(T.bill*V4.base)}</td><td class=r>${v4m(o)}</td><td class=r>${v4m(d)}</td></tr>`;}).join('');
+  const body=`<div class=note style="margin-top:0"><b>${(CS.event||'Event').replace(/</g,'&lt;')}</b><br>Labor estimate · ${CS.days.length} day${CS.days.length!==1?'s':''}</div>
+  <h2>Estimated Labor</h2>
+  <table><thead><tr><th>Day</th><th>Position</th><th>Call</th><th>Hours</th><th style="text-align:right">Rate/hr</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}
+  <tr class=tot><td colspan=5>Labor subtotal</td><td class=r>${v4m(sub)}</td></tr>
+  ${tax?`<tr><td colspan=5 style="text-align:right">Sales tax (6%)</td><td class=r>${v4m(tax)}</td></tr><tr class=tot><td colspan=5>Estimated total</td><td class=r>${v4m(total)}</td></tr>`:''}
+  </tbody></table>
+  ${ladderRows?`<h2>Rates Used</h2><table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">OT/hr (1.5×)</th><th style="text-align:right">DT/hr (2×)</th></tr></thead><tbody>${ladderRows}</tbody></table>`:''}
+  ${v4Policy}`;
+  const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for estimates.'); return; }
+  w.document.write(v4Shell('Labor Estimate',(CS.event||'').replace(/</g,'&lt;'),body)); w.document.close();
+}
+
+/* ---- Task 3: client-facing sales guide — rates, overtime, double time, meal penalties ---- */
+function csLaborGuidePDF(){
+  const T=V4.tiers;
+  const rate=Object.keys(T).map(k=>{const t=T[k];return `<tr><td>${t.label}</td><td class=r>${v4m(t.bill)}</td><td class=r>${v4m(t.bill*10)}</td><td class=r>${v4m(t.bill*1.5)}</td><td class=r>${v4m(t.bill*2)}</td></tr>`;}).join('');
+  const ex=T.a1.bill;
+  const exRow=(h,lbl)=>{const sp=v4Split(h);return `<tr><td>${lbl}</td><td class=r>${sp.reg}</td><td class=r>${sp.ot||'—'}</td><td class=r>${sp.dt||'—'}</td><td class=r>${v4m(ex*sp.units)}</td></tr>`;};
+  const body=`<div class=note style="margin-top:0">This guide explains how 7 Virtues Entertainment prices crew labor so there are no surprises on your invoice. Your quote lists each position, the call times, and the rate that applies.</div>
+  <h2>Hourly Rates by Position</h2>
+  <table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">Overtime/hr</th><th style="text-align:right">Double time/hr</th></tr></thead><tbody>${rate}</tbody></table>
+  ${v4Policy}
+  <h2>Worked Example — ${T.a1.label.split(' / ')[0]} at ${v4m(ex)}/hr</h2>
+  <table><thead><tr><th>Call length</th><th style="text-align:right">Base hrs</th><th style="text-align:right">OT hrs</th><th style="text-align:right">DT hrs</th><th style="text-align:right">Labor charge</th></tr></thead><tbody>
+  ${exRow(8,'8-hour call (billed as 10)')}${exRow(10,'10-hour call')}${exRow(12,'12-hour call')}${exRow(14,'14-hour call')}
+  <tr><td>Meal penalty (per occurrence)</td><td class=r colspan=3>1 hr at standard rate</td><td class=r>${v4m(ex)}</td></tr></tbody></table>
+  <h2>Ways To Keep Labor Costs Down</h2>
+  <div class=note>Schedule calls to fit within 10 hours, build meal breaks into the run of show, and tell us early about changes to load-in or strike times. We will help you plan a schedule that avoids overtime where the show allows.</div>`;
+  const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for the guide.'); return; }
+  w.document.write(v4Shell('Labor Rates & Charges','Client guide',body)); w.document.close();
+}
+
 /* ---- SCHEDULE HOURS SUMMARY (shown in UI after csRender) ---- */
 function csHoursSummary(){
   const el=document.getElementById('csHoursSummary'); if(!el) return;
@@ -5735,11 +5890,8 @@ function csHoursSummary(){
     const slots=(CS.assign[d.id]||[]).filter(s=>s.tech);
     let dayHrs=0, dayRev=0, dayPay=0;
     slots.forEach(s=>{
-      const hrs=parseHours(s.time);
-      const billRate=csBillRate(s.pos);
-      const p=peopleMap[s.tech]||{};
-      const payRate=parseFloat(p.pay_rate)||40;
-      dayHrs+=hrs; dayRev+=hrs*billRate; dayPay+=hrs*payRate;
+      const L=csLine(s,peopleMap[s.tech]||{});
+      dayHrs+=L.hrs; dayRev+=L.bill; dayPay+=L.pay;
     });
     totalHrs+=dayHrs; totalRevenue+=dayRev; totalLabor+=dayPay;
     if(slots.length){
@@ -5765,7 +5917,7 @@ function csHoursSummary(){
         <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Margin</div><div style="font-size:20px;font-weight:700;color:${marginColor}">${margin.toFixed(1)}%</div></div>
       </div>
       <div style="margin-top:10px;font-size:11px;color:${marginColor};font-weight:600">
-        ${margin>=20?'✔ In margin' : margin>=10?'⚠ Tight margin' : '⚠ Under margin'} \xb7 Est. profit $${profit.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})} \xb7 Billing $${(CS.rateSetup||50)}/hr setup / $${(CS.rateSkilled||60)}/hr skilled \xb7 Pay est. $40/hr
+        ${margin>=20?'✔ In margin' : margin>=10?'⚠ Tight margin' : '⚠ Under margin'} \xb7 Est. profit $${profit.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})} \xb7 ${CS.rateCard==='legacy' ? 'Legacy flat billing $'+(CS.rateSetup||50)+'/hr setup / $'+(CS.rateSkilled||60)+'/hr skilled' : 'V4 rate card \xb7 10-hr base, OT 1.5\xd7, DT 2\xd7'}
       </div>
     </div>`;
 }
@@ -5783,11 +5935,10 @@ function csInternalPDF(){
       if(!s.tech) return;
       const p=peopleMap[s.tech]||{};
       const name=((p.first_name||'')+' '+(p.last_name||'')).trim()||'(unknown)';
-      const payRate=parseFloat(p.pay_rate)||40;
-      const billRate=csBillRate(s.pos);
-      const hrs=parseHours(s.time);
-      const payout=payRate*hrs;
-      const billed=billRate*hrs;
+      const L=csLine(s,p);
+      const payRate=L.payRate, billRate=L.billRate, hrs=L.hrs;
+      const payout=L.pay;
+      const billed=L.bill;
       totalLabor+=payout; totalRevenue+=billed;
       techRows.push({name,day:d.label,pos:s.pos,time:s.time,hrs,payRate,billRate,payout,billed,profit:billed-payout});
     });
