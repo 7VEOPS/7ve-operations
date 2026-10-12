@@ -769,9 +769,9 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
                 <option value="8">Net 8</option>
                 <option value="10">Net 10</option>
                 <option value="14">Net 14</option>
-                <option value="15" selected>Net 15</option>
+                <option value="15">Net 15</option>
                 <option value="20">Net 20</option>
-                <option value="30">Net 30</option>
+                <option value="30" selected>Net 30</option>
                 <option value="45">Net 45</option>
                 <option value="60">Net 60</option>
                 <option value="90">Net 90</option>
@@ -5563,7 +5563,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='30'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -5583,7 +5583,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn();
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'30'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn();
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -5596,23 +5596,23 @@ function csSetNetTerms(v){
 }
 function csSyncNetTermsSel(){
   const sel=document.getElementById('csNetTerms'); if(!sel) return;
-  sel.value = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+  sel.value = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
 }
 function csNetTermsLabel(){
-  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
   if (v==='dos') return 'Due Day of Show';
   if (v==='0') return 'Due on Receipt';
   return 'Net ' + v;
 }
 function csDueDate(showLabel){
-  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
   const fmtD = d => d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   if (v==='dos') {
     let sd = null;
     if (showLabel) { const parsed = new Date(showLabel + ', ' + new Date().getFullYear()); if (!isNaN(parsed)) sd = parsed; }
     return sd ? fmtD(sd) : fmtD(new Date());
   }
-  const days = v==='0' ? 0 : (parseInt(v,10)||15);
+  const days = v==='0' ? 0 : (parseInt(v,10)||30);
   return fmtD(new Date(Date.now()+days*864e5));
 }
 
@@ -5633,7 +5633,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
+  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'30'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -5743,7 +5743,7 @@ const psMoney=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:
 const psFmtLong=d=>d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 const psFmtShort=d=>(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
 function psInvNumber(id){ return '7VE-S'+String(id).replace(/[^a-z0-9]/gi,'').slice(-6).toUpperCase(); }
-function psTermsLabel(v){ v=String(v??'15'); return v==='dos'?'Due Day of Show':v==='0'?'Due on Receipt':'Net '+v; }
+function psTermsLabel(v){ v=String(v??'30'); return v==='dos'?'Due Day of Show':v==='0'?'Due on Receipt':'Net '+v; }
 /* show date from a day label like "Jul 20" or "SNS 9/24" — the year comes from when the schedule was created */
 function psShowDate(data, created, last){
   const days=(data&&data.days)||[]; const lbl=days.length&&days[last?days.length-1:0].label; if(!lbl) return null;
@@ -5759,10 +5759,10 @@ function psShowDate(data, created, last){
 /* due date: Day of Show = first show day; otherwise the last show day plus the net days
    (falls back to the created date when a day label has no readable date) */
 function psDueDate(data, created){
-  const v=String((data&&data.netTerms)??'15'), c=new Date(created||Date.now());
+  const v=String((data&&data.netTerms)??'30'), c=new Date(created||Date.now());
   let d;
   if(v==='dos') d=psShowDate(data,c)||c;
-  else { d=new Date(psShowDate(data,c,true)||c); d.setDate(d.getDate()+(v==='0'?0:(parseInt(v,10)||15))); }
+  else { d=new Date(psShowDate(data,c,true)||c); d.setDate(d.getDate()+(v==='0'?0:(parseInt(v,10)||30))); }
   d=new Date(d); d.setHours(23,59,0,0); return d;
 }
 /* invoice total for a saved schedule, priced with that schedule's own rate card */
@@ -6452,7 +6452,7 @@ function csClientInvoice(){
   const total=grandSubtotal+tax;
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const firstShowLabel=(CS.days[0] && CS.days[0].label) ? CS.days[0].label : null;
-  const _psData={netTerms:(CS.netTerms??'15'),days:CS.days};
+  const _psData={netTerms:(CS.netTerms??'30'),days:CS.days};
   const due=psFmtLong(psDueDate(_psData, CS.createdAt||new Date()));
   const invNum=CS.id?psInvNumber(CS.id):'7VE-'+Date.now().toString().slice(-6);
   const fmt=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
