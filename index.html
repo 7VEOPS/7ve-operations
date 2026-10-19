@@ -264,6 +264,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       <div class="nav-item active" onclick="setView('inventory',this)">📦 Inventory</div>
       <div class="nav-item" onclick="setView('scan',this)">📷 Scan / QR</div>
       <div class="nav-item" onclick="setView('rentals',this)">🔄 Rentals</div>
+      <div class="nav-item" id="navGearRoi" style="padding-left:34px;font-size:12px" onclick="gotoGearPayback()">↳ 📈 Gear Payback</div>
       <div class="nav-item" onclick="setView('contacts',this)">👥 Contacts</div>
       <div class="nav-item" onclick="setView('truckpack',this)">🚛 Truck Pack</div>
     </div>
@@ -341,10 +342,17 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <button class="chip" data-crit="Convenience" onclick="setCrit(this,'Convenience')">Convenience</button>
           <button class="chip" data-crit="Consumable" onclick="setCrit(this,'Consumable')">Consumable</button>
         </div>
+        <div id="bulkBar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:8px 12px;margin-bottom:10px">
+          <b id="bulkCount" style="font-size:13px"></b>
+          <button class="btn btn-primary" onclick="bulkOpenEdit()">✏️ Edit selected</button>
+          <button class="btn btn-danger" onclick="bulkDelete()">🗑 Delete selected</button>
+          <button class="btn btn-ghost" onclick="selClear()">Clear</button>
+        </div>
         <div class="table-wrap">
           <div id="tableLoading" class="loading"><div class="spinner"></div> Loading assets…</div>
           <table id="assetTable" style="display:none">
             <thead><tr>
+              <th style="width:28px" onclick="event.stopPropagation()"><input type="checkbox" id="selAll" title="Select all shown" onclick="selToggleAll(this.checked)"></th>
               <th>ID</th><th>Asset</th>
               <th class="hide-mobile">Dept</th>
               <th>Criticality</th><th>Status</th>
@@ -374,6 +382,10 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
           <div class="tab active" onclick="setRentTab('track',this)">Gear Tracking</div>
           <div class="tab" onclick="setRentTab('orders',this)">Rental Orders</div>
+          <div class="tab" onclick="setRentTab('gear',this)">Gear Payback</div>
+          <div class="tab" onclick="setRentTab('wed',this)">Weddings</div>
+          <div class="tab" onclick="setRentTab('audio',this)">Audio Packages</div>
+          <div class="tab" onclick="setRentTab('light',this)">Lighting Packages</div>
           <div class="tab" onclick="setRentTab('pricing',this)">Pricing Calculator</div>
         </div>
         <div id="rentTab-track">
@@ -419,7 +431,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <!-- RENTAL ORDERS TAB -->
         <div id="rentTab-orders" style="display:none">
           <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
-            <button class="btn btn-ghost" onclick="openGearRoi()" style="margin-right:8px">📈 Gear Payback</button><button class="btn btn-primary" onclick="openRentalOrder(null)">+ New Rental Order</button>
+            <button class="btn btn-primary" onclick="openRentalOrder(null)">+ New Rental Order</button>
           </div>
           <div id="rentalOrdersList"></div>
           <div id="roEmpty" class="empty" style="display:none">
@@ -427,6 +439,26 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <div style="font-size:12px">Create an order to generate the client invoice, internal report, and driver pull sheet.</div>
           </div>
         </div>
+
+        <!-- GEAR PAYBACK TAB -->
+        <div id="rentTab-gear" style="display:none">
+          <div style="font-size:12px;color:var(--steel);margin-bottom:12px">What each piece of gear has earned toward paying itself off, per rental and per invoice.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <select class="fs" id="roiView" onchange="roiRender()" style="flex:1;min-width:140px"><option value="gear">By gear item</option><option value="order">By rental / invoice</option></select>
+            <select class="fs" id="roiMode" onchange="roiRender()" style="flex:1;min-width:170px"><option value="active">Count: out, returned &amp; paid</option><option value="paid">Count: paid only</option><option value="all">Count: everything incl. quotes</option></select>
+            <select class="fs" id="roiDept" onchange="roiRender()" style="flex:1;min-width:140px"><option value="">All departments</option></select>
+          </div>
+          <div id="roiBody"></div>
+        </div>
+
+        <!-- WEDDINGS TAB -->
+        <div id="rentTab-wed" style="display:none">
+          <div style="font-size:12px;color:var(--steel);margin-bottom:12px">Pre-built wedding package: the DNVR DJ Rig pull sheet plus ceremony and lighting add-ons.</div>
+          <div id="wedBody"></div>
+        </div>
+
+        <div id="rentTab-audio" style="display:none"><div style="font-size:12px;color:var(--steel);margin-bottom:12px">Build an audio package from the gear you own, priced from the rate card.</div><div id="audBody"></div></div>
+        <div id="rentTab-light" style="display:none"><div style="font-size:12px;color:var(--steel);margin-bottom:12px">Build a lighting package in even, symmetrical counts, priced from the rate card.</div><div id="lgtBody"></div></div>
 
         <!-- PRICING TAB -->
         <div id="rentTab-pricing" style="display:none">
@@ -1779,17 +1811,23 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
   </div>
 </div>
 
-<div class="overlay" id="gearRoiModal">
-  <div class="modal" style="max-width:820px">
-    <div class="modal-hdr"><div><div class="modal-title">Gear Payback</div><div class="modal-sub">What each piece of gear has earned toward paying itself off, per rental and per invoice</div></div><button class="modal-close" onclick="closeModal('gearRoiModal')">&times;</button></div>
+<div class="overlay" id="bulkEditModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr"><div><div class="modal-title" id="beTitle">Edit selected</div><div class="modal-sub">Only fields you fill in are changed; blank fields stay as they are</div></div><button class="modal-close" onclick="closeModal('bulkEditModal')">&times;</button></div>
     <div class="modal-body">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <select class="fs" id="roiView" onchange="roiRender()" style="flex:1;min-width:140px"><option value="gear">By gear item</option><option value="order">By rental / invoice</option></select>
-        <select class="fs" id="roiMode" onchange="roiRender()" style="flex:1;min-width:170px"><option value="active">Count: out, returned &amp; paid</option><option value="paid">Count: paid only</option><option value="all">Count: everything incl. quotes</option></select>
-        <select class="fs" id="roiDept" onchange="roiRender()" style="flex:1;min-width:140px"><option value="">All departments</option></select>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Department</label><select class="fs" id="beDept"><option value="">— no change —</option><option>Audio</option><option>Video</option><option>Lighting</option><option>Power</option><option>Scenic</option><option>Networking</option><option>Consumables</option></select></div>
+        <div class="fg"><label class="fl">Criticality</label><select class="fs" id="beCrit"><option value="">— no change —</option><option>Mission Critical</option><option>Show Critical</option><option>Convenience</option><option>Consumable</option></select></div>
+        <div class="fg"><label class="fl">Status</label><select class="fs" id="beStatus"><option value="">— no change —</option><option>Operational</option><option>Repair</option><option>Missing</option><option>Rental</option></select></div>
+        <div class="fg"><label class="fl">Location</label><input class="fi" id="beLoc" placeholder="no change"></div>
+        <div class="fg"><label class="fl">Qty</label><input type="number" min="1" class="fi" id="beQty" placeholder="no change"></div>
+        <div class="fg"><label class="fl">Rate %/day</label><input type="number" step="0.1" class="fi" id="beRate" placeholder="no change"></div>
+        <div class="fg"><label class="fl">Purchase cost $ (per unit)</label><input type="number" class="fi" id="bePurchase" placeholder="no change"></div>
+        <div class="fg"><label class="fl">Replacement value $</label><input type="number" class="fi" id="beReplace" placeholder="no change"></div>
+        <div class="fg full"><label class="fl">Gear group</label><select class="fs" id="beGear"><option value="">— no change —</option><option value="bands">Bands only</option><option value="hotel">Hotel AV only</option><option value="private">Private Contracts only</option></select></div>
       </div>
-      <div id="roiBody"></div>
     </div>
+    <div class="modal-ftr"><div style="flex:1"></div><button class="btn btn-ghost" onclick="closeModal('bulkEditModal')">Cancel</button><button class="btn btn-primary" onclick="bulkApplyEdit()">Apply to selected</button></div>
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
@@ -2304,13 +2342,16 @@ function renderTable() {
   if (critFilter) rows = rows.filter(a=>a.criticality===critFilter);
   if (statusFilter) rows = rows.filter(a=>a.status===statusFilter);
   if (colorFilter) rows = rows.filter(a=>(a.color||'')===colorFilter);
+  if (typeof cableFilter!=='undefined' && cableFilter) rows = rows.filter(a=>a.name.toLowerCase().includes(cableFilter.toLowerCase()));
   renderColorChips();
   if (q) rows = rows.filter(a=>(a.name+a.asset_id+a.department+(a.system_name||'')).toLowerCase().includes(q));
   document.getElementById('tableLoading').style.display = 'none';
-  if (!rows.length) { document.getElementById('assetTable').style.display='none'; document.getElementById('tableEmpty').style.display='block'; return; }
+  selVisible = rows.map(a=>a.id);
+  if (!rows.length) { document.getElementById('assetTable').style.display='none'; document.getElementById('tableEmpty').style.display='block'; selUpdateBar(); return; }
   document.getElementById('assetTable').style.display='table'; document.getElementById('tableEmpty').style.display='none';
   document.getElementById('assetBody').innerHTML = rows.map(a=>`
     <tr class="arow" onclick="openDetail('${a.id}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${selIds.has(a.id)?'checked':''} onclick="selToggle('${a.id}',this.checked)"></td>
       <td><span onclick="cycleAssetColor(event,'${a.id}')" title="tap to color-code" style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:middle;cursor:pointer;background:${a.color||'transparent'};border:1.5px solid ${a.color||'var(--border-hi)'}"></span><span class="asset-id">${a.asset_id}</span></td>
       <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>`:''}</td>
       <td class="hide-mobile"><span class="dept-tag">${a.department}</span></td>
@@ -2320,6 +2361,7 @@ function renderTable() {
       <td class="hide-mobile"><span class="loc-pill">${a.location||'—'}</span></td>
       <td></td>
     </tr>`).join('');
+  selUpdateBar();
 }
 
 function setCrit(el,val) { critFilter=val; statusFilter=''; document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.crit===val)); renderTable(); }
@@ -2437,6 +2479,51 @@ async function updateAsset() {
     await sbPost('asset_history',{asset_id:activeAssetId,entry:`Updated`,created_by:currentUser.email});
     closeModal('detailModal'); toast('Saved','Asset updated'); await loadAssets();
   } catch(e) { toast('Error',e.message); }
+}
+
+
+/* ===== INVENTORY MULTI-SELECT: bulk edit / delete ===== */
+let selIds = new Set(), selVisible = [];
+function selToggle(id,on){ on?selIds.add(id):selIds.delete(id); selUpdateBar(); }
+function selToggleAll(on){ selVisible.forEach(id=>on?selIds.add(id):selIds.delete(id)); renderTable(); }
+function selClear(){ selIds.clear(); renderTable(); }
+function selUpdateBar(){
+  const bar=document.getElementById('bulkBar'); if(!bar) return;
+  selIds=new Set([...selIds].filter(id=>assets.some(a=>a.id===id)));
+  const n=selIds.size; bar.style.display=(n&&isAdmin)?'flex':'none';
+  document.getElementById('bulkCount').textContent=n+' selected';
+  const all=document.getElementById('selAll'); if(all){ const vis=selVisible.filter(id=>selIds.has(id)).length; all.checked=selVisible.length>0&&vis===selVisible.length; all.indeterminate=vis>0&&vis<selVisible.length; }
+}
+function bulkOpenEdit(){
+  if(!isAdmin||!selIds.size) return;
+  ['beDept','beCrit','beStatus','beGear'].forEach(i=>document.getElementById(i).value='');
+  ['beLoc','beQty','beRate','bePurchase','beReplace'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('beTitle').textContent='Edit '+selIds.size+' selected item'+(selIds.size===1?'':'s');
+  openModal('bulkEditModal');
+}
+async function bulkApplyEdit(){
+  const patch={}; const v=i=>document.getElementById(i).value.trim();
+  if(v('beDept')) patch.department=v('beDept');
+  if(v('beCrit')) patch.criticality=v('beCrit');
+  if(v('beStatus')) patch.status=v('beStatus');
+  if(v('beLoc')) patch.location=v('beLoc');
+  if(v('beQty')) patch.qty=parseInt(v('beQty'));
+  if(v('beRate')) patch.rental_rate_pct=parseFloat(v('beRate'));
+  if(v('bePurchase')) patch.purchase_cost=parseFloat(v('bePurchase'));
+  if(v('beReplace')) patch.replacement_value=parseFloat(v('beReplace'));
+  const g=v('beGear'); if(g){ patch.bands_gear=g==='bands'; patch.hotel_av_gear=g==='hotel'; patch.private_contract_gear=g==='private'; }
+  if(!Object.keys(patch).length){ toast('Nothing to change','Fill in at least one field'); return; }
+  const ids=[...selIds]; if(!confirm('Apply these changes to '+ids.length+' item'+(ids.length===1?'':'s')+'?')) return;
+  try{ await sbPatch('assets?id=in.('+ids.join(',')+')',patch); }
+  catch(e){ toast('Error','Bulk edit failed (purchase cost needs rental_gear_payback.sql)'); return; }
+  closeModal('bulkEditModal'); toast('Updated',ids.length+' item'+(ids.length===1?'':'s')+' changed'); selIds.clear(); await loadAssets();
+}
+async function bulkDelete(){
+  if(!isAdmin||!selIds.size) return;
+  const ids=[...selIds]; const names=ids.slice(0,5).map(id=>{const a=assets.find(x=>x.id===id);return a?a.asset_id+' '+a.name:id;}).join('\n');
+  if(!confirm('Permanently delete '+ids.length+' item'+(ids.length===1?'':'s')+'?\n\n'+names+(ids.length>5?'\n…and '+(ids.length-5)+' more':'')+'\n\nThis cannot be undone.')) return;
+  try{ await sbDelete('assets?id=in.('+ids.join(',')+')'); }catch(e){ toast('Error','Bulk delete failed'); return; }
+  toast('Deleted',ids.length+' item'+(ids.length===1?'':'s')+' removed'); selIds.clear(); await loadAssets();
 }
 
 async function deleteAsset() {
@@ -2924,30 +3011,6 @@ function setView(name, el) {
   closeSidebar();
 }
 
-// Patch renderTable to handle cable filter
-const __origRender = renderTable;
-renderTable = function() {
-  const q = document.getElementById('searchQ').value.toLowerCase();
-  let rows = assets;
-  if (critFilter) rows = rows.filter(a=>a.criticality===critFilter);
-  if (statusFilter) rows = rows.filter(a=>a.status===statusFilter);
-  if (cableFilter) rows = rows.filter(a=>a.name.toLowerCase().includes(cableFilter.toLowerCase()));
-  if (q) rows = rows.filter(a=>(a.name+a.asset_id+a.department+(a.system_name||'')).toLowerCase().includes(q));
-  document.getElementById('tableLoading').style.display = 'none';
-  if (!rows.length) { document.getElementById('assetTable').style.display='none'; document.getElementById('tableEmpty').style.display='block'; return; }
-  document.getElementById('assetTable').style.display='table'; document.getElementById('tableEmpty').style.display='none';
-  document.getElementById('assetBody').innerHTML = rows.map(a=>`
-    <tr class="arow" onclick="openDetail('${a.id}')">
-      <td><span class="asset-id">${a.asset_id}</span></td>
-      <td><div class="asset-name">${a.name}</div>${a.notes?`<div style="font-size:11px;color:var(--muted)">${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>`:''}</td>
-      <td class="hide-mobile"><span class="dept-tag">${a.department}</span></td>
-      <td><span class="crit-badge ${critClass(a.criticality)}">${a.criticality}</span></td>
-      <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
-      <td class="hide-mobile" style="font-family:monospace;font-size:13px;font-weight:600;color:var(--accent)">${a.qty||1}</td>
-      <td class="hide-mobile"><span class="loc-pill">${a.location||'—'}</span></td>
-      <td></td>
-    </tr>`).join('');
-};
 
 
 // ── CONTACTS ──
@@ -6204,7 +6267,10 @@ async function roiLoadAssets(force){
 /* match a line item to an inventory asset: asset id prefix first, then name */
 function roiMatch(name,assets){
   name=String(name||''); const m=name.match(/^([A-Z]{2,4}-\d{2,4})\b/);
-  if(m){ const a=assets.find(x=>x.asset_id===m[1]); if(a) return a; }
+  if(m){ const c=assets.filter(x=>x.asset_id===m[1]); const rest=roiNorm(name.slice(m[1].length));
+    const hit=c.filter(x=>{ const an=roiNorm(x.name); return an&&(rest===an||rest.includes(an)||an.includes(rest)); });
+    if(hit.length) return hit.sort((x,y)=>roiNorm(y.name).length-roiNorm(x.name).length)[0];
+    if(c.length===1) return c[0]; }
   const n=roiNorm(name); if(n.length<4) return null;
   let best=null,bl=0;
   assets.forEach(a=>{ const an=roiNorm(a.name); if(an.length<5) return;
@@ -6256,7 +6322,7 @@ function roiCompute(assets,orders,mode){
   const byId={}; assets.forEach(a=>byId[a.id]=a);
   const stat={}; assets.forEach(a=>stat[a.id]={a,unit:roiUnit(a),cost:roiUnit(a)*(parseInt(a.qty)||1),earned:0,jobs:[]});
   const per=[];
-  orders.filter(o=>mode==='all'||(mode==='paid'?o.status==='paid':['out','returned','paid'].includes(o.status))).forEach(o=>{
+  orders.filter(o=>o.invoice_id&&(mode==='all'||(mode==='paid'?o.status==='paid':['out','returned','paid'].includes(o.status)))).forEach(o=>{
     const t=roTotals(o); const pct=(o.gear_pct==null||o.gear_pct==='')?100:parseFloat(o.gear_pct);
     const pool=Math.max(0,t.gear-t.cost)*pct/100;
     const used=[],unmatched=[];
@@ -6271,8 +6337,13 @@ function roiCompute(assets,orders,mode){
   });
   return {stat:Object.values(stat),per};
 }
+function gotoGearPayback(){
+  const nav=document.querySelector('.nav-item[onclick*="\'rentals\'"]'); setView('rentals',nav);
+  const tab=[...document.querySelectorAll('#view-rentals .tab')].find(t=>/Gear Payback/.test(t.textContent));
+  setRentTab('gear',tab);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); document.getElementById('navGearRoi').classList.add('active');
+}
 async function openGearRoi(){
-  openModal('gearRoiModal');
   document.getElementById('roiBody').innerHTML='<div style="color:var(--muted);padding:20px">Loading inventory and orders…</div>';
   await roiLoadAssets(true);
   try{ rentalOrders=await sbGet('rental_orders?select=*&order=created_at.desc'); }catch(e){}
@@ -6285,13 +6356,14 @@ function roiToggle(k){ roiOpen[k]=!roiOpen[k]; roiRender(); }
 function roiRender(){
   const mode=document.getElementById('roiMode').value, dept=document.getElementById('roiDept').value, view=document.getElementById('roiView').value;
   const R=roiCompute(roRoiAssets,rentalOrders,mode);
-  let rows=R.stat.filter(s=>s.cost>0&&(!dept||s.a.department===dept));
+  const noInv=rentalOrders.filter(o=>!o.invoice_id).length;
+  let rows=R.stat.filter(s=>s.cost>0&&s.jobs.length&&(!dept||s.a.department===dept));
   const used=rows.filter(s=>s.jobs.length);
   const tCost=rows.reduce((s,x)=>s+x.cost,0), tEarn=rows.reduce((s,x)=>s+x.earned,0);
   const paidOff=rows.filter(s=>s.earned>=s.cost).length;
   const st=(l,v,c,s)=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${v}</div><div class="stat-sub">${s}</div></div>`;
   let h=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px">`+
-    st('Gear cost basis',roiM(tCost),'var(--text)',rows.length+' items')+
+    st('Gear cost basis',roiM(tCost),'var(--text)',rows.length+' items on invoices')+
     st('Earned so far',roiM(tEarn),'var(--green)',used.length+' items rented')+
     st('Paid off',paidOff+' / '+rows.length,'var(--accent)','earned ≥ cost')+
     st('Net position',(tEarn-tCost>=0?'+':'−')+roiM(Math.abs(tEarn-tCost)),tEarn-tCost>=0?'var(--green)':'var(--red)','earned − cost')+`</div>`;
@@ -6314,8 +6386,163 @@ function roiRender(){
       h+='</div>'; });
     if(!R.per.length) h+='<div style="color:var(--muted);padding:12px 0;font-size:12px">No rental orders match this filter.</div>';
   }
-  h+=`<div style="font-size:10px;color:var(--muted);margin-top:12px;line-height:1.5">Cost basis = purchase cost when entered on the gear record, otherwise its replacement value, × quantity owned. Revenue only counts for orders in the selected statuses. Estimates for planning, not accounting; confirm tax treatment with your CPA.</div>`;
+  h+=`<div style="font-size:11px;color:var(--steel);margin-top:12px">Only gear on a rental order that has an invoice attached is shown.${noInv?' '+noInv+' rental order'+(noInv===1?'':'s')+' without an invoice '+(noInv===1?'is':'are')+' not counted.':''}</div><div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5">Cost basis = purchase cost when entered on the gear record, otherwise its replacement value, × quantity owned. Revenue only counts for orders in the selected statuses. Estimates for planning, not accounting; confirm tax treatment with your CPA.</div>`;
   document.getElementById('roiBody').innerHTML=h;
+}
+
+/* ===== WEDDINGS: pre-built DJ Rig package builder (based on the DNVR pull sheet) ===== */
+const WED_STAND=[
+  {re:/Presonus CDL 12/,qty:2},{re:/^JBL EON 15$/,qty:2},{re:/^Midas M 32 R$/,qty:1},
+  {re:/XLR 100 FOOT/,qty:3},{re:/^XLR 25$/,qty:6},
+  {re:/Speaker Tri-pod stands \(Unit A\)/,qty:1},{re:/Speaker Tri-pod stands \(Unit B\)/,qty:1},{re:/^DJ BOOTH$/,qty:1}];
+const WED_PLAIN=['XDJ (DJ controller)','Power extension reel','Power surge multi','Power surge','Power extension cords 100ft'];
+const WED_SUBS=[{re:/EON 618/,max:2},{re:/^LINE 6 Sub$/,max:1}]; /* EON 615 = tops, EON 618 + Line 6 = subs */
+const WED_PRESETS={small:{up:6,bars:0,mov:0,wash:0},standard:{up:10,bars:2,mov:2,wash:0},grand:{up:16,bars:4,mov:4,wash:4}};
+let wed={subs:2,music:'mixed',ceremony:false,zed:'',up:10,bars:2,mov:2,wash:0,staffQty:3,staffRate:'',pkgOverride:'',days:1,state:'va-nova'};
+let wedAssets=[];
+const wedFind=re=>wedAssets.find(a=>re.test(a.name));
+const wedRate=a=>a?Math.round(roiUnit(a)*(parseFloat(a.rental_rate_pct)||0)/100*100)/100:0;
+async function wedInit(){ wedAssets=await roiLoadAssets(); wedRender(); }
+function wedSet(k,v){ wed[k]=v; wedRender(); }
+function wedStep(k,d,max){ let v=(parseInt(wed[k])||0)+d*(k==='subs'?1:2); const lo=k==='subs'?1:0; if(v<lo)v=lo; if(v>max)v=max; wed[k]=v; wedRender(); }
+function wedPreset(p){ Object.assign(wed,WED_PRESETS[p]); wedRender(); }
+function wedMusic(m){ wed.music=m; wed.subs={chill:1,mixed:2,dance:3}[m]; wedRender(); }
+function wedBuild(){
+  const lines=[],gear=[]; let rateCard=0;
+  const add=(a,qty,label,priced)=>{ if(!a||!qty) return; const r=wedRate(a)*qty; lines.push({name:a.asset_id+' '+(label||a.name),qty,rate:0,days:wed.days,rc:r,grp:priced}); gear.push({aid:a.id,label:a.asset_id+' '+a.name,qty,days:wed.days}); return r; };
+  const rig=[]; let rigRC=0;
+  WED_STAND.forEach(s=>{ const a=wedFind(s.re); if(a){ const r=wedRate(a)*s.qty; rigRC+=r; rig.push({name:a.asset_id+' '+a.name,qty:s.qty,rc:r}); gear.push({aid:a.id,label:a.asset_id+' '+a.name,qty:s.qty,days:wed.days}); } });
+  let left=wed.subs; WED_SUBS.forEach(s=>{ const a=wedFind(s.re); const q=Math.min(left,s.max); if(a&&q>0){ const r=wedRate(a)*q; rigRC+=r; rig.push({name:a.asset_id+' '+a.name,qty:q,rc:r}); gear.push({aid:a.id,label:a.asset_id+' '+a.name,qty:q,days:wed.days}); left-=q; } });
+  const rigPrice=wed.pkgOverride!==''?parseFloat(wed.pkgOverride)||0:Math.round(rigRC);
+  const addons=[];
+  const addLight=(key,re,label,max)=>{ const n=Math.min(parseInt(wed[key])||0,max); if(!n) return; const a=wedFind(re); if(!a) return; const r=wedRate(a); addons.push({name:a.asset_id+' '+label,qty:n,rate:r}); gear.push({aid:a.id,label:a.asset_id+' '+a.name,qty:n,days:wed.days}); };
+  addLight('up',/^UP LIGHT CASE$/,'LED Up Light',26);
+  addLight('bars',/Wall Wash Bar Light/,'Stick / Bar Light (Wall Wash Bar)',4);
+  addLight('mov',/Martian Mac Entour 250/,'Moving Head (Martin Mac Entour 250)',8);
+  addLight('wash',/12x12 Wash Mover/,'Wash Mover (Shehds 12x12)',4);
+  if(wed.ceremony){ const z=wedFind(/ZED-?10/i); const rc=z?wedRate(z):0; const price=wed.zed!==''?(parseFloat(wed.zed)||0):rc; addons.push({name:(z?z.asset_id+' ':'')+'Ceremony audio: Zed 10 mixer (separate ceremony area)',qty:1,rate:price,rc});
+    if(z) gear.push({aid:z.id,label:z.asset_id+' '+z.name,qty:1,days:wed.days}); }
+  const items=[{name:'Wedding DJ Rig Package',qty:1,rate:rigPrice,days:wed.days,cost:''}];
+  rig.forEach(r=>items.push({name:r.name,qty:r.qty,rate:0,days:wed.days,cost:''}));
+  WED_PLAIN.forEach(n=>items.push({name:n,qty:n.includes('cords')?2:1,rate:0,days:wed.days,cost:''}));
+  items.push({name:'Talent + Staff',qty:parseInt(wed.staffQty)||0,rate:parseFloat(wed.staffRate)||0,days:wed.days,cost:'',labor:true});
+  addons.forEach(a=>items.push({name:a.name,qty:a.qty,rate:a.rate,days:wed.days,cost:''}));
+  const total=items.reduce((s,i)=>s+(parseFloat(i.rate)||0)*(parseFloat(i.qty)||0)*(parseFloat(i.days)||1),0);
+  return {items,gear,rig,rigRC,rigPrice,addons,total};
+}
+function wedStepper(k,label,max,hint){ const v=wed[k]; return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border)"><div><div style="font-size:13px">${label}</div><div style="font-size:10px;color:var(--muted)">${hint}</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn btn-ghost" style="padding:2px 10px" onclick="wedStep('${k}',-1,${max})">−</button><b style="min-width:26px;text-align:center;font-size:15px">${v}</b><button class="btn btn-ghost" style="padding:2px 10px" onclick="wedStep('${k}',1,${max})">+</button></div></div>`; }
+function wedRender(){
+  const el=document.getElementById('wedBody'); if(!el) return;
+  const B=wedBuild(); const sel=(k,v)=>wed[k]===v?'selected':'';
+  const rows=B.items.map(i=>`<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px;font-size:12px">${roiEsc(i.name)}</td><td style="padding:4px 6px;text-align:right">${i.qty}</td><td style="padding:4px 6px;text-align:right;font-family:monospace">${i.rate?roiM(i.rate):'incl.'}</td><td style="padding:4px 6px;text-align:right;font-family:monospace">${i.rate?roiM(i.rate*i.qty*i.days):''}</td></tr>`).join('');
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px">
+    <div style="font-weight:700;margin-bottom:2px">1 · DJ Rig (every wedding)</div>
+    <div style="font-size:11px;color:var(--steel);margin-bottom:8px">Everything on the DNVR pull sheet: mains, CDL 12 line array, mixer, mains stands, XLR runs, power, DJ booth.</div>
+    ${wedStepper('subs','Subwoofers',3,'1–3 (JBL EON 618 subs, then Line 6), scale to the building and guest music')}
+    <div style="padding:8px 0;border-top:1px solid var(--border)"><label class="fl">Guest music style</label><select class="fs" onchange="wedMusic(this.value)"><option value="chill" ${sel('music','chill')}>Chill / acoustic / background (1 sub)</option><option value="mixed" ${sel('music','mixed')}>Mixed (2 subs)</option><option value="dance" ${sel('music','dance')}>Dance floor / club (3 subs)</option></select></div>
+    <div style="padding:8px 0;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="fl">Talent + staff (people)</label><input class="fi" type="number" min="0" value="${wed.staffQty}" oninput="wed.staffQty=this.value;wedRender()"></div><div><label class="fl">Rate each / day $</label><input class="fi" type="number" value="${wed.staffRate}" placeholder="set your rate" oninput="wed.staffRate=this.value;wedRender()"></div></div>
+    <div style="padding:8px 0;border-top:1px solid var(--border)"><label class="fl">Rig package price $ (rate-card value ${roiM(B.rigRC)})</label><input class="fi" type="number" value="${wed.pkgOverride}" placeholder="${Math.round(B.rigRC)}" oninput="wed.pkgOverride=this.value;wedRender()"></div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px">
+    <div style="font-weight:700;margin-bottom:2px">2 · Add-ons</div>
+    <div style="font-size:11px;color:var(--steel);margin-bottom:6px">Lighting scales in even numbers so the room stays symmetrical.</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="wedPreset('small')">Intimate</button><button class="btn btn-ghost" onclick="wedPreset('standard')">Standard</button><button class="btn btn-ghost" onclick="wedPreset('grand')">Grand</button><span style="font-size:10px;color:var(--muted);align-self:center">starting points, adjust below</span></div>
+    ${wedStepper('up','Up lighting',26,'LED up lights, steps of 2')}
+    ${wedStepper('bars','Stick / bar lighting',4,'Wall wash bars on hand: 4')}
+    ${wedStepper('mov','Moving heads',8,'Martin Mac Entour 250: 8 on hand')}
+    ${wedStepper('wash','Wash movers',4,'Shehds 12x12: 4 on hand')}
+    <div style="padding:8px 0;border-top:1px solid var(--border)"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer"><input type="checkbox" ${wed.ceremony?'checked':''} onchange="wedSet('ceremony',this.checked)"> Ceremony audio: Zed 10 mixer (separate ceremony area)</label>
+    ${wed.ceremony?`<div style="margin-top:6px"><label class="fl">Ceremony add-on price $ (rate card ${roiM(wedRate(wedFind(/ZED-?10/i)))})</label><input class="fi" type="number" value="${wed.zed}" placeholder="${Math.round(wedRate(wedFind(/ZED-?10/i)))}" oninput="wed.zed=this.value;wedRender()"></div>`:''}</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:14px">
+    <div style="font-weight:700;margin-bottom:6px">3 · Package pull sheet</div>
+    <table style="width:100%;border-collapse:collapse"><thead><tr style="color:var(--muted);font-size:10px;text-transform:uppercase"><th style="text-align:left;padding:4px 6px">Item</th><th style="text-align:right;padding:4px 6px">Qty</th><th style="text-align:right;padding:4px 6px">Rate</th><th style="text-align:right;padding:4px 6px">Total</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;font-size:16px"><span>Package total (before tax)</span><span style="font-family:monospace">${roiM(B.total)}</span></div>
+    <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="fl">Days</label><input class="fi" type="number" min="1" value="${wed.days}" onchange="wed.days=Math.max(1,parseInt(this.value)||1);wedRender()"></div><div></div></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="wedCreateOrder()">Create rental order from this package</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px">Opens a new rental order with these lines and the gear marked as used, so Gear Payback credits it once you attach the invoice.</div>
+  </div></div>`;
+}
+function wedCreateOrder(){
+  const B=wedBuild(); openRentalOrder(null);
+  document.getElementById('roNotes').value='Wedding package: DJ Rig with '+wed.subs+' sub'+(wed.subs===1?'':'s')+(wed.up?', '+wed.up+' up lights':'')+(wed.bars?', '+wed.bars+' bars':'')+(wed.mov?', '+wed.mov+' moving heads':'')+(wed.wash?', '+wed.wash+' wash movers':'')+(wed.ceremony?', ceremony Zed 10 mixer':'')+'.';
+  roItems=B.items; roRenderItems(); roGear=B.gear.map(g=>Object.assign({},g)); roRenderGear();
+  document.getElementById('roGearPct').value=50;
+}
+
+/* ===== AUDIO + LIGHTING PACKAGE BUILDERS (same idea as Weddings, built from live inventory) ===== */
+const PKG_CFG={
+  audio:{title:'Audio Package',el:'audBody',pre:/^(AUD|PWR|SCN)-/,step:1,
+    hint:'Pick from the audio gear you own. Quantities cap at what is on hand.',
+    presets:{ 'Speech / small room':[['EON 15$',2],['ZED-10',1],['SM58S',2],['XLR 25',4],['Tri-pod',2]],
+      'Live band':[['EON 15$',2],['EON 615',2],['EON 618',2],['Midas M 32 R',1],['Beta 58A',2],['SM58S',1],['SM57',2],['DMK57',1],['ProD2',2],['XLR 25',8],['XLR 100',2],['Tri-pod',2]],
+      'DJ party':[['CDL 12',2],['EON 615',2],['EON 618',2],['Midas M 32 R',1],['XLR 25',6],['XLR 100',3],['Tri-pod',2],['DJ BOOTH',1]],
+      'Large show':[['CDL 12',2],['EON 15$',2],['EON 615',2],['EON 618',2],['LINE 6',1],['M 32LIVE',1],['XLR 25',12],['XLR 100',4],['Tri-pod',2]] }},
+  light:{title:'Lighting Package',el:'lgtBody',pre:/^(LGT|PWR)-/,step:2,
+    hint:'Fixtures step in twos so the room stays even and symmetrical. Quantities cap at what is on hand.',
+    presets:{ 'Up-light accent':[['UP LIGHT',8]],
+      'Party':[['EZ PAR',8],['Martian Mac',2],['Wall Wash Bar',2]],
+      'Stage show':[['EZ PAR',16],['Martian Mac',4],['12x12',4],['Wall Wash Bar',4]],
+      'Full room':[['UP LIGHT',16],['EZ PAR',16],['Martian Mac',8],['12x12',4],['Wall Wash Bar',4]] }}
+};
+const pkg={audio:{sel:{},staffQty:0,staffRate:'',days:1,disc:0},light:{sel:{},staffQty:0,staffRate:'',days:1,disc:0}};
+let pkgGroups={};
+const PKG_SKIP=/(^|\s)case$|wardrobe|couch|closet|burning man|headphones/i;
+function pkgBuildGroups(kind,assets){
+  const g={}; assets.forEach(a=>{
+    if(!PKG_CFG[kind].pre.test(a.asset_id+'-')&&!PKG_CFG[kind].pre.test(a.asset_id||'')) return;
+    if(PKG_SKIP.test(a.name)&&!/UP LIGHT/i.test(a.name)) return;
+    if(/^IEC CABLE$/.test(a.name)) return;
+    const base=a.name.replace(/\s*\((Unit|Pair)[^)]*\)\s*$/i,'').trim(); const k=a.asset_id+'|'+base;
+    const q=parseInt(a.qty)||1; (g[k]=g[k]||{key:k,aid:a.asset_id,name:base,rows:[],avail:0,rate:0});
+    g[k].rows.push({a,q}); g[k].avail+=q; if(!g[k].rate) g[k].rate=wedRate(a);
+  });
+  pkgGroups[kind]=Object.values(g).sort((x,y)=>x.aid.localeCompare(y.aid)||x.name.localeCompare(y.name));
+}
+async function pkgInit(kind){ wedAssets=await roiLoadAssets(); pkgBuildGroups(kind,wedAssets); pkgRender(kind); }
+function pkgStep(kind,key,d){ const g=pkgGroups[kind].find(x=>x.key===key); if(!g) return; const s=PKG_CFG[kind].step; const fixture=/LGT-/.test(g.aid)||/UP LIGHT/.test(g.name); const st=fixture?s:1; let v=(pkg[kind].sel[key]||0)+d*st; if(v<0)v=0; if(v>g.avail)v=g.avail; if(fixture&&st===2&&v%2&&v<g.avail)v--; pkg[kind].sel[key]=v; if(!v) delete pkg[kind].sel[key]; pkgRender(kind); }
+function pkgPreset(kind,name){ const P=PKG_CFG[kind].presets[name]; pkg[kind].sel={}; P.forEach(([re,q])=>{ const g=pkgGroups[kind].find(x=>new RegExp(re,'i').test(x.name)); if(g) pkg[kind].sel[g.key]=Math.min(q,g.avail); }); pkgRender(kind); }
+function pkgClear(kind){ pkg[kind].sel={}; pkgRender(kind); }
+function pkgSet(kind,k,v){ pkg[kind][k]=v; pkgRender(kind); }
+function pkgCalc(kind){
+  const P=pkg[kind],days=Math.max(1,parseInt(P.days)||1),items=[],gear=[];
+  pkgGroups[kind].forEach(g=>{ let q=P.sel[g.key]||0; if(!q) return;
+    items.push({name:g.aid+' '+g.name,qty:q,rate:g.rate,days,cost:''});
+    let left=q; g.rows.forEach(r=>{ if(left<=0) return; const u=Math.min(left,r.q); left-=u; gear.push({aid:r.a.id,label:r.a.asset_id+' '+r.a.name,qty:u,days}); }); });
+  const gearTotal=items.reduce((s,i)=>s+i.rate*i.qty*days,0);
+  const disc=Math.min(100,Math.max(0,parseFloat(P.disc)||0));
+  if(disc>0&&items.length) items.push({name:'Package discount ('+disc+'%)',qty:1,rate:-Math.round(gearTotal*disc)/100,days:1,cost:''});
+  const total=items.reduce((s,i)=>s+(parseFloat(i.rate)||0)*(parseFloat(i.qty)||0)*(parseFloat(i.days)||1),0);
+  return {items,gear,gearTotal,total,days,disc};
+}
+function pkgRender(kind){
+  const C=PKG_CFG[kind],P=pkg[kind],el=document.getElementById(C.el); if(!el) return; const B=pkgCalc(kind);
+  const rows=pkgGroups[kind].map(g=>{ const v=P.sel[g.key]||0; return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--border)"><div style="min-width:0"><div style="font-size:12px">${roiEsc(g.aid+' '+g.name)}</div><div style="font-size:10px;color:var(--muted)">${g.avail} on hand · ${g.rate?roiM(g.rate)+'/day':'no rate (set value + rate %)'}</div></div><div style="display:flex;align-items:center;gap:6px"><button class="btn btn-ghost" style="padding:2px 9px" onclick="pkgStep('${kind}','${g.key.replace(/'/g,"\\'")}',-1)">−</button><b style="min-width:22px;text-align:center">${v}</b><button class="btn btn-ghost" style="padding:2px 9px" onclick="pkgStep('${kind}','${g.key.replace(/'/g,"\\'")}',1)">+</button></div></div>`; }).join('')||'<div style="font-size:12px;color:var(--muted)">No matching inventory yet.</div>';
+  const trs=B.items.map(i=>`<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px;font-size:12px">${roiEsc(i.name)}</td><td style="padding:4px 6px;text-align:right">${i.qty}</td><td style="padding:4px 6px;text-align:right;font-family:monospace">${roiM(i.rate)}</td><td style="padding:4px 6px;text-align:right;font-family:monospace">${roiM(i.rate*i.qty*i.days)}</td></tr>`).join('')||'<tr><td style="padding:8px;font-size:12px;color:var(--muted)">Pick a starting point or add gear.</td></tr>';
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px">
+    <div style="font-weight:700;margin-bottom:2px">1 · Starting point</div>
+    <div style="font-size:11px;color:var(--steel);margin-bottom:8px">${C.hint}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${Object.keys(C.presets).map(n=>`<button class="btn btn-ghost" onclick="pkgPreset('${kind}','${n}')">${n}</button>`).join('')}<button class="btn btn-ghost" onclick="pkgClear('${kind}')">Clear</button></div>
+    <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="fl">Days</label><input class="fi" type="number" min="1" value="${P.days}" onchange="pkgSet('${kind}','days',Math.max(1,parseInt(this.value)||1))"></div><div><label class="fl">Package discount %</label><input class="fi" type="number" min="0" max="100" value="${P.disc}" onchange="pkgSet('${kind}','disc',this.value)"></div></div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;max-height:560px;overflow:auto">
+    <div style="font-weight:700;margin-bottom:4px">2 · Gear</div>${rows}
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:14px">
+    <div style="font-weight:700;margin-bottom:6px">3 · Package pull sheet</div>
+    <table style="width:100%;border-collapse:collapse"><thead><tr style="color:var(--muted);font-size:10px;text-transform:uppercase"><th style="text-align:left;padding:4px 6px">Item</th><th style="text-align:right;padding:4px 6px">Qty</th><th style="text-align:right;padding:4px 6px">Rate</th><th style="text-align:right;padding:4px 6px">Total</th></tr></thead><tbody>${trs}</tbody></table>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;font-size:16px"><span>Package total (before tax)</span><span style="font-family:monospace">${roiM(B.total)}</span></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="pkgCreateOrder('${kind}')" ${B.gear.length?'':'disabled'}>Create rental order from this package</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px">Opens a new rental order with these lines and the gear marked as used, so Gear Payback credits it once you attach the invoice.</div>
+  </div></div>`;
+}
+function pkgCreateOrder(kind){
+  const B=pkgCalc(kind),C=PKG_CFG[kind]; if(!B.gear.length) return; openRentalOrder(null);
+  document.getElementById('roNotes').value=C.title+': '+B.items.filter(i=>!i.labor&&i.rate>0).map(i=>i.qty+' x '+i.name.replace(/^[A-Z]+-\d+\s/,'')).join(', ')+'.';
+  roItems=B.items; roRenderItems(); roGear=B.gear.map(g=>Object.assign({},g)); roRenderGear();
+  document.getElementById('roGearPct').value=100;
 }
 
 /* ---- SCHEDULE HOURS SUMMARY (shown in UI after csRender) ---- */
@@ -6759,6 +6986,14 @@ function setRentTab(tab, el) {
   document.getElementById('rentTab-track').style.display = tab === 'track' ? 'block' : 'none';
   document.getElementById('rentTab-orders').style.display = tab === 'orders' ? 'block' : 'none';
   document.getElementById('rentTab-pricing').style.display = tab === 'pricing' ? 'block' : 'none';
+  document.getElementById('rentTab-gear').style.display = tab === 'gear' ? 'block' : 'none';
+  document.getElementById('rentTab-wed').style.display = tab === 'wed' ? 'block' : 'none';
+  document.getElementById('rentTab-audio').style.display = tab === 'audio' ? 'block' : 'none';
+  document.getElementById('rentTab-light').style.display = tab === 'light' ? 'block' : 'none';
+  if (tab === 'audio') pkgInit('audio');
+  if (tab === 'light') pkgInit('light');
+  if (tab === 'wed') wedInit();
+  if (tab === 'gear') openGearRoi();
   if (tab === 'orders') loadRentalOrders();
   if (tab === 'pricing') renderRentalPanel();
 }
