@@ -724,14 +724,6 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <button class="btn btn-primary" onclick="openJobForm()">+ Add Job</button>
           </div>
         </div>
-        <div id="jqBar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-          <div style="font-size:12px;font-weight:700;align-self:center;margin-right:4px">⚡ Job from schedule</div>
-          <div class="fg" style="margin:0"><label class="fl">Schedule</label><select class="fs" id="jqSched" onchange="jqPickSched()" style="min-width:260px"><option value="">Loading schedules…</option></select></div>
-          <div class="fg" style="margin:0"><label class="fl">Client</label><select class="fs" id="jqClient" onchange="jqPickClient()" style="min-width:200px"></select></div>
-          <div class="fg" id="jqNewWrap" style="margin:0;display:none"><label class="fl">New client name</label><input class="fi" id="jqNew" placeholder="Client name" style="min-width:180px"></div>
-          <button class="btn btn-primary" onclick="jqCreate()">Create job</button>
-          <div id="jqNote" style="font-size:11px;color:var(--muted);align-self:center"></div>
-        </div>
         <div class="stats-row">
           <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-val" id="jobStatCount">0</div><div class="stat-sub">All clients</div></div>
           <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val" id="jobStatRev" style="color:var(--green)">$0</div><div class="stat-sub">All jobs</div></div>
@@ -744,7 +736,6 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
               <div class="fg" style="margin:0"><label class="fl">Event / show</label><input class="fi" id="csEvName" placeholder="Government AV — Hybrid Event" oninput="csSetEvent(this.value)" style="min-width:230px"></div>
-              <div class="fg" style="margin:0"><label class="fl">Client</label><input class="fi" id="csClient" list="csClientDL" placeholder="Pick or type a client" oninput="CS.client=this.value" style="min-width:190px"><datalist id="csClientDL"></datalist></div>
               <div class="fg" style="margin:0"><label class="fl">Setup Rate $/hr</label><input class="fi" id="csRateSetup" type="number" min="0" value="50" oninput="csSetRate('rateSetup',this.value)" style="width:100px"></div>
               <div class="fg" style="margin:0"><label class="fl">Skilled Rate $/hr</label><input class="fi" id="csRateSkilled" type="number" min="0" value="60" oninput="csSetRate('rateSkilled',this.value)" style="width:100px"></div>
               <select class="fs" id="csPicker" onchange="csLoad(this.value)" style="width:auto;min-width:150px"><option value="">— saved schedules —</option></select>
@@ -752,7 +743,6 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-ghost" onclick="csNew()">＋ New</button>
               <button class="btn btn-ghost" onclick="csAutoFill()">✨ Auto-suggest</button>
-              <button class="btn btn-ghost" onclick="csAddToJobs()">📋 Add to Jobs</button>
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
               <button class="btn btn-ghost" onclick="csInternalPDF()">📊 Internal Report</button>
               <button class="btn btn-ghost" onclick="csPayrollPDF()">💵 Payroll Summary</button>
@@ -769,9 +759,9 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
                 <option value="8">Net 8</option>
                 <option value="10">Net 10</option>
                 <option value="14">Net 14</option>
-                <option value="15">Net 15</option>
+                <option value="15" selected>Net 15</option>
                 <option value="20">Net 20</option>
-                <option value="30" selected>Net 30</option>
+                <option value="30">Net 30</option>
                 <option value="45">Net 45</option>
                 <option value="60">Net 60</option>
                 <option value="90">Net 90</option>
@@ -813,7 +803,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div class="tab active" onclick="setMoneyTab('shows',this)">📋 Show Costs</div>
           <div class="tab" onclick="setMoneyTab('techpay',this)">👷 Tech Pay</div>
           <div class="tab" onclick="setMoneyTab('invoices',this)">📄 Invoices</div>
-          <div class="tab" onclick="setMoneyTab('payouts',this)">⏳ Payouts</div>
+          <div class="tab" onclick="setMoneyTab('tax',this)">🧾 Tax &amp; Expenses</div>
         </div>
 
         <!-- SHOW COSTS TAB -->
@@ -895,28 +885,26 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div style="margin-top:20px" id="techPayTotals"></div>
         </div>
 
-<div id="moneyTab-payouts" style="display:none">
+<div id="moneyTab-tax" style="display:none">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-            <div style="font-size:13px;color:var(--muted);max-width:640px">Every crew schedule is an invoice. Net days count from the last show day. Day of Show is due on the first show day. Use Mark paid when the money lands.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost admin-only" onclick="psSyncAll()">⭱ Create invoices for all schedules</button><button class="btn btn-ghost" onclick="renderPayouts()">↻ Refresh</button></div>
-          </div>
-          <div class="stats-row" style="margin-bottom:16px">
-            <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-val" id="psOut" style="color:var(--text)">—</div><div class="stat-sub" id="psOutSub">Unpaid schedules</div></div>
-            <div class="stat-card"><div class="stat-label">Due in 7 days</div><div class="stat-val" id="psWeek" style="color:var(--accent)">—</div><div class="stat-sub" id="psWeekSub">Next payouts</div></div>
-            <div class="stat-card"><div class="stat-label">Due in 30 days</div><div class="stat-val" id="psMonth" style="color:var(--green)">—</div><div class="stat-sub" id="psMonthSub">This month</div></div>
-            <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-val" id="psLate" style="color:var(--red)">—</div><div class="stat-sub" id="psLateSub">Past due date</div></div>
-          </div>
-          <div class="filter-bar" style="margin-bottom:12px">
-            <div id="psChips" style="display:flex;gap:6px;flex-wrap:wrap">
-              <span class="chip active" data-ps="open" onclick="psSetFilter('open')">Unpaid</span>
-              <span class="chip" data-ps="late" onclick="psSetFilter('late')">Overdue</span>
-              <span class="chip" data-ps="paid" onclick="psSetFilter('paid')">Paid</span>
-              <span class="chip" data-ps="all" onclick="psSetFilter('all')">All</span>
+            <div style="font-size:13px;color:var(--muted);max-width:640px">Year-end numbers for the tax office: client invoices in, staff 1099 payouts, and the expenses and consumables you enter here. Pick a year, then print the packet.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary admin-only" onclick="taxOpenExpense(null)">+ Add Expense</button>
+              <button class="btn btn-ghost" onclick="taxPacketPDF('full')">🖨 Annual Tax Packet (PDF)</button>
+              <button class="btn btn-ghost" onclick="taxPacketPDF('1099')">🖨 1099 Payouts Only</button>
             </div>
           </div>
-          <div class="table-wrap"><table style="width:100%"><thead><tr>
-            <th style="text-align:left">Job</th><th style="text-align:left">Invoice</th><th style="text-align:left">Terms</th><th style="text-align:left">Due</th><th style="text-align:left">Payout countdown</th><th style="text-align:right">Amount</th><th></th>
-          </tr></thead><tbody id="psBody"><tr><td colspan=7 style="color:var(--muted);padding:16px">Loading…</td></tr></tbody></table></div>
+          <div id="taxNoTable" style="display:none;background:#F5A62315;border:1px solid #F5A62344;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:12px">Expenses can't be saved yet. Run <b>business_expenses.sql</b> in Supabase (SQL Editor), then refresh.</div>
+          <div id="taxYearChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+          <div id="taxWarn" style="display:none;background:#F5A62315;border:1px solid #F5A62344;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:12px"></div>
+          <div class="stats-row" id="taxStats" style="margin-bottom:20px"></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 0 6px">1099 payouts to staff</div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px"><input type="checkbox" checked onchange="taxToggleTP(this.checked)"> Include paid entries from the Tech Pay tab (uncheck if they duplicate imported payout invoices)</label>
+          <div id="tax1099" style="margin-bottom:22px"></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 0 6px">Expenses &amp; consumables</div>
+          <div id="taxCats" style="margin-bottom:10px"></div>
+          <div id="taxExpList"></div>
+          <div id="taxJobs"></div>
         </div>
 
 <div id="moneyTab-invoices" style="display:none">
@@ -1369,6 +1357,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <div class="fg"><label class="fl">Transport ($)</label><input type="number" class="fi" id="jTransport" oninput="updateJobPreview()"></div>
         <div class="fg"><label class="fl">Other ($)</label><input type="number" class="fi" id="jOther" oninput="updateJobPreview()"></div>
         <div class="fg full"><label class="fl">Notes</label><textarea class="fi" id="jNotes" rows="2"></textarea></div>
+        <div class="fg full"><button class="btn btn-ghost" type="button" onclick="taxAddJobExpense('jName')">＋ Log expense / consumable for this job</button><div style="font-size:11px;color:var(--muted);margin-top:4px">Saved to Show Finance → Tax &amp; Expenses under this job name.</div></div>
       </div>
       <div id="jobMarginPreview" style="margin-top:10px;font-size:13px;color:var(--steel)"></div>
     </div>
@@ -1692,6 +1681,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           </div>
         </div>
         <div class="fg full"><label class="fl">Notes</label><textarea class="ft" id="sfNotes" placeholder="Client name, venue, any details…"></textarea></div>
+        <div class="fg full"><button class="btn btn-ghost" type="button" onclick="taxAddJobExpense('sfName')">＋ Log expense / consumable for this job</button><div style="font-size:11px;color:var(--muted);margin-top:4px">Saved to Show Finance → Tax &amp; Expenses under this job name.</div></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -1752,6 +1742,37 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
     <div class="modal-ftr">
       <button class="btn btn-ghost" onclick="closeModal('addTechPayModal')">Cancel</button>
       <button class="btn btn-primary" id="saveTechPayBtn" onclick="saveTechPay()">Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="overlay" id="expenseModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="teTitle">Add Expense / Consumable</div>
+      <button class="modal-close" onclick="closeModal('expenseModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Date *</label><input type="date" class="fi" id="teDate" onchange="taxCatChanged()"></div>
+        <div class="fg" id="teAmtWrap"><label class="fl" id="teAmtLbl">Amount ($) *</label><input type="number" step="0.01" class="fi" id="teAmt" placeholder="0.00"></div>
+        <div class="fg" id="teMilesWrap" style="display:none"><label class="fl">Miles driven *</label><input type="number" step="0.1" class="fi" id="teMiles" placeholder="e.g. 142"></div>
+        <div class="fg" id="teBizWrap" style="display:none"><label class="fl">Business use %</label><input type="number" min="0" max="100" class="fi" id="teBiz" value="100"></div>
+        <div class="fg full" id="teHomeWrap" style="display:none"><label class="fl">Office space / whole home (sq ft)</label><div style="display:flex;gap:8px"><input type="number" class="fi" id="teOffice" placeholder="Business space, e.g. 200"><input type="number" class="fi" id="teHome" placeholder="Whole home, e.g. 1800"></div></div>
+        <div class="fg"><label class="fl">Type</label><select class="fs" id="teKind"><option>Expense</option><option>Consumable</option></select></div>
+        <div class="fg"><label class="fl">Category</label><select class="fs" id="teCat" onchange="taxCatChanged()"></select></div>
+        <div class="fg"><label class="fl">Vendor</label><input type="text" class="fi" id="teVendor" placeholder="e.g. Home Depot, B&amp;H"></div>
+        <div class="fg"><label class="fl">Paid with</label><select class="fs" id="teMethod"><option>Card</option><option>Cash</option><option>Check</option><option>Zelle</option><option>Venmo</option><option>Other</option></select></div>
+        <div class="fg full" id="teHint" style="font-size:11px;color:var(--accent)"></div>
+        <div class="fg full"><label class="fl">Job / show (optional)</label><input type="text" class="fi" id="teJob" list="teJobList" placeholder="Link this to a job to track its expenses"><datalist id="teJobList"></datalist></div>
+        <div class="fg full"><label class="fl">Description</label><input type="text" class="fi" id="teDesc" placeholder="e.g. 12 rolls gaff tape for Westin job"></div>
+        <div class="fg full"><label class="fl">Notes (receipt location, job)</label><textarea class="ft" id="teNote" style="min-height:44px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('expenseModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="taxSaveExpense()">Save</button>
     </div>
   </div>
 </div>
@@ -2011,6 +2032,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         </div>
       </div>
       <div class="fg" style="margin-top:12px"><label class="fl">Notes</label><textarea class="ft" id="roNotes" rows="2"></textarea></div>
+      <div style="margin-top:10px"><button class="btn btn-ghost" type="button" onclick="taxAddJobExpense('roClient')">＋ Log expense / consumable for this order</button></div>
     </div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <span style="font-size:10px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:0.07em">Export:</span>
@@ -4096,11 +4118,11 @@ function setMoneyTab(tab, el) {
   document.getElementById('moneyTab-shows').style.display = tab === 'shows' ? 'block' : 'none';
   document.getElementById('moneyTab-techpay').style.display = tab === 'techpay' ? 'block' : 'none';
   var _mi=document.getElementById('moneyTab-invoices'); if(_mi) _mi.style.display = tab === 'invoices' ? 'block' : 'none';
-  var _mp=document.getElementById('moneyTab-payouts'); if(_mp) _mp.style.display = tab === 'payouts' ? 'block' : 'none';
   if (tab === 'shows') renderShows();
   if (tab === 'techpay') renderTechPay();
   if (tab === 'invoices') ensureInvoicesLoaded();
-  if (tab === 'payouts') renderPayouts();
+  var _mx=document.getElementById('moneyTab-tax'); if(_mx) _mx.style.display = tab === 'tax' ? 'block' : 'none';
+  if (tab === 'tax') taxLoad();
 }
 
 function setPayTypeFilter(el, val) {
@@ -4423,7 +4445,6 @@ async function loadJobs() {
   try { jobs = await sbGet('jobs?select=*&order=show_date.desc.nullslast'); }
   catch(e) { jobs = []; toast('Error', 'Jobs table missing? ' + e.message); }
   renderJobs();
-  if(typeof jqFill==='function') jqFill();
 }
 function jobMetrics(j){
   const cost = (j.labor_cost||0)+(j.gear_cost||0)+(j.transport_cost||0)+(j.other_cost||0);
@@ -4688,6 +4709,8 @@ async function runCsvImport() {
 
 /* ===== INVOICES (Money section) — seeded ledger from historical 7VE PDFs ===== */
 const INVOICE_DATA = [{"invoice_number":"102319","client":"BTS","project":"set","submitted_date":"10/26/2019","year":"2019","record_type":"Client Invoice","invoice_total":"405.00","include_in_revenue":"Y","data_flag":"CONFLICT: inv 102319 also in BTS_Invoice with different amount ($405 vs $330)","event_location":"Mayflower","due_date":"11/1/2019","source_file":"BTS_mayflower_invoice_-_Invoice.pdf","line_items":[{"technician":"","line_item":"labor set/Assist","qty_hours":"10","unit_price":"31.50","line_total":"315.00"},{"technician":"","line_item":"Overtime","qty_hours":"2","unit_price":"45.00","line_total":"90.00"}]},{"invoice_number":"102319","client":"BTS","project":"set","submitted_date":"10/26/2019","year":"2019","record_type":"Client Invoice","invoice_total":"330.00","include_in_revenue":"N","data_flag":"CONFLICT: inv 102319 also in BTS_mayflower_invoice with different amount ($330 vs $405)","event_location":"Mayflower","due_date":"11/1/2019","source_file":"BTS_Invoice__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Labor set","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"","line_item":"Overtime","qty_hours":"2","unit_price":"45.00","line_total":"90.00"}]},{"invoice_number":"101719","client":"Capitol Crew","project":"Set","submitted_date":"10/17/2019","year":"2019","record_type":"Client Invoice","invoice_total":"250.00","include_in_revenue":"Y","data_flag":"DUPLICATE: same invoice also inside Capitol_Crew_invoice_.pdf","event_location":"Wardmen Park","due_date":"11/17/2019","source_file":"Capitol_Crew_invoice__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Labor Tech GAV","qty_hours":"1","unit_price":"250.00","line_total":"250.00"}]},{"invoice_number":"101519","client":"BAV","project":"Set & Strike","submitted_date":"10/15/2019","year":"2019","record_type":"Client Invoice","invoice_total":"600.00","include_in_revenue":"Y","data_flag":"This PDF also contains a duplicate of Capitol Crew inv 101719 (captured above)","event_location":"201 Waterfront St, National Harbor, MD 20745","due_date":"11/15/2019","source_file":"Capitol_Crew_invoice_.pdf","line_items":[{"technician":"","line_item":"Labor Tech GAV","qty_hours":"2","unit_price":"300.00","line_total":"600.00"},{"technician":"","line_item":"Parking","qty_hours":"2","unit_price":"30.00","line_total":"60.00"},{"technician":"","line_item":"Parking adjustment (removed)","qty_hours":"","unit_price":"","line_total":"-60.00"}]},{"invoice_number":"103019","client":"Vision Creative","project":"set","submitted_date":"11/3/2019","year":"2019","record_type":"Client Invoice","invoice_total":"148.50","include_in_revenue":"Y","data_flag":"DUPLICATE: identical to capitol_crewing_1__-_Invoice.pdf","event_location":"Marriott Marquis","due_date":"12/3/2019","source_file":"capitol_crewing__-_Invoice.pdf","line_items":[{"technician":"","line_item":"set","qty_hours":"5.5","unit_price":"27.00","line_total":"148.50"}]},{"invoice_number":"103019","client":"Vision Creative","project":"set","submitted_date":"11/3/2019","year":"2019","record_type":"Client Invoice","invoice_total":"148.50","include_in_revenue":"N","data_flag":"DUPLICATE: identical to capitol_crewing__-_Invoice.pdf","event_location":"Marriott Marquis","due_date":"12/3/2019","source_file":"capitol_crewing_1__-_Invoice.pdf","line_items":[{"technician":"","line_item":"set","qty_hours":"5.5","unit_price":"27.00","line_total":"148.50"}]},{"invoice_number":"22120","client":"JSAV","project":"set & Strike","submitted_date":"2/21/2020","year":"2020","record_type":"Client Invoice","invoice_total":"750.00","include_in_revenue":"Y","data_flag":"","event_location":"Gaylord Convention Center / Marriott","due_date":"3/21/2020","source_file":"cc_2020_invoice_-_Invoice.pdf","line_items":[{"technician":"","line_item":"2/6","qty_hours":"1","unit_price":"150.00","line_total":"150.00"},{"technician":"","line_item":"2/17","qty_hours":"1","unit_price":"300.00","line_total":"300.00"},{"technician":"","line_item":"2/18","qty_hours":"1","unit_price":"300.00","line_total":"300.00"}]},{"invoice_number":"3620","client":"JSAV / BAV","project":"Aviation 2020 set/strike","submitted_date":"3/14/2020","year":"2020","record_type":"Client Invoice","invoice_total":"495.00","include_in_revenue":"Y","data_flag":"","event_location":"Reagan International Trade Center","due_date":"4/6/2020","source_file":"cc_reissue__-_Invoice.pdf","line_items":[{"technician":"","line_item":"Gav day rate","qty_hours":"1","unit_price":"300.00","line_total":"300.00"},{"technician":"","line_item":"Gav Half day","qty_hours":"1","unit_price":"150.00","line_total":"150.00"},{"technician":"","line_item":"Gav Over time","qty_hours":"1","unit_price":"45.00","line_total":"45.00"}]},{"invoice_number":"42426","client":"SNS Staging","project":"UPLANS","submitted_date":"4/27/2026","year":"2026","record_type":"Client Invoice","invoice_total":"300.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St, Arlington, VA 22203","due_date":"Net 30","source_file":"Christian_invoice_in_room_A1_-_Invoice.pdf","line_items":[{"technician":"Christian Lumsden","line_item":"IN Room Op 7:00-1:00pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"3080.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"1700 Richmond Hwy / 1401 Okie St NE, Washington DC","due_date":"1/30/2023","source_file":"Copy_of_freelance_labor_4-7_-_Invoice.pdf","line_items":[{"technician":"","line_item":"2/4/23 8am-4pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/5 8am-4pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/6 6am-6pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/6 6am-6pm OT","qty_hours":"4","unit_price":"105.00","line_total":"420.00"},{"technician":"","line_item":"2/7 6am-6pm","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"","line_item":"2/7 6am-6pm OT","qty_hours":"4","unit_price":"105.00","line_total":"420.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"3760.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"Capitol Hilton, 1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"Copy_of_Invoice_for_Week_of_1_15-16_27-28_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/15 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Chris Smoot","line_item":"1/16 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Darrius Malone","line_item":"1/15 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Darrius Malone","line_item":"1/16 8-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"2","unit_price":"75.00","line_total":"150.00"},{"technician":"Roberto Rodriguez","line_item":"1/27 8-4","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"Roberto Rodriguez","line_item":"1/28 12-12","qty_hours":"8","unit_price":"70.00","line_total":"560.00"},{"technician":"Roberto Rodriguez","line_item":"OT on the day","qty_hours":"4","unit_price":"110.00","line_total":"440.00"}]},{"invoice_number":"101022","client":"JSAV Inspire","project":"NSF NAEP TUDA Mathematics & Reading Workshop, CSFDC","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"4600.00","include_in_revenue":"Y","data_flag":"","event_location":"Hyatt Regency Crystal City / Crystal Gateway Marriott, 1700 Richmond Hwy, Arlington VA","due_date":"10/28/2022","source_file":"Copy_of_Invoice_for_Week_of_10_10_-_Invoice.pdf","line_items":[{"technician":"Roberto Rodriguez","line_item":"10/10 12pm-10pm","qty_hours":"10","unit_price":"80.00","line_total":"800.00"},{"technician":"Roberto Rodriguez","line_item":"10/11 9am-5pm","qty_hours":"8","unit_price":"80.00","line_total":"640.00"},{"technician":"Roberto Rodriguez","line_item":"10/12 7am-7pm","qty_hours":"12","unit_price":"80.00","line_total":"960.00"},{"technician":"Roberto Rodriguez","line_item":"10/13 7am-3pm","qty_hours":"8","unit_price":"80.00","line_total":"640.00"},{"technician":"Darrius Malone","line_item":"12pm-10pm","qty_hours":"10","unit_price":"60.00","line_total":"600.00"},{"technician":"Darrius Malone","line_item":"2pm-10pm","qty_hours":"8","unit_price":"60.00","line_total":"480.00"},{"technician":"Kevin Little","line_item":"2pm-10pm","qty_hours":"8","unit_price":"60.00","line_total":"480.00"}]},{"invoice_number":"91721","client":"Techcon","project":"Zoom Meeting (We are home)","submitted_date":"9/17/2021","year":"2021","record_type":"Client Invoice","invoice_total":"1261.44","include_in_revenue":"Y","data_flag":"REVIEW: printed subtotal ($1,261.44) equals only the 4 day-rate lines; OT/deductions not reflected in printed total | RECONCILE: line items sum to 543.10 vs printed total 1,261.44","event_location":"801 N Glebe Road","due_date":"10/1/2021","source_file":"9_23_2021_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Mon Day Rate 9am-5pm","qty_hours":"7.87","unit_price":"32.00","line_total":"251.84"},{"technician":"","line_item":"Tue 6:30am-5:30pm (incl 1.7 OT @$48)","qty_hours":"11.7","unit_price":"32.00","line_total":"374.40"},{"technician":"","line_item":"Wed 6:50am-6:00pm (incl 1 OT @$48)","qty_hours":"11","unit_price":"32.00","line_total":"352.00"},{"technician":"","line_item":"Thu 7:30am-4:30pm","qty_hours":"8.85","unit_price":"32.00","line_total":"283.20"},{"technician":"","line_item":"Overtime","qty_hours":"2.17","unit_price":"","line_total":"96.00"},{"technician":"","line_item":"Housing (not included)","qty_hours":"","unit_price":"","line_total":"-180.00"},{"technician":"","line_item":"Food Per Diem (not included)","qty_hours":"","unit_price":"","line_total":"-250.00"},{"technician":"","line_item":"Travel - tech booked 1 way","qty_hours":"","unit_price":"","line_total":"-263.93"},{"technician":"","line_item":"Uber","qty_hours":"5","unit_price":"","line_total":"-120.41"}]},{"invoice_number":"81219","client":"AV Concepts","project":"General AV","submitted_date":"8/15/2019","year":"2019","record_type":"Client Invoice","invoice_total":"750.00","include_in_revenue":"Y","data_flag":"","event_location":"Baltimore Convention Center","due_date":"8/30/2019","source_file":"av_concepts_88-815_-_Invoice.pdf","line_items":[{"technician":"","line_item":"8/8 8am-7pm","qty_hours":"10","unit_price":"25.00","line_total":"250.00"},{"technician":"","line_item":"8/10 8am-7pm","qty_hours":"10","unit_price":"25.00","line_total":"250.00"},{"technician":"","line_item":"8/13 4pm-9pm","qty_hours":"5","unit_price":"25.00","line_total":"125.00"},{"technician":"","line_item":"8/15 8am-1pm","qty_hours":"5","unit_price":"25.00","line_total":"125.00"}]},{"invoice_number":"121820","client":"AV Lancer","project":"Walmart drone show","submitted_date":"12/18/2020","year":"2020","record_type":"Client Invoice","invoice_total":"270.00","include_in_revenue":"Y","data_flag":"","event_location":"Doswell / Kings Dominion","due_date":"1/18/2021","source_file":"Av_lancer_drone_show_8_10_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Gav day rate split shift","qty_hours":"1","unit_price":"270.00","line_total":"270.00"}]},{"invoice_number":"111219","client":"BTS","project":"A2","submitted_date":"11/12/2019","year":"2019","record_type":"Client Invoice","invoice_total":"840.00","include_in_revenue":"Y","data_flag":"","event_location":"Renaissance Arlington Capitol View","due_date":"11/22/2019","source_file":"bts_invoice_11_12_-_Invoice.pdf","line_items":[{"technician":"","line_item":"A2","qty_hours":"10","unit_price":"30.00","line_total":"300.00"},{"technician":"","line_item":"A1","qty_hours":"9","unit_price":"30.00","line_total":"270.00"},{"technician":"","line_item":"A1","qty_hours":"9","unit_price":"30.00","line_total":"270.00"}]},{"invoice_number":"SNSIJM A1","client":"SNS Stagging","project":"IJM IN ROOM A1","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1800.00","include_in_revenue":"N","data_flag":"CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_invoice_A1 with Thu=10.5h ($1,825 vs $1,800)","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_conference_-_invoice_A1.pdf","line_items":[{"technician":"Roberto Rodriguez Velez","line_item":"Mon 23rd 9:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Tue 24th 7:00am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Wed 10:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Thu 6:30am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"}]},{"invoice_number":"SNSIJM A1","client":"SNS Stagging","project":"IJM IN ROOM A1","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1825.00","include_in_revenue":"Y","data_flag":"CONFLICT: inv SNSIJM A1 also in IJM_SNS_conference_-_invoice_A1 with Thu=10h ($1,800 vs $1,825)","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_conference_invoice_A1.pdf","line_items":[{"technician":"Roberto Rodriguez Velez","line_item":"Mon 23rd 9:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Tue 24th 7:00am-5:00pm","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Wed 10:00am-5:00pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Roberto Rodriguez Velez","line_item":"Thu 6:30am-5:00pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"}]},{"invoice_number":"SNSIJM A2","client":"SNS Stagging","project":"IJM IN ROOM A2","submitted_date":"2/28/2026","year":"2026","record_type":"Client Invoice","invoice_total":"472.50","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe, Arlington (Westin)","due_date":"Upon Receipt","source_file":"IJM_SNS_In_room_A2_-_Invoice.pdf","line_items":[{"technician":"Roberto Rodriguez Velez / Luis Figueroa","line_item":"Thu 6:30am-5:00pm","qty_hours":"10.5","unit_price":"45.00","line_total":"472.50"}]},{"invoice_number":"102222","client":"JSAV Inspire","project":"Diocese of Virginia","submitted_date":"10/22/2022","year":"2022","record_type":"Client Invoice","invoice_total":"420.00","include_in_revenue":"Y","data_flag":"","event_location":"Hyatt Regency Crystal City / Crystal Gateway Marriott, 1700 Richmond Hwy, Arlington VA","due_date":"10/28/2022","source_file":"Diocese_of_Virginia_Labor_strike_10_6__-_Invoice.pdf","line_items":[{"technician":"Darrius Malone","line_item":"10/17 10am-6pm strike","qty_hours":"7","unit_price":"30.00","line_total":"210.00"},{"technician":"Chris Smoot","line_item":"10/18 10am-4pm strike","qty_hours":"7","unit_price":"30.00","line_total":"210.00"}]},{"invoice_number":"529302026","client":"Spencer Smith (Allcity Network)","project":"Tailgate","submitted_date":"5/30/2026","year":"2026","record_type":"Client Invoice","invoice_total":"837.23","include_in_revenue":"Y","data_flag":"","event_location":"Spencer@allcitynetwork.com / 303-325-1462","due_date":"6/7/2026","source_file":"DNVR_Morgan_Wallen.pdf","line_items":[{"technician":"","line_item":"Morgan Wallen Tailgate","qty_hours":"1","unit_price":"800.00","line_total":"800.00"},{"technician":"","line_item":"Saturday Tailgate","qty_hours":"1","unit_price":"800.00","line_total":"800.00"},{"technician":"","line_item":"JBL Speakers (included)","qty_hours":"2","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Subwoofer (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"All-in-one Audio controller (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Cables package (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"In-room technician / show talent (included)","qty_hours":"1","unit_price":"0.00","line_total":"0.00"},{"technician":"","line_item":"Friends and family discount","qty_hours":"","unit_price":"","line_total":"-800.00"},{"technician":"","line_item":"Sales tax","qty_hours":"","unit_price":"","line_total":"37.23"}]},{"invoice_number":"33026","client":"SNS Staging","project":"DO DAY / SOMA","submitted_date":"3/30/2026","year":"2026","record_type":"Client Invoice","invoice_total":"2425.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St","due_date":"NET DEPOSIT","source_file":"DO_DAY_SOMA_-_Invoice.pdf","line_items":[{"technician":"","line_item":"Tue Do Day 24th 9am-3pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"","line_item":"Wed Do Day 25th 11am-6:30pm","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"","line_item":"Thu Soma 26th 6am-12:00","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"","line_item":"Fri Soma 27th 7am-6:30","qty_hours":"11.5","unit_price":"50.00","line_total":"575.00"},{"technician":"","line_item":"Sat Soma 28th 7am-5:00","qty_hours":"10","unit_price":"50.00","line_total":"500.00"},{"technician":"","line_item":"Sun Soma 29th 7am-2:00pm","qty_hours":"7","unit_price":"50.00","line_total":"350.00"}]},{"invoice_number":"412131415","client":"SNS Staging","project":"UPLANS","submitted_date":"4/27/2026","year":"2026","record_type":"Client Invoice","invoice_total":"1350.00","include_in_revenue":"Y","data_flag":"","event_location":"801 N Glebe St, Arlington, VA 22203","due_date":"Net 30","source_file":"Doug_Cry__-_Invoice__1_.pdf","line_items":[{"technician":"Doug Cry","line_item":"IN room A1 4/20/26 10:00-3:15pm","qty_hours":"6","unit_price":"50.00","line_total":"300.00"},{"technician":"Doug Cry","line_item":"IN room A1 4/21/26 10:00-8:45pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"},{"technician":"Doug Cry","line_item":"IN room A1 4/22/26 8:00-6:15pm","qty_hours":"10.5","unit_price":"50.00","line_total":"525.00"}]},{"invoice_number":"Quote 111322","client":"Inspire","project":"A1, A2, Gav","submitted_date":"12/17/2022","year":"2022","record_type":"Quote","invoice_total":"1070.00","include_in_revenue":"N","data_flag":"This is a QUOTE, not a final invoice. Filename says 'Nov28-Dec1' but line dates are 12/5 & 12/16 (filename unreliable)","event_location":"1700 Richmond Highway","due_date":"December 28, 2022","source_file":"Employee_pay_out_For_dates_of_Nov28-Dec1__-_Invoice.pdf","line_items":[{"technician":"Trey Hamilton","line_item":"A1 12/16 12noon-11pm","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"Trey Hamilton","line_item":"A1 OT on the day","qty_hours":"3","unit_price":"45.00","line_total":"135.00"},{"technician":"Chris Smoot","line_item":"A2 12/5 7am-8pm","qty_hours":"8","unit_price":"30.00","line_total":"240.00"},{"technician":"D'andre Bynum","line_item":"Gav","qty_hours":"5","unit_price":"35.00","line_total":"175.00"},{"technician":"D'andre Bynum","line_item":"Gav","qty_hours":"8","unit_price":"35.00","line_total":"280.00"}]},{"invoice_number":"11023","client":"7 Virtues Employee Payout","project":"Cap Hilton","submitted_date":"1/10/2023","year":"2023","record_type":"Employee Payout","invoice_total":"2980.00","include_in_revenue":"N","data_flag":"EMPLOYEE PAYOUT (internal cost) \u2014 pairs with client invoice(s) for the same Cap Hilton Jan job. invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"Employee_pay_out_For_dates_of_14-16_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/15-1/16","qty_hours":"16","unit_price":"30.00","line_total":"480.00"},{"technician":"Chris Smoot","line_item":"OT on the day","qty_hours":"4","unit_price":"45.00","line_total":"180.00"},{"technician":"Darrius Malone","line_item":"1/15-1/16","qty_hours":"16","unit_price":"30.00","line_total":"480.00"},{"technician":"Darrius Malone","line_item":"OT on the day","qty_hours":"4","unit_price":"45.00","line_total":"180.00"},{"technician":"Roberto Rodriguez","line_item":"1/27-1/28","qty_hours":"16","unit_price":"70.00","line_total":"1120.00"},{"technician":"Roberto Rodriguez","line_item":"OT on the day","qty_hours":"4","unit_price":"135.00","line_total":"540.00"}]},{"invoice_number":"102219","client":"Event Tech Solutions","project":"General Labor","submitted_date":"10/22/2019","year":"2019","record_type":"Client Invoice","invoice_total":"135.00","include_in_revenue":"Y","data_flag":"","event_location":"Gaylord National","due_date":"11/22/2019","source_file":"Event_Tech_Solutions__-_Invoice.pdf","line_items":[{"technician":"","line_item":"General Labor","qty_hours":"5","unit_price":"27.00","line_total":"135.00"}]},{"invoice_number":"11023","client":"Inspire Solution","project":"Turing Rooms","submitted_date":"10/16/2022","year":"2022","record_type":"Client Invoice","invoice_total":"4550.00","include_in_revenue":"Y","data_flag":"invoice # 11023 REUSED on 4 documents (freelance_labor_4-7, Invoice_Week_1_15-16_27-28, Employee_pay_out_14-16, freelance_labor_27-31)","event_location":"Capitol Hilton, 1001 16th St, Washington DC 20036","due_date":"1/30/2023","source_file":"freelance_labor_27-31_-_Invoice.pdf","line_items":[{"technician":"Chris Smoot","line_item":"1/27 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/27 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Chris Smoot","line_item":"1/28 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/28 10-6","qty_hours":"8","unit_price":"50.00","line_total":"400.00"},{"technician":"Trey Hamilton","line_item":"1/29 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/29 2-10","qty_hours":"8","unit_price":"75.00","line_total":"600.00"},{"technician":"Trey Hamilton","line_item":"1/30 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/30 2-10","qty_hours":"8","unit_price":"75.00","line_total":"600.00"},{"technician":"Trey Hamilton","line_item":"1/31 6-3","qty_hours":"9","unit_price":"50.00","line_total":"450.00"},{"technician":"Chris Smoot","line_item":"1/31 2-10","qty_hours":"8","unit_price":"50.00","line_total":"400.00"}]}];
+/* 2025 SNS Staging invoices (added from the 'SNS staging for 2025' folder) */
+INVOICE_DATA.push.apply(INVOICE_DATA, [{"invoice_number": "10015", "client": "SNS Staging", "project": "Echo and clinical success symposium - Audio 1 set & strike", "submitted_date": "4/12/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "2500.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "", "due_date": "5/12/2025", "source_file": "SNS Staging Inc. - Invoice 10015.pdf", "line_items": [{"technician": "", "line_item": "Audio 1 technician - 4/8 2p-10p, 4/9, 4/10 7a-5p, 4/11 6a-5p; 4/12 show cancelled, booking surcharge", "qty_hours": "50", "unit_price": "50.00", "line_total": "2500.00"}], "status": "paid", "paid_info": "ACH 4/25/2025 - split to BoA and NavFed", "notes": "", "subtotal": "2500.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10018", "client": "SNS Staging", "project": "Virginia Society of Otolaryngology and MPI + band set up (revised, edited 10/6/2025)", "submitted_date": "5/9/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "2800.00", "include_in_revenue": "Y", "data_flag": "Revised version of inv 10018 (5/5 Westin line removed). Replaces the $3,300 original.", "event_location": "Westin / Bethesda", "due_date": "5/16/2025", "source_file": "SNS Staging - Invoice 1118.pdf", "line_items": [{"technician": "", "line_item": "5/1-5/3 Westin", "qty_hours": "24", "unit_price": "50.00", "line_total": "1200.00"}, {"technician": "", "line_item": "5/6-5/9 Bethesda", "qty_hours": "32", "unit_price": "50.00", "line_total": "1600.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "2800.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10018", "client": "SNS Staging", "project": "Virginia Society of Otolaryngology and MPI + band set up (original)", "submitted_date": "5/9/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "3300.00", "include_in_revenue": "N", "data_flag": "SUPERSEDED: original $3,300 replaced by the revised $2,800 version of inv 10018. File \"Invoice 10118\" is an identical copy.", "event_location": "Westin / Bethesda", "due_date": "5/16/2025", "source_file": "SNS Staging - Invoice 10018.pdf (+ identical copy 10118)", "line_items": [{"technician": "", "line_item": "5/1-5/3 Westin", "qty_hours": "24", "unit_price": "50.00", "line_total": "1200.00"}, {"technician": "", "line_item": "5/5 Westin", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "5/6-5/9 Bethesda", "qty_hours": "32", "unit_price": "50.00", "line_total": "1600.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "3300.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10020", "client": "SNS Staging", "project": "Marcus Johnson 360 band - Mothers Day", "submitted_date": "5/18/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "500.00", "include_in_revenue": "Y", "data_flag": "invoice # 10020 also used for the Oct 2025 Porphyrias Conference invoice", "event_location": "The Commentary", "due_date": "5/18/2025", "source_file": "SNS Staging - Invoice 10020.pdf", "line_items": [{"technician": "", "line_item": "A1 in room audio - The Commentary", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "unpaid", "paid_info": "", "notes": "Labor invoice for Mothers MJ 360 band in the commentary", "subtotal": "500.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10021", "client": "SNS Staging", "project": "Mother's Day equipment rental", "submitted_date": "5/18/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "347.75", "include_in_revenue": "Y", "data_flag": "invoice # 10021 also used for the Oct 2025 Porphyrias Conference invoice", "event_location": "", "due_date": "5/18/2025", "source_file": "SNS Staging - Invoice 10021.pdf", "line_items": [{"technician": "", "line_item": "Microphone and Instrument package (rental)", "qty_hours": "1", "unit_price": "329.00", "line_total": "329.00"}], "status": "paid", "paid_info": "Check 6/18/2025", "notes": "1 Beta 91, 1 Beta 52a, 2 SM57, 1 SM91, 3 Beta 98, 2 AKG C1000, 2 SM58A, 3 Radial stereo DI", "subtotal": "329.00", "tax_amount": 18.75, "tax_label": "VA sales tax 5.7%", "venue": ""}, {"invoice_number": "10026", "client": "SNS Staging", "project": "Cerca Conference audio - in room set/tech/strike @ The Westin", "submitted_date": "5/26/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "1650.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "The Westin (SNS Staging Inc, Arlington) - PM Nishant", "due_date": "6/6/2025", "source_file": "SNS Staging - Invoice 10026.pdf", "line_items": [{"technician": "", "line_item": "5/19", "qty_hours": "5", "unit_price": "50.00", "line_total": "250.00"}, {"technician": "", "line_item": "5/20", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "5/21", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "5/22", "qty_hours": "8", "unit_price": "50.00", "line_total": "400.00"}], "status": "paid", "paid_info": "ACH 6/26/2025", "notes": "", "subtotal": "1650.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10027", "client": "SNS Staging", "project": "AAMVA - in room op audio & records", "submitted_date": "6/11/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "1250.00", "include_in_revenue": "Y", "data_flag": "REVIEW: second line printed as 6/3 again (message lists 12-5, 7-5, 7-5) - likely 6/4", "event_location": "PM Nishant", "due_date": "6/30/2025", "source_file": "SNS Staging - Invoice 10027 (1).pdf", "line_items": [{"technician": "", "line_item": "6/2 12-5", "qty_hours": "5", "unit_price": "50.00", "line_total": "250.00"}, {"technician": "", "line_item": "6/3 7-5", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "6/3 7-5 (second day as printed)", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "paid", "paid_info": "ACH 7/11/2025", "notes": "", "subtotal": "1250.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10031", "client": "SNS Staging", "project": "SIA - Society of International Affairs", "submitted_date": "7/21/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "1750.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "PM Nishant + Muhammad", "due_date": "7/21/2025", "source_file": "SNS Staging - Invoice 10031.pdf", "line_items": [{"technician": "", "line_item": "7/13 3-8 soundcheck and content with client", "qty_hours": "5", "unit_price": "50.00", "line_total": "250.00"}, {"technician": "", "line_item": "7/14 7-5 show A1 (A2 assist Kevin Oriel)", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "7/15 7-5 show A1", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "7/16 7-5 show A1", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "1750.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10033", "client": "SNS Staging", "project": "NStic", "submitted_date": "8/4/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "750.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "PM Nishant", "due_date": "9/29/2025", "source_file": "SNS Staging - Invoice 10033.pdf", "line_items": [{"technician": "", "line_item": "September 8 11-4", "qty_hours": "5", "unit_price": "50.00", "line_total": "250.00"}, {"technician": "", "line_item": "September 9 7a-5p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "unpaid", "paid_info": "", "notes": "Edited 9/15/2025", "subtotal": "750.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10040", "client": "SNS Staging", "project": "Culper - in room audio", "submitted_date": "9/29/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "1550.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "801 N Glebe, Arlington VA", "due_date": "9/29/2025", "source_file": "SNS Staging - Invoice 10040.pdf", "line_items": [{"technician": "", "line_item": "In room A1 Sept 25 7a-5p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "In room A1 Sept 26 7a-5p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "In room A1 Sept 27 7a-6p", "qty_hours": "11", "unit_price": "50.00", "line_total": "550.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "1550.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10041", "client": "SNS Staging", "project": "CERCA - in room op Audio 1", "submitted_date": "10/29/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "2000.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "", "due_date": "10/29/2025", "source_file": "SNS Staging - Invoice 10041 Cerca.pdf", "line_items": [{"technician": "", "line_item": "In room op Oct 20", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "In room op Oct 21", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "In room op Oct 22", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "", "line_item": "In room op Oct 23", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "2000.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10020", "client": "SNS Staging", "project": "Porphyrias Conference - Roberto Rodriguez Oct 8-11", "submitted_date": "10/13/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "1800.00", "include_in_revenue": "Y", "data_flag": "invoice # 10020 reused (also May 2025 Marcus Johnson band). Hours column shows 32 vs lines summing to 36 - billed total $1,800 as printed.", "event_location": "801 N Glebe Road", "due_date": "10/22/2025", "source_file": "October 8-11 Roberto Rodriguez - Invoice.pdf", "line_items": [{"technician": "Roberto Rodriguez", "line_item": "Wed Oct 8 7a-5p day rate", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "Roberto Rodriguez", "line_item": "Thu Oct 9 6:30a-5:30p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "Roberto Rodriguez", "line_item": "Fri Oct 10 6:50a-6p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}, {"technician": "Roberto Rodriguez", "line_item": "Sat Oct 11 7a-12 noon (2 x 6 hrs)", "qty_hours": "6", "unit_price": "50.00", "line_total": "300.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "1800.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10021", "client": "SNS Staging", "project": "Porphyrias Conference - Deaundre Dominique Oct 11-12 (in room audio 1)", "submitted_date": "10/13/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "575.00", "include_in_revenue": "Y", "data_flag": "invoice # 10021 reused (also May 2025 Mothers Day rental)", "event_location": "801 N Glebe Road", "due_date": "10/22/2025", "source_file": "October 11-12 Deaundre Dominique - Invoice.pdf", "line_items": [{"technician": "Deaundre Dominique", "line_item": "Sat Oct 11 12 noon-5p day rate", "qty_hours": "5", "unit_price": "50.00", "line_total": "250.00"}, {"technician": "Deaundre Dominique", "line_item": "Sun Oct 12 7a-2:30p", "qty_hours": "6.5", "unit_price": "50.00", "line_total": "325.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "575.00", "tax_amount": 0, "tax_label": "", "venue": ""}, {"invoice_number": "10042", "client": "SNS Staging", "project": "PSC Law Board Meeting", "submitted_date": "12/15/2025", "year": "2025", "record_type": "Client Invoice", "invoice_total": "500.00", "include_in_revenue": "Y", "data_flag": "", "event_location": "", "due_date": "12/15/2025", "source_file": "SNS Staging  - Invoice 10042.pdf", "line_items": [{"technician": "", "line_item": "In Room Audio 1 7a-5p", "qty_hours": "10", "unit_price": "50.00", "line_total": "500.00"}], "status": "unpaid", "paid_info": "", "notes": "", "subtotal": "500.00", "tax_amount": 0, "tax_label": "", "venue": ""}]);
 let invYear = 'ALL', invType = 'all', invExpanded = {};
 const invMoney = n => '$' + (Number(n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const invNum = d => parseFloat(d.invoice_total||'0')||0;
@@ -4767,7 +4790,7 @@ function renderInvoices(){
             <th style="text-align:right;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Rate</th>
             <th style="text-align:right;padding:5px 8px;font-size:10px;color:var(--muted);text-transform:uppercase">Amount</th>
           </tr></thead><tbody>${li}</tbody></table>${flagLine}
-          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();openEditInvoice(${idx})">✎ Edit</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();pdfInvoiceIdx(${idx})">⬇ PDF</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();csvInvoiceIdx(${idx})">⬇ CSV</button></div><div style="font-size:10px;color:var(--muted);margin-top:8px">Source: ${d.source_file||''}</div></td></tr>`;
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();openEditInvoice(${idx})">✎ Edit</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();duplicateInvoice(${idx})">⧉ Duplicate</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();pdfInvoiceIdx(${idx})">⬇ PDF</button><button class="btn btn-ghost admin-only" style="font-size:11px;padding:5px 10px" onclick="event.stopPropagation();csvInvoiceIdx(${idx})">⬇ CSV</button></div><div style="font-size:10px;color:var(--muted);margin-top:8px">Source: ${d.source_file||''}</div></td></tr>`;
       }
       return main+det;
     }).join('');
@@ -5276,12 +5299,25 @@ function openEditInvoice(idx){
   niLineData = (rec.line_items||[]).map(l=>{
     const m=(l.line_item||'').match(/^\[(Labor|OT|Rental|Expense)\]\s*/);
     return { desc:(l.line_item||'').replace(/^\[[^\]]+\]\s*/,''), cat:m?m[1]:'Labor',
-             tech:l.technician||'', qty:l.qty_hours||'', rate:l.unit_price||'' };
+             tech:l.technician||'', qty:(l.qty_hours===''||l.qty_hours==null)&&!l.unit_price&&parseFloat(l.line_total)?'1':(l.qty_hours||''), rate:(!l.unit_price&&!l.qty_hours&&parseFloat(l.line_total))?String(l.line_total):(l.unit_price||'') };
   });
   if(!niLineData.length) niLineData=[{desc:'',cat:'Labor',tech:'',qty:'1',rate:''}];
   var _t=document.getElementById('niModalTitle'); if(_t)_t.textContent='Edit Invoice';
   renderInvLines(); recalcNewInvoice();
   openModal('newInvoiceModal');
+}
+/* Duplicate an invoice: opens the New Invoice form pre-filled from the original with a fresh number */
+function duplicateInvoice(idx){
+  const rec = INVOICE_DATA[idx]; if(!rec) return;
+  openEditInvoice(idx);
+  editingInvoiceIdx = null;               // saving creates a NEW invoice, never overwrites the original
+  const set=(id,v)=>{const e=document.getElementById(id); if(e)e.value=v;};
+  set('niNumber', nextInvoiceNumber());
+  const d=new Date(); set('niDate', (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear());
+  set('niDue',''); set('niStatus','unpaid'); set('niPaid','');
+  const t=document.getElementById('niModalTitle'); if(t) t.textContent='New Invoice (copy of #'+(rec.invoice_number||'')+')';
+  recalcNewInvoice();
+  toast('Invoice duplicated','Edit what changed, then Save. The original is untouched.');
 }
 async function insertInvoiceDb(rec){
   const r = await fetch(`${SUPA_URL}/rest/v1/invoices`, {method:'POST', mode:'cors', cache:'no-cache',
@@ -5563,7 +5599,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='30'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -5571,10 +5607,8 @@ function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 async function csList(){
   try{
     const rows=await sbGet('crew_schedules?select=id,event_name&order=created_at.desc');
-    if(!(jobs||[]).length){ try{ jobs=await sbGet('jobs?select=*&order=show_date.desc.nullslast'); }catch(e){} }
     const sel=document.getElementById('csPicker');
-    sel.innerHTML='<option value="">— saved schedules —</option>'+(rows||[]).map(r=>`<option value="${r.id}" ${r.id===CS.id?'selected':''}>${r.event_name||'(untitled)'}${csJobFor(r.id,r.event_name)?'':'  ⚠ not in Jobs'}</option>`).join('');
-    csFillClientList();
+    sel.innerHTML='<option value="">— saved schedules —</option>'+(rows||[]).map(r=>`<option value="${r.id}" ${r.id===CS.id?'selected':''}>${r.event_name||'(untitled)'}</option>`).join('');
   }catch(e){ /* table not created yet */ }
 }
 async function csLoad(id){
@@ -5583,7 +5617,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'30'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn();
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{};
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -5596,23 +5630,23 @@ function csSetNetTerms(v){
 }
 function csSyncNetTermsSel(){
   const sel=document.getElementById('csNetTerms'); if(!sel) return;
-  sel.value = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
+  sel.value = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
 }
 function csNetTermsLabel(){
-  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
   if (v==='dos') return 'Due Day of Show';
   if (v==='0') return 'Due on Receipt';
   return 'Net ' + v;
 }
 function csDueDate(showLabel){
-  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '30';
+  const v = (CS.netTerms!==undefined && CS.netTerms!==null) ? String(CS.netTerms) : '15';
   const fmtD = d => d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   if (v==='dos') {
     let sd = null;
     if (showLabel) { const parsed = new Date(showLabel + ', ' + new Date().getFullYear()); if (!isNaN(parsed)) sd = parsed; }
     return sd ? fmtD(sd) : fmtD(new Date());
   }
-  const days = v==='0' ? 0 : (parseInt(v,10)||30);
+  const days = v==='0' ? 0 : (parseInt(v,10)||15);
   return fmtD(new Date(Date.now()+days*864e5));
 }
 
@@ -5633,7 +5667,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'30'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
+  const row={event_name:CS.event, data:{rateCard:CS.rateCard, budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -5642,227 +5676,9 @@ async function csSave(){
       const rows=await r.json(); if(rows[0]&&rows[0].id) CS.id=rows[0].id;
     }
     toast('Schedule saved', CS.event+' — saved & persisted.'); csList();
-    try{ const sr=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(CS.id)+'&select=id,event_name,data,created_at'); if(sr&&sr[0]) await psSyncInvoice(sr[0]); }
-    catch(e){ toast('Invoice not saved','The schedule saved, but its invoice did not: '+String(e).substring(0,60)); }
-    if(isNew) csFlagRateCards();
-    if((CS.client||'').trim()) await csUpsertJob(true);
-    else toast('Pick a client','Choose a client so this schedule shows up in Jobs by Client.');
+    if(isNew){ csFlagRateCards(); await loadJobs(); csCreateJobFromSchedule(); }
   }catch(e){ toast('Saved locally','Shown now, not persisted — create the crew_schedules table.');
     if(isNew) csCreateJobFromSchedule(); }
-}
-
-
-
-
-/* ===== Jobs by Client: quick "job from schedule" bar — pick a schedule + client, one click ===== */
-let JQ_SCHEDS=[];
-async function jqFill(){
-  const ss=document.getElementById('jqSched'), cs=document.getElementById('jqClient'); if(!ss||!cs) return;
-  try{ JQ_SCHEDS=await sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc'); }catch(e){ JQ_SCHEDS=[]; }
-  const keep=ss.value;
-  const rows=JQ_SCHEDS.map(r=>{ const d=typeof r.data==='string'?JSON.parse(r.data):(r.data||{}); return {r,d,job:csJobFor(r.id,r.event_name)}; });
-  const opt=x=>`<option value="${x.r.id}">${String(x.r.event_name||'(untitled)').replace(/</g,'&lt;')}${x.d.days&&x.d.days[0]?' · '+String(x.d.days[0].label).replace(/</g,'&lt;'):''}${x.job?' · ✓ '+String(x.job.client||'').replace(/</g,'&lt;'):''}</option>`;
-  const need=rows.filter(x=>!x.job), done=rows.filter(x=>x.job);
-  ss.innerHTML='<option value="">— pick a schedule —</option>'
-    +(need.length?`<optgroup label="Not in Jobs yet (${need.length})">${need.map(opt).join('')}</optgroup>`:'')
-    +(done.length?`<optgroup label="Already in Jobs — update">${done.map(opt).join('')}</optgroup>`:'');
-  if(keep) ss.value=keep;
-  const clients=[...new Set((jobs||[]).map(j=>(j.client||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-  const ck=cs.value;
-  cs.innerHTML='<option value="">— pick a client —</option>'+clients.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c.replace(/</g,'&lt;')}</option>`).join('')+'<option value="__new">＋ New client…</option>';
-  if(ck) cs.value=ck;
-  const n=document.getElementById('jqNote'); if(n) n.textContent=need.length?need.length+' schedule'+(need.length!==1?'s':'')+' not in Jobs yet':'All schedules are in Jobs';
-  jqPickClient();
-}
-function jqPickSched(){
-  const id=document.getElementById('jqSched').value, x=JQ_SCHEDS.find(r=>String(r.id)===id); if(!x) return;
-  const d=typeof x.data==='string'?JSON.parse(x.data):(x.data||{}), job=csJobFor(x.id,x.event_name), c=(d.client||(job&&job.client)||'').trim();
-  const cs=document.getElementById('jqClient');
-  if(c){ if(![...cs.options].some(o=>o.value===c)) cs.insertAdjacentHTML('afterbegin',`<option value="${c.replace(/"/g,'&quot;')}">${c.replace(/</g,'&lt;')}</option>`); cs.value=c; }
-  jqPickClient();
-}
-function jqPickClient(){ const w=document.getElementById('jqNewWrap'); if(w) w.style.display=document.getElementById('jqClient').value==='__new'?'block':'none'; }
-async function jqCreate(){
-  const id=document.getElementById('jqSched').value;
-  let client=document.getElementById('jqClient').value;
-  if(client==='__new') client=document.getElementById('jqNew').value.trim();
-  if(!id){ toast('Pick a schedule','Choose which crew schedule to turn into a job.'); return; }
-  if(!client){ toast('Pick a client','Choose which client this job belongs to.'); return; }
-  if((people||[]).length===0 && typeof loadPeople==='function'){ try{ await loadPeople(); }catch(e){} }
-  await csLoad(id);                       // load the schedule (terms, tax, rate card, crew)
-  CS.client=client; const el=document.getElementById('csClient'); if(el) el.value=client;
-  await csSave();                         // saves client → invoice → job in Jobs by Client
-  document.getElementById('jqNew').value='';
-}
-
-/* ===== Schedule → Jobs by Client: one schedule, one job, linked by the schedule's invoice number ===== */
-function csFillClientList(){
-  const dl=document.getElementById('csClientDL'); if(!dl) return;
-  dl.innerHTML=[...new Set((jobs||[]).map(j=>(j.client||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(c=>`<option value="${c.replace(/"/g,'&quot;')}">`).join('');
-}
-function csJobFor(id, name){
-  const inv=psInvNumber(id);
-  return (jobs||[]).find(j=>j.invoice_no===inv)
-      || (jobs||[]).find(j=>!j.invoice_no && (j.name||'').trim().toLowerCase()===(name||'').trim().toLowerCase());
-}
-async function csUpsertJob(quiet){
-  const client=(CS.client||'').trim();
-  if(!CS.id){ toast('Save first','Save the schedule, then add it to Jobs.'); return; }
-  if(!client){ toast('Pick a client','Choose which client this job belongs to.'); const el=document.getElementById('csClient'); if(el) el.focus(); return; }
-  const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
-  let labor=0, revenue=0;
-  CS.days.forEach(d=>(CS.assign[d.id]||[]).forEach(s=>{ if(!s.tech) return; const L=csLine(s,peopleMap[s.tech]||{}); labor+=L.pay; revenue+=L.bill; }));
-  const show=psShowDate({days:CS.days}, CS.createdAt||new Date());
-  const iso=show?show.getFullYear()+'-'+String(show.getMonth()+1).padStart(2,'0')+'-'+String(show.getDate()).padStart(2,'0'):null;
-  const room=CS.days.flatMap(d=>(CS.assign[d.id]||[]).map(s=>s.room)).find(Boolean)||null;
-  const body={client, name:CS.event, show_date:iso, venue:room, invoice_no:psInvNumber(CS.id), revenue:+revenue.toFixed(2), labor_cost:+labor.toFixed(2)};
-  try{
-    if(!(jobs||[]).length) await loadJobs();
-    const ex=csJobFor(CS.id, CS.event);
-    if(ex){
-      if(ex.venue || !body.venue) delete body.venue;   // keep a venue already typed on the job
-      if(!body.show_date) delete body.show_date;
-      await sbPatch('jobs?id=eq.'+ex.id, body);
-    } else {
-      await sbPost('jobs', {...body, gear_cost:0, transport_cost:0, other_cost:0,
-        notes:'From crew schedule · '+CS.days.length+' day'+(CS.days.length!==1?'s':'')+' · '+CS.days.map(d=>d.label).join(', ')});
-    }
-    await loadJobs(); csList();
-    toast(ex?'Job updated':'Added to Jobs', client+' → '+CS.event);
-  }catch(e){ toast('Job not saved', String(e).substring(0,80)); }
-}
-/* button: saves the schedule (so client, terms and invoice are current) and puts it in Jobs by Client */
-async function csAddToJobs(){
-  if(!(CS.client||'').trim()){ toast('Pick a client','Choose which client this job belongs to, then click Add to Jobs.'); const el=document.getElementById('csClient'); if(el) el.focus(); return; }
-  await csSave();
-}
-
-/* ===== PAYOUTS — every crew schedule is an invoice with a payout countdown ===== */
-let PS_ROWS=[], PS_FILTER='open', PS_TIMER=null;
-const psMoney=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const psFmtLong=d=>d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-const psFmtShort=d=>(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
-function psInvNumber(id){ return '7VE-S'+String(id).replace(/[^a-z0-9]/gi,'').slice(-6).toUpperCase(); }
-function psTermsLabel(v){ v=String(v??'30'); return v==='dos'?'Due Day of Show':v==='0'?'Due on Receipt':'Net '+v; }
-/* show date from a day label like "Jul 20" or "SNS 9/24" — the year comes from when the schedule was created */
-function psShowDate(data, created, last){
-  const days=(data&&data.days)||[]; const lbl=days.length&&days[last?days.length-1:0].label; if(!lbl) return null;
-  const c=new Date(created||Date.now()), y=c.getFullYear(), t=String(lbl);
-  const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-  let d=null, m;
-  if((m=t.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/))) d=new Date(m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):y, +m[1]-1, +m[2]);
-  else if((m=t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})/i))) d=new Date(y, MON.indexOf(m[1].toLowerCase()), +m[2]);
-  if(!d||isNaN(d)) return null;
-  if(d < new Date(c.getTime()-60*864e5)) d.setFullYear(d.getFullYear()+1);
-  return d;
-}
-/* due date: Day of Show = first show day; otherwise the last show day plus the net days
-   (falls back to the created date when a day label has no readable date) */
-function psDueDate(data, created){
-  const v=String((data&&data.netTerms)??'30'), c=new Date(created||Date.now());
-  let d;
-  if(v==='dos') d=psShowDate(data,c)||c;
-  else { d=new Date(psShowDate(data,c,true)||c); d.setDate(d.getDate()+(v==='0'?0:(parseInt(v,10)||30))); }
-  d=new Date(d); d.setHours(23,59,0,0); return d;
-}
-/* invoice total for a saved schedule, priced with that schedule's own rate card */
-function psTotal(data){
-  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled};
-  CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
-  let sub=0; const items=[];
-  try{
-    (data.days||[]).forEach(d=>(((data.assign||{})[d.id])||[]).forEach(s=>{
-      if(!s.tech) return;
-      const L=csLine(s,{}); sub+=L.bill;
-      items.push({technician:'',line_item:d.label+' · '+(s.pos||'Crew'),qty_hours:L.hrs.toFixed(2),unit_price:L.billRate,line_total:L.bill.toFixed(2)});
-    }));
-  } finally { Object.assign(CS,keep); }
-  const tax=(data.taxOn!==false)?sub*0.06:0;
-  return {sub,tax,total:sub+tax,items};
-}
-function psInvoiceRec(sc, existing){
-  const data=typeof sc.data==='string'?JSON.parse(sc.data):(sc.data||{});
-  const created=new Date(sc.created_at||Date.now()), t=psTotal(data);
-  return {
-    invoice_number:psInvNumber(sc.id), record_type:'Client Invoice', client:data.client||(existing&&existing.client)||'', project:sc.event_name||'Crew schedule',
-    event_location:(existing&&existing.event_location)||'', submitted_date:psFmtShort(created), due_date:psFmtShort(psDueDate(data,created)),
-    year:String(created.getFullYear()), invoice_total:t.total.toFixed(2), include_in_revenue:'Y', data_flag:'',
-    source_file:'crew_schedule:'+sc.id, bill_to:(existing&&existing.bill_to)||'', venue:(existing&&existing.venue)||'',
-    service_dates:(data.days||[]).map(d=>d.label).join(', '), terms:psTermsLabel(data.netTerms), po_number:(existing&&existing.po_number)||'', rep:(existing&&existing.rep)||'',
-    subtotal:t.sub.toFixed(2), adjustment_label:'', adjustment_amount:0, tax_label:t.tax?'Sales tax (6%)':'', tax_amount:t.tax,
-    status:(existing&&existing.status)||'unpaid', paid_info:(existing&&existing.paid_info)||'', notes:(existing&&existing.notes)||'Created from crew schedule', line_items:t.items
-  };
-}
-async function psSyncInvoice(sc){
-  const ex=await sbGet('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+sc.id)+'&select=*');
-  const row=invoiceToRow(psInvoiceRec(sc, ex&&ex[0]));
-  if(ex&&ex[0]) await sbPatch('invoices?id=eq.'+ex[0].id, row); else await sbPost('invoices', row);
-  invoicesLoaded=false;
-}
-async function psSyncAll(){
-  try{
-    const scheds=await sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc');
-    let ok=0; for(const sc of scheds){ try{ await psSyncInvoice(sc); ok++; }catch(e){} }
-    toast('Invoices updated', ok+' of '+scheds.length+' schedules now have an invoice.'); renderPayouts();
-  }catch(e){ toast('Could not create invoices', String(e).substring(0,80)); }
-}
-function psCountdown(due, paid){
-  if(paid) return {txt:'Paid', col:'var(--green)'};
-  const ms=due-Date.now(), day=864e5;
-  if(ms<0){ const d=Math.ceil(-ms/day); return {txt:'Overdue '+d+' day'+(d!==1?'s':''), col:'var(--red)'}; }
-  const d=Math.floor(ms/day), h=Math.floor(ms%day/36e5), m=Math.floor(ms%36e5/6e4);
-  if(d===0) return {txt:'Due today · '+h+'h '+m+'m left', col:'var(--accent)'};
-  return {txt:d+'d '+h+'h '+m+'m', col: d<=7?'var(--accent)':'var(--text)'};
-}
-async function renderPayouts(){
-  const body=document.getElementById('psBody'); if(!body) return;
-  try{
-    const [scheds, invs]=await Promise.all([
-      sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc'),
-      sbGet('invoices?source_file=like.crew_schedule:*&select=id,invoice_number,status,paid_info,source_file,invoice_total')
-    ]);
-    const byId={}; (invs||[]).forEach(i=>byId[String(i.source_file).replace('crew_schedule:','')]=i);
-    PS_ROWS=(scheds||[]).map(sc=>{
-      const data=typeof sc.data==='string'?JSON.parse(sc.data):(sc.data||{});
-      const created=new Date(sc.created_at||Date.now()), inv=byId[String(sc.id)]||null;
-      return {id:sc.id, name:sc.event_name||'Untitled', created, data, due:psDueDate(data,created), total:psTotal(data).total,
-        terms:psTermsLabel(data.netTerms), termsSet:data.netTerms!=null, inv, paid:!!(inv&&String(inv.status).toLowerCase()==='paid')};
-    }).sort((a,b)=>a.due-b.due);
-  }catch(e){ body.innerHTML=`<tr><td colspan=7 style="color:var(--red);padding:16px">Could not load payouts: ${String(e).substring(0,80)}</td></tr>`; return; }
-  psDraw();
-  clearInterval(PS_TIMER); PS_TIMER=setInterval(()=>{ if(document.getElementById('moneyTab-payouts')?.style.display==='block') psTick(); else clearInterval(PS_TIMER); },30000);
-}
-function psSetFilter(f){ PS_FILTER=f; document.querySelectorAll('#psChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.ps===f)); psDraw(); }
-function psDraw(){
-  const now=Date.now(), open=PS_ROWS.filter(r=>!r.paid);
-  const sum=a=>a.reduce((t,r)=>t+r.total,0), set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
-  const wk=open.filter(r=>r.due>=now&&r.due-now<=7*864e5), mo=open.filter(r=>r.due>=now&&r.due-now<=30*864e5), late=open.filter(r=>r.due<now);
-  set('psOut',psMoney(sum(open))); set('psOutSub',open.length+' unpaid');
-  set('psWeek',psMoney(sum(wk))); set('psWeekSub',wk.length+' job'+(wk.length!==1?'s':''));
-  set('psMonth',psMoney(sum(mo))); set('psMonthSub',mo.length+' job'+(mo.length!==1?'s':''));
-  set('psLate',psMoney(sum(late))); set('psLateSub',late.length+' job'+(late.length!==1?'s':''));
-  const rows=PS_ROWS.filter(r=>PS_FILTER==='all'||(PS_FILTER==='paid'?r.paid:PS_FILTER==='late'?(!r.paid&&r.due<now):!r.paid));
-  const esc=t=>String(t).replace(/</g,'&lt;');
-  document.getElementById('psBody').innerHTML = rows.length ? rows.map(r=>{
-    const c=psCountdown(r.due,r.paid);
-    return `<tr class="arow">
-      <td><b>${esc(r.name)}</b><div style="font-size:11px;color:${r.data.client?'var(--steel)':'var(--accent)'}">${r.data.client?esc(r.data.client):'No client set'}</div><div style="font-size:11px;color:var(--muted)">Created ${psFmtShort(r.created)}${r.data.days&&r.data.days.length?' · '+esc(r.data.days.map(d=>d.label).join(', ')):''}</div></td>
-      <td style="font-family:monospace;font-size:12px">${r.inv?esc(r.inv.invoice_number):psInvNumber(r.id)}${r.inv?'':'<div style="font-size:10px;color:var(--muted);font-family:inherit">not in ledger yet</div>'}</td>
-      <td>${r.terms}${r.termsSet?'':'<div style="font-size:10px;color:var(--accent)">not set — assumed</div>'}</td>
-      <td>${psFmtShort(r.due)}</td>
-      <td data-psdue="${r.due.getTime()}" data-pspaid="${r.paid?1:0}" style="font-weight:700;color:${c.col};font-family:monospace">${c.txt}</td>
-      <td style="text-align:right;font-family:monospace">${psMoney(r.total)}</td>
-      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psMarkPaid('${r.id}',${r.paid?'false':'true'})">${r.paid?'Mark unpaid':'Mark paid'}</button></td>
-    </tr>`;}).join('') : `<tr><td colspan=7 style="color:var(--muted);padding:16px">No ${PS_FILTER==='all'?'':PS_FILTER==='open'?'unpaid ':PS_FILTER+' '}schedules.</td></tr>`;
-}
-function psTick(){ document.querySelectorAll('[data-psdue]').forEach(td=>{ const c=psCountdown(new Date(+td.dataset.psdue), td.dataset.pspaid==='1'); td.textContent=c.txt; td.style.color=c.col; }); }
-async function psMarkPaid(id, paid){
-  try{
-    const sr=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=id,event_name,data,created_at');
-    if(sr&&sr[0]) await psSyncInvoice(sr[0]);
-    await sbPatch('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+id), {status:paid?'paid':'unpaid', paid_info:paid?('Paid '+psFmtShort(new Date())):''});
-    toast(paid?'Marked paid':'Marked unpaid',''); renderPayouts();
-  }catch(e){ toast('Could not update', String(e).substring(0,80)); }
 }
 
 /* ---- crew-chief call sheet PDF ---- */
@@ -5987,7 +5803,7 @@ function csBillRate(pos){
 }
 
 /* ===== V4 RATE CARD (7VE-2027-V4) — labor pay / client billing ===== */
-const V4={ver:'V4',base:10,mini:5,otTo:12,otX:1.5,dtX:2,burden:0.15,floor:0.35,
+const V4={ver:'V4',base:10,otTo:12,otX:1.5,dtX:2,burden:0.15,floor:0.35,
   tiers:{
     gen:{label:'General Stagehand',pay:33,bill:60},
     skl:{label:'Skilled Stagehand / AV Tech',pay:40,bill:72},
@@ -6004,9 +5820,8 @@ function v4Tier(txt){
   if(/skilled|av tech|stream|ptz|camera|video|audio|lighting/.test(t)) return 'skl';
   return 'gen';
 }
-/* hours -> rate-hours: 5-hr mini (calls of 5 hrs or less), else 10-hr guaranteed base, OT 1.5x hrs 11-12, DT 2x hr 13+ */
+/* hours -> rate-hours: 10-hr guaranteed base, OT 1.5x hrs 11-12, DT 2x hr 13+ */
 function v4Split(hrs){
-  if(hrs<=V4.mini) return {worked:hrs,paid:V4.mini,reg:V4.mini,ot:0,dt:0,units:V4.mini,mini:true};
   const paid=Math.max(hrs,V4.base);
   const reg=V4.base, ot=Math.min(Math.max(paid-V4.base,0),V4.otTo-V4.base), dt=Math.max(paid-V4.otTo,0);
   return {worked:hrs,paid,reg,ot,dt,units:reg+ot*V4.otX+dt*V4.dtX};
@@ -6033,7 +5848,7 @@ function csSyncCardBtn(){
 }
 function csToggleCard(){
   CS.rateCard=(CS.rateCard==='legacy')?'v4':'legacy'; csSyncCardBtn(); csHoursSummary();
-  toast('Rate card', CS.rateCard==='legacy'?'Legacy flat billing (setup/skilled rates)':'V4 — 5-hr mini, 10-hr base, OT 1.5×, DT 2×');
+  toast('Rate card', CS.rateCard==='legacy'?'Legacy flat billing (setup/skilled rates)':'V4 — 10-hr base, OT 1.5×, DT 2×');
 }
 
 /* ---- Task 2: flag staff rate cards for revision (run when a schedule is created) ---- */
@@ -6051,7 +5866,7 @@ async function csMarkRateReviewed(id,ev){
 }
 
 /* ---- shared print shell for client-facing V4 documents ---- */
-function v4Shell(title,sub,body){
+function v4Shell(title,sub,body,foot){
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   return `<!DOCTYPE html><html><head><meta charset=utf-8><title>${title}</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Saira:wght@700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel=stylesheet>
@@ -6077,13 +5892,12 @@ function v4Shell(title,sub,body){
   <div class=hdr><div><div class=logo><span>7 Virtues</span> Entertainment</div><div class=lsub>Production · Audio · Video · Lighting</div></div>
   <div><h1>${title}</h1><div class=meta>${sub}<br>${today}</div></div></div>
   ${body}
-  <div class=foot><span>7 Virtues Entertainment LLC · admin@7virtuesentertainment.com · 202-306-4375</span><span>Rate card ${V4.ver}</span></div>
+  <div class=foot><span>7 Virtues Entertainment LLC · admin@7virtuesentertainment.com · 202-306-4375</span><span>${foot||('Rate card '+V4.ver)}</span></div>
   </div></body></html>`;
 }
 const v4m=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const v4Policy=`<h2>How Labor Is Charged</h2><div class=note>
-<b>5-hour minimum.</b> A call of 5 hours or less is billed as a 5-hour minimum.<br>
-<b>10-hour day.</b> A call longer than 5 hours is booked as a 10-hour day. A call between 5 and 10 hours is billed as 10 hours, because crew are guaranteed a full day.<br>
+<b>10-hour day.</b> Labor is booked in a 10-hour day. A call shorter than 10 hours is billed as 10 hours, because crew are guaranteed a full day.<br>
 <b>Overtime (1.5×).</b> Hours 11 and 12 of a day are billed at 1.5 times the hourly rate.<br>
 <b>Double time (2×).</b> Every hour after hour 12 is billed at 2 times the hourly rate.<br>
 <b>Meal penalty.</b> Crew must receive a meal break. If a required meal is missed or delayed, one additional hour at the standard hourly rate is billed for each occurrence, per person.<br>
@@ -6100,7 +5914,7 @@ function csClientEstimatePDF(){
       const L=csLine(s,peopleMap[s.tech]||{});
       sub+=L.bill;
       const sp=L.split;
-      const detail=sp?`${sp.reg} ${sp.mini?'min':'base'}${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
+      const detail=sp?`${sp.reg} base${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
       if(L.tier) usedTiers[L.tier]=1;
       rows+=`<tr><td>${d.label}</td><td>${String(s.pos||'').replace(/</g,'&lt;')}${L.T?`<div style="font-size:10px;color:#6b7280">${L.T.label}</div>`:''}</td><td>${String(s.time||'').replace(/</g,'&lt;')}</td><td>${L.hrs.toFixed(1)}<div style="font-size:10px;color:#6b7280">${detail}</div></td><td class=r>${v4m(L.billRate)}</td><td class=r>${v4m(L.bill)}</td></tr>`;
     });
@@ -6108,14 +5922,14 @@ function csClientEstimatePDF(){
   if(!rows){ toast('No crew assigned','Assign technicians to days first.'); return; }
   const taxRate=(CS.taxOn!==false)?0.06:0, tax=sub*taxRate, total=sub+tax;
   const ladder=Object.keys(usedTiers).map(k=>V4.tiers[k]);
-  const ladderRows=ladder.map(T=>{const o=T.bill*1.5,d=T.bill*2;return `<tr><td>${T.label}</td><td class=r>${v4m(T.bill)}</td><td class=r>${v4m(T.bill*V4.mini)}</td><td class=r>${v4m(T.bill*V4.base)}</td><td class=r>${v4m(o)}</td><td class=r>${v4m(d)}</td></tr>`;}).join('');
+  const ladderRows=ladder.map(T=>{const o=T.bill*1.5,d=T.bill*2;return `<tr><td>${T.label}</td><td class=r>${v4m(T.bill)}</td><td class=r>${v4m(T.bill*V4.base)}</td><td class=r>${v4m(o)}</td><td class=r>${v4m(d)}</td></tr>`;}).join('');
   const body=`<div class=note style="margin-top:0"><b>${(CS.event||'Event').replace(/</g,'&lt;')}</b><br>Labor estimate · ${CS.days.length} day${CS.days.length!==1?'s':''}</div>
   <h2>Estimated Labor</h2>
   <table><thead><tr><th>Day</th><th>Position</th><th>Call</th><th>Hours</th><th style="text-align:right">Rate/hr</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}
   <tr class=tot><td colspan=5>Labor subtotal</td><td class=r>${v4m(sub)}</td></tr>
   ${tax?`<tr><td colspan=5 style="text-align:right">Sales tax (6%)</td><td class=r>${v4m(tax)}</td></tr><tr class=tot><td colspan=5>Estimated total</td><td class=r>${v4m(total)}</td></tr>`:''}
   </tbody></table>
-  ${ladderRows?`<h2>Rates Used</h2><table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">5-hr mini</th><th style="text-align:right">10-hr day</th><th style="text-align:right">OT/hr (1.5×)</th><th style="text-align:right">DT/hr (2×)</th></tr></thead><tbody>${ladderRows}</tbody></table>`:''}
+  ${ladderRows?`<h2>Rates Used</h2><table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">OT/hr (1.5×)</th><th style="text-align:right">DT/hr (2×)</th></tr></thead><tbody>${ladderRows}</tbody></table>`:''}
   ${v4Policy}`;
   const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for estimates.'); return; }
   w.document.write(v4Shell('Labor Estimate',(CS.event||'').replace(/</g,'&lt;'),body)); w.document.close();
@@ -6124,21 +5938,229 @@ function csClientEstimatePDF(){
 /* ---- Task 3: client-facing sales guide — rates, overtime, double time, meal penalties ---- */
 function csLaborGuidePDF(){
   const T=V4.tiers;
-  const rate=Object.keys(T).map(k=>{const t=T[k];return `<tr><td>${t.label}</td><td class=r>${v4m(t.bill)}</td><td class=r>${v4m(t.bill*V4.mini)}</td><td class=r>${v4m(t.bill*V4.base)}</td><td class=r>${v4m(t.bill*1.5)}</td><td class=r>${v4m(t.bill*2)}</td></tr>`;}).join('');
+  const rate=Object.keys(T).map(k=>{const t=T[k];return `<tr><td>${t.label}</td><td class=r>${v4m(t.bill)}</td><td class=r>${v4m(t.bill*10)}</td><td class=r>${v4m(t.bill*1.5)}</td><td class=r>${v4m(t.bill*2)}</td></tr>`;}).join('');
   const ex=T.a1.bill;
   const exRow=(h,lbl)=>{const sp=v4Split(h);return `<tr><td>${lbl}</td><td class=r>${sp.reg}</td><td class=r>${sp.ot||'—'}</td><td class=r>${sp.dt||'—'}</td><td class=r>${v4m(ex*sp.units)}</td></tr>`;};
   const body=`<div class=note style="margin-top:0">This guide explains how 7 Virtues Entertainment prices crew labor so there are no surprises on your invoice. Your quote lists each position, the call times, and the rate that applies.</div>
   <h2>Hourly Rates by Position</h2>
-  <table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">5-hr mini</th><th style="text-align:right">10-hr day</th><th style="text-align:right">Overtime/hr</th><th style="text-align:right">Double time/hr</th></tr></thead><tbody>${rate}</tbody></table>
+  <table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">Overtime/hr</th><th style="text-align:right">Double time/hr</th></tr></thead><tbody>${rate}</tbody></table>
   ${v4Policy}
   <h2>Worked Example — ${T.a1.label.split(' / ')[0]} at ${v4m(ex)}/hr</h2>
   <table><thead><tr><th>Call length</th><th style="text-align:right">Base hrs</th><th style="text-align:right">OT hrs</th><th style="text-align:right">DT hrs</th><th style="text-align:right">Labor charge</th></tr></thead><tbody>
-  ${exRow(4,'4-hour call (5-hr minimum)')}${exRow(8,'8-hour call (billed as 10)')}${exRow(10,'10-hour call')}${exRow(12,'12-hour call')}${exRow(14,'14-hour call')}
+  ${exRow(8,'8-hour call (billed as 10)')}${exRow(10,'10-hour call')}${exRow(12,'12-hour call')}${exRow(14,'14-hour call')}
   <tr><td>Meal penalty (per occurrence)</td><td class=r colspan=3>1 hr at standard rate</td><td class=r>${v4m(ex)}</td></tr></tbody></table>
   <h2>Ways To Keep Labor Costs Down</h2>
-  <div class=note>Keep short calls to 5 hours or less to use the 5-hour minimum, schedule longer calls to fit within 10 hours, build meal breaks into the run of show, and tell us early about changes to load-in or strike times. We will help you plan a schedule that avoids overtime where the show allows.</div>`;
+  <div class=note>Schedule calls to fit within 10 hours, build meal breaks into the run of show, and tell us early about changes to load-in or strike times. We will help you plan a schedule that avoids overtime where the show allows.</div>`;
   const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for the guide.'); return; }
   w.document.write(v4Shell('Labor Rates & Charges','Client guide',body)); w.document.close();
+}
+
+/* ===== TAX & EXPENSES (Show Finance > Tax & Expenses) — yearly business + 1099 packet ===== */
+const TAX_CATS=['Consumables (tape, batteries, gels, cable)','Mileage (standard rate)','Vehicle costs & maintenance (actual expenses)','Meals (50% deductible)','Insurance','Office supplies','Uniforms','Flights & travel','Gear & equipment','Safety gear','Cell phone','iPad / devices','Home office (square footage)','Storage rental fees','Software & subscriptions','Marketing & website','Repairs & maintenance','Professional fees (CPA, legal)','Licenses & fees','Other'];
+/* IRS standard business mileage rate per mile — defaults, confirm each year at irs.gov */
+const TAX_MILE_RATE={2022:0.585,2023:0.655,2024:0.67,2025:0.70,2026:0.725};
+const taxMileRate=y=>TAX_MILE_RATE[parseInt(y,10)]||TAX_MILE_RATE[2026];
+const TAX_HOME_RATE=5, TAX_HOME_MAXSQFT=300;
+function taxRule(cat){
+  const c=String(cat||'').toLowerCase();
+  if(/mileage/.test(c)) return 'mileage';
+  if(/home office/.test(c)) return 'home';
+  if(/meals/.test(c)) return 'meals';
+  if(/cell phone|ipad|devices|vehicle costs/.test(c)) return 'pct';
+  return 'full';
+}
+let bizExpenses=[], taxYear=String(new Date().getFullYear()), taxExpEditId=null, taxIncTechPay=true, taxNoTable=false;
+const taxEsc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const taxM=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function taxYearOf(s){
+  s=String(s||''); let m=s.match(/(\d{4})-\d{2}-\d{2}/); if(m) return m[1];
+  m=s.match(/\d{1,2}\/\d{1,2}\/(\d{4})/); if(m) return m[1];
+  m=s.match(/\d{1,2}\/\d{1,2}\/(\d{2})$/); if(m) return '20'+m[1];
+  return '';
+}
+/* 1099-NEC filing threshold: $600 for payments through 2025, $2,000 starting with 2026 payments (verify with your CPA) */
+const taxThreshold=y=>parseInt(y,10)>=2026?2000:600;
+/* what is actually deductible for one entry */
+function taxDeduct(e,y){
+  const r=taxRule(e.category), amt=parseFloat(e.amount)||0;
+  if(r==='mileage') return (parseFloat(e.miles)||0)*taxMileRate(y);
+  if(r==='home'){ const o=parseFloat(e.office_sqft)||0; return o?Math.min(o,TAX_HOME_MAXSQFT)*TAX_HOME_RATE:amt; }
+  if(r==='meals') return amt*0.5;
+  if(r==='pct'){ const p=(e.biz_pct===null||e.biz_pct===undefined||e.biz_pct==='')?100:parseFloat(e.biz_pct); return amt*(isNaN(p)?100:p)/100; }
+  return amt;
+}
+async function taxLoad(){
+  try{ bizExpenses=await sbGet('business_expenses?select=*&order=expense_date.desc'); taxNoTable=false; }catch(e){ bizExpenses=[]; taxNoTable=true; }
+  try{ if(typeof invoicesLoaded!=='undefined' && !invoicesLoaded){ invoicesLoaded=true; await loadInvoices(); } }catch(e){}
+  try{ if(!people||!people.length) await loadPeople(); }catch(e){}
+  taxRender();
+}
+function taxYears(){
+  const ys=new Set([String(new Date().getFullYear())]);
+  INVOICE_DATA.forEach(d=>{ const y=d.year||taxYearOf(d.submitted_date); if(y) ys.add(String(y)); });
+  bizExpenses.forEach(e=>{ const y=e.year||taxYearOf(e.expense_date); if(y) ys.add(String(y)); });
+  (techPays||[]).forEach(t=>{ const y=taxYearOf(t.created_at); if(y) ys.add(y); });
+  return [...ys].sort().reverse();
+}
+function taxData(y){
+  y=String(y);
+  const yr=d=>String(d.year||taxYearOf(d.submitted_date));
+  const rev=INVOICE_DATA.filter(d=>invIsRev(d)&&yr(d)===y);
+  const byClient={}; rev.forEach(d=>{ const k=d.client||'(no client)'; (byClient[k]=byClient[k]||{n:0,t:0}); byClient[k].n++; byClient[k].t+=invNum(d)-(parseFloat(d.tax_amount)||0); });
+  const salesTax=rev.reduce((s,d)=>s+(parseFloat(d.tax_amount)||0),0);
+  const gross=rev.reduce((s,d)=>s+invNum(d),0)-salesTax;
+  const pay={}; const add=(name,amt,src)=>{ name=(name||'').trim()||'(name not recorded)'; const k=name.toLowerCase(); (pay[k]=pay[k]||{name,total:0,inv:0,tp:0,n:0}); pay[k].total+=amt; pay[k][src]+=amt; pay[k].n++; };
+  INVOICE_DATA.filter(d=>d.record_type==='Employee Payout'&&yr(d)===y).forEach(d=>{
+    const lines=d.line_items||[];
+    if(!lines.length) add('',invNum(d),'inv');
+    lines.forEach(l=>{ const a=parseFloat(l.line_total)||0; if(a) add(l.technician,a,'inv'); });
+  });
+  if(taxIncTechPay) (techPays||[]).filter(t=>t.status==='paid'&&taxYearOf(t.created_at)===y).forEach(t=>add(t.tech_name,parseFloat(t.total_owed)||0,'tp'));
+  const w9={}; (people||[]).forEach(p=>{ w9[((p.first_name||'')+' '+(p.last_name||'')).trim().toLowerCase()]=!!p.doc_w9; });
+  const payees=Object.values(pay).map(p=>({...p,w9:(p.name.toLowerCase() in w9)?w9[p.name.toLowerCase()]:null})).sort((a,b)=>b.total-a.total);
+  const labor=payees.reduce((s,p)=>s+p.total,0);
+  const exp=bizExpenses.filter(e=>String(e.year||taxYearOf(e.expense_date))===y).sort((a,b)=>String(a.expense_date).localeCompare(String(b.expense_date)));
+  exp.forEach(e=>{ e._ded=taxDeduct(e,y); });
+  /* home office simplified method is capped per year */
+  const homeCap=TAX_HOME_MAXSQFT*TAX_HOME_RATE; const homes=exp.filter(e=>taxRule(e.category)==='home'&&parseFloat(e.office_sqft));
+  const homeSum=homes.reduce((s,e)=>s+e._ded,0); if(homeSum>homeCap) homes.forEach(e=>{ e._ded=e._ded*homeCap/homeSum; });
+  const byCat={}; exp.forEach(e=>{ const k=e.category||'Other'; (byCat[k]=byCat[k]||{n:0,spent:0,t:0,items:[]}); byCat[k].n++; byCat[k].spent+=parseFloat(e.amount)||0; byCat[k].t+=e._ded; byCat[k].items.push(e); });
+  const byJob={}; exp.forEach(e=>{ const k=(e.job_name||'').trim(); if(!k) return; (byJob[k]=byJob[k]||{n:0,t:0}); byJob[k].n++; byJob[k].t+=e._ded; });
+  const expTotal=exp.reduce((s,e)=>s+e._ded,0), expSpent=exp.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const miles=exp.filter(e=>taxRule(e.category)==='mileage').reduce((s,e)=>s+(parseFloat(e.miles)||0),0);
+  const warns=[];
+  if(miles&&exp.some(e=>/vehicle costs/i.test(e.category||''))) warns.push('You entered both standard-rate mileage and actual vehicle costs for '+y+'. For the same vehicle you generally have to pick one method, so ask your tax preparer which to use.');
+  if(homeSum>homeCap) warns.push('Home office entries total more than the simplified-method cap ('+taxM(homeCap)+'); the packet caps them.');
+  return {y,rev,byClient,gross,salesTax,payees,labor,exp,byCat,byJob,expTotal,expSpent,miles,warns,net:gross-labor-expTotal,thr:taxThreshold(y)};
+}
+function taxSetYear(y){ taxYear=String(y); taxRender(); }
+function taxToggleTP(v){ taxIncTechPay=!!v; taxRender(); }
+function taxRuleNote(r,y){
+  return {mileage:'Standard mileage: miles × '+taxM(taxMileRate(y)).replace(/0$/,'')+' per mile (IRS rate; confirm it for the year). Keep a mileage log: date, destination, business purpose, miles.',
+    home:'Simplified method: '+taxM(TAX_HOME_RATE)+' per sq ft of the space used regularly and exclusively for business, up to '+TAX_HOME_MAXSQFT+' sq ft ('+taxM(TAX_HOME_RATE*TAX_HOME_MAXSQFT).replace('.00','')+' max). Confirm you qualify with your tax preparer.',
+    meals:'Meals are generally only 50% deductible. The 50% is applied automatically.',
+    pct:'Enter the share used for business. Only that share is deductible.',full:''}[r]||'';
+}
+function taxRender(){
+  const wrap=document.getElementById('taxYearChips'); if(!wrap) return;
+  const ys=taxYears(); if(!ys.includes(taxYear)) taxYear=ys[0];
+  wrap.innerHTML=ys.map(y=>`<button class="chip${y===taxYear?' active':''}" onclick="taxSetYear('${y}')">${y}</button>`).join('');
+  const D=taxData(taxYear);
+  const st=(l,v,c,s)=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c}">${v}</div><div class="stat-sub">${s}</div></div>`;
+  document.getElementById('taxStats').innerHTML=
+    st('Gross Receipts',taxM(D.gross),'var(--green)',D.rev.length+' client invoices'+(D.salesTax?' (excl. '+taxM(D.salesTax)+' sales tax)':''))+
+    st('Contract Labor (1099)',taxM(D.labor),'var(--red)',D.payees.length+' people paid')+
+    st('Deductible Expenses',taxM(D.expTotal),'var(--red)',D.exp.length+' entries · '+taxM(D.expSpent)+' spent')+
+    st('Net Before Tax',taxM(D.net),D.net>=0?'var(--green)':'var(--red)','Gross − labor − deductible expenses');
+  document.getElementById('taxNoTable').style.display=taxNoTable?'block':'none';
+  const wn=document.getElementById('taxWarn'); wn.style.display=D.warns.length?'block':'none'; wn.innerHTML=D.warns.map(w=>'⚠ '+taxEsc(w)).join('<br>');
+  document.getElementById('tax1099').innerHTML=D.payees.length?
+    `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--muted);text-align:left;font-size:10px;text-transform:uppercase"><th style="padding:6px 8px">Name</th><th style="padding:6px 8px;text-align:right">Total paid</th><th style="padding:6px 8px">1099 (≥ ${taxM(D.thr).replace('.00','')})</th><th style="padding:6px 8px">W-9</th></tr></thead><tbody>`+
+    D.payees.map(p=>`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px">${taxEsc(p.name)}</td><td style="padding:6px 8px;text-align:right;font-family:monospace">${taxM(p.total)}${p.tp&&p.inv?` <span style="color:var(--muted);font-size:10px">(inv ${taxM(p.inv)} + tech pay ${taxM(p.tp)})</span>`:''}</td><td style="padding:6px 8px">${p.total>=D.thr?'<b style="color:var(--accent)">1099-NEC REQUIRED</b>':'<span style="color:var(--muted)">below threshold</span>'}</td><td style="padding:6px 8px">${p.w9===null?'<span style="color:var(--muted)">not in People</span>':p.w9?'<span style="color:var(--green)">on file</span>':'<span style="color:var(--red)">MISSING</span>'}</td></tr>`).join('')+'</tbody></table>'
+    :'<div style="color:var(--muted);font-size:12px;padding:10px 0">No staff payouts found for '+taxYear+'.</div>';
+  const cats=Object.keys(D.byCat).sort();
+  document.getElementById('taxCats').innerHTML=cats.length?cats.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px"><span>${taxEsc(c)} <span style="color:var(--muted)">· ${D.byCat[c].n}</span></span><span style="font-family:monospace">${D.byCat[c].spent!==D.byCat[c].t?'<span style="color:var(--muted)">spent '+taxM(D.byCat[c].spent)+' → </span>':''}<b>${taxM(D.byCat[c].t)}</b></span></div>`).join(''):'';
+  const jobs=Object.entries(D.byJob).sort((a,b)=>b[1].t-a[1].t);
+  document.getElementById('taxJobs').innerHTML=jobs.length?`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px">Expenses by job</div>`+jobs.map(([j,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px"><span>${taxEsc(j)} <span style="color:var(--muted)">· ${v.n} entries</span></span><span style="font-family:monospace">${taxM(v.t)}</span></div>`).join(''):'';
+  document.getElementById('taxExpList').innerHTML=D.exp.length?
+    `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--muted);text-align:left;font-size:10px;text-transform:uppercase"><th style="padding:6px 8px">Date</th><th style="padding:6px 8px">Category</th><th style="padding:6px 8px">Vendor / job</th><th style="padding:6px 8px;text-align:right">Spent</th><th style="padding:6px 8px;text-align:right">Deductible</th><th></th></tr></thead><tbody>`+
+    D.exp.map(e=>{ const r=taxRule(e.category); const extra=r==='mileage'?(parseFloat(e.miles)||0)+' mi':r==='home'&&e.office_sqft?e.office_sqft+' sq ft':r==='pct'&&e.biz_pct!=null&&e.biz_pct!==''&&parseFloat(e.biz_pct)!==100?e.biz_pct+'% business':r==='meals'?'50%':'';
+      return `<tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;white-space:nowrap">${taxEsc(e.expense_date)}</td><td style="padding:6px 8px">${taxEsc(e.category)}${e.kind==='Consumable'?' <span style="font-size:9px;color:var(--accent)">CONSUMABLE</span>':''}${extra?`<div style="font-size:10px;color:var(--muted)">${taxEsc(extra)}</div>`:''}</td><td style="padding:6px 8px">${taxEsc(e.vendor)}${e.job_name?`<div style="font-size:10px;color:var(--accent)">Job: ${taxEsc(e.job_name)}</div>`:''}<div style="font-size:10px;color:var(--muted)">${taxEsc(e.description)}</div></td><td style="padding:6px 8px;text-align:right;font-family:monospace">${taxM(e.amount)}</td><td style="padding:6px 8px;text-align:right;font-family:monospace">${taxM(e._ded)}</td><td style="padding:6px 8px;white-space:nowrap"><button class="btn btn-ghost admin-only" style="padding:3px 8px;font-size:10px" onclick="taxEditExpense('${e.id}')">Edit</button> <button class="btn btn-danger admin-only" style="padding:3px 8px;font-size:10px" onclick="taxDeleteExpense('${e.id}')">Del</button></td></tr>`; }).join('')+'</tbody></table>'
+    :'<div style="color:var(--muted);font-size:12px;padding:10px 0">No expenses entered for '+taxYear+' yet. Use + Add Expense.</div>';
+}
+/* expense form: show only the fields that matter for the chosen category */
+function taxCatChanged(){
+  const r=taxRule(document.getElementById('teCat').value);
+  const show=(id,on)=>{ const x=document.getElementById(id); if(x) x.style.display=on?'':'none'; };
+  show('teMilesWrap',r==='mileage'); show('teHomeWrap',r==='home'); show('teBizWrap',r==='pct'); show('teAmtWrap',r!=='mileage');
+  const y=(document.getElementById('teDate').value||'').slice(0,4)||taxYear;
+  document.getElementById('teHint').textContent=taxRuleNote(r,y);
+  document.getElementById('teAmtLbl').textContent=r==='home'?'Amount ($) — optional (rent/utilities for your records)':'Amount ($) *';
+}
+function taxOpenExpense(e,pre){
+  taxExpEditId=e?e.id:null; pre=pre||{};
+  const set=(id,v)=>{const x=document.getElementById(id); if(x) x.value=(v==null?'':v);};
+  document.getElementById('teCat').innerHTML=TAX_CATS.map(c=>`<option>${taxEsc(c)}</option>`).join('');
+  const jobs=new Set(); (shows||[]).forEach(s=>s.name&&jobs.add(s.name)); (rentalOrders||[]).forEach(o=>o.client&&jobs.add(o.client)); (typeof jobs==='undefined'?[]:[]).forEach(()=>{});
+  try{ (window.jobs||[]).forEach(j=>(j.name)&&jobs.add(j.name)); }catch(err){}
+  document.getElementById('teJobList').innerHTML=[...jobs].map(j=>`<option value="${taxEsc(j)}">`).join('');
+  set('teDate',e?e.expense_date:new Date().toISOString().slice(0,10)); set('teKind',e?e.kind:(pre.kind||'Expense')); set('teCat',e?e.category:(pre.cat||TAX_CATS[0]));
+  set('teVendor',e?e.vendor:''); set('teDesc',e?e.description:''); set('teAmt',e?e.amount:''); set('teMethod',e?e.pay_method:'Card'); set('teNote',e?e.notes:'');
+  set('teJob',e?e.job_name:(pre.job||'')); set('teBiz',e&&e.biz_pct!=null?e.biz_pct:100); set('teMiles',e?e.miles:''); set('teOffice',e?e.office_sqft:''); set('teHome',e?e.home_sqft:'');
+  document.getElementById('teTitle').textContent=e?'Edit Expense':'Add Expense / Consumable';
+  taxCatChanged(); openModal('expenseModal');
+}
+function taxEditExpense(id){ const e=bizExpenses.find(x=>String(x.id)===String(id)); if(e) taxOpenExpense(e); }
+/* "+ Log expense" button inside the job / show / rental forms */
+function taxAddJobExpense(nameElId){
+  const el=document.getElementById(nameElId); const name=el?el.value.trim():'';
+  taxOpenExpense(null,{job:name});
+  if(typeof taxLoad==='function' && !bizExpenses.length) taxLoad();
+}
+async function taxSaveExpense(){
+  const g=id=>document.getElementById(id).value.trim();
+  const date=g('teDate'); const cat=g('teCat'); const r=taxRule(cat);
+  const y=(date||'').slice(0,4);
+  let amt=parseFloat(g('teAmt'));
+  const miles=parseFloat(g('teMiles')), office=parseFloat(g('teOffice'));
+  if(!date){ toast('Missing info','Enter a date.'); return; }
+  if(r==='mileage'){ if(!miles){ toast('Missing info','Enter the miles driven.'); return; } amt=Math.round(miles*taxMileRate(y)*100)/100; }
+  else if(r==='home'){ if(isNaN(amt)) amt=0; if(!office&&!amt){ toast('Missing info','Enter the office square footage (or an amount).'); return; } }
+  else if(isNaN(amt)){ toast('Missing info','Enter an amount.'); return; }
+  const body={expense_date:date,year:y,kind:g('teKind'),category:cat,vendor:g('teVendor')||null,description:g('teDesc')||null,amount:amt,pay_method:g('teMethod')||null,notes:g('teNote')||null,
+    job_name:g('teJob')||null,biz_pct:r==='pct'?(parseFloat(g('teBiz'))||100):100,miles:r==='mileage'?miles:null,office_sqft:r==='home'?(office||null):null,home_sqft:r==='home'?(parseFloat(g('teHome'))||null):null};
+  try{
+    if(taxExpEditId) await sbPatch('business_expenses?id=eq.'+taxExpEditId,body); else await sbPost('business_expenses',body);
+    taxNoTable=false; closeModal('expenseModal'); toast('Expense saved',taxM(amt)+' · '+cat);
+    taxYear=y; await taxLoad();
+  }catch(err){ taxNoTable=true; taxRender(); toast('Could not save','Run business_expenses.sql in Supabase first.'); }
+}
+async function taxDeleteExpense(id){
+  if(!confirm('Delete this expense?')) return;
+  try{ await sbDelete('business_expenses?id=eq.'+id); await taxLoad(); toast('Expense deleted',''); }catch(e){ toast('Could not delete',''); }
+}
+/* ---- printable year-end packet: kind 'full' or '1099' ---- */
+function taxPacketPDF(kind){
+  const D=taxData(taxYear); const full=kind!=='1099';
+  const th='background:#111827;color:#fff;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:8px 9px;text-align:left';
+  let body=`<div class=note style="margin-top:0"><b>7 Virtues Entertainment, LLC</b> · Tax year <b>${D.y}</b><br>EIN: ____________________ &nbsp;&nbsp; Prepared from 7VE Operations Platform records.</div>`;
+  if(full){
+    body+=`<h2>Summary of Business Income & Expenses</h2><table><tbody>
+      <tr><td>Gross receipts (client invoices${D.salesTax?', excluding '+taxM(D.salesTax)+' sales tax collected':''})</td><td class=r>${taxM(D.gross)}</td></tr>
+      <tr><td>Less: contract labor paid to 1099 crew</td><td class=r>(${taxM(D.labor)})</td></tr>`+
+      Object.keys(D.byCat).sort().map(c=>`<tr><td>Less: ${taxEsc(c)}</td><td class=r>(${taxM(D.byCat[c].t)})</td></tr>`).join('')+
+      `<tr class=tot><td>Net profit before income tax</td><td class=r>${taxM(D.net)}</td></tr></tbody></table>
+      <div class=note>Deductible amounts already reflect each category's rule: meals at 50%, phone/devices/vehicle at business-use %, mileage at the IRS standard rate, and the simplified home office method.</div>
+      <h2>Income by Client</h2><table><thead><tr><th style="${th}">Client</th><th style="${th};text-align:right">Invoices</th><th style="${th};text-align:right">Total billed</th></tr></thead><tbody>`+
+      (Object.entries(D.byClient).sort((a,b)=>b[1].t-a[1].t).map(([c,v])=>`<tr><td>${taxEsc(c)}</td><td class=r>${v.n}</td><td class=r>${taxM(v.t)}</td></tr>`).join('')||'<tr><td colspan=3>No invoices for this year.</td></tr>')+
+      `<tr class=tot><td>Total</td><td class=r>${D.rev.length}</td><td class=r>${taxM(D.gross)}</td></tr></tbody></table>`;
+  }
+  body+=`<div ${full?'style="page-break-before:always"':''}></div><h2>Contract Labor — 1099 Payouts to Staff</h2>
+    <table><thead><tr><th style="${th}">Payee</th><th style="${th};text-align:right">Total paid ${D.y}</th><th style="${th}">1099-NEC</th><th style="${th}">W-9</th></tr></thead><tbody>`+
+    (D.payees.map(p=>`<tr><td>${taxEsc(p.name)}</td><td class=r>${taxM(p.total)}</td><td>${p.total>=D.thr?'<b>Required</b>':'Below '+taxM(D.thr).replace('.00','')}</td><td>${p.w9===null?'—':p.w9?'On file':'<b>MISSING</b>'}</td></tr>`).join('')||'<tr><td colspan=4>No staff payouts for this year.</td></tr>')+
+    `<tr class=tot><td>Total contract labor</td><td class=r>${taxM(D.labor)}</td><td colspan=2></td></tr></tbody></table>
+    <div class=note>All crew are paid as independent contractors. A Form 1099-NEC is generally due to each person paid ${taxM(D.thr).replace('.00','')} or more in the year (threshold for ${D.y}; confirm with your tax professional). Collect a W-9 from each payee before the first payment.</div>`;
+  if(full){
+    body+=`<div style="page-break-before:always"></div><h2>Expenses & Consumables by Category</h2>`+
+      (Object.keys(D.byCat).sort().map(c=>{ const r=taxRule(c); const note=taxRuleNote(r,D.y);
+        return `<table style="margin-bottom:14px"><thead><tr><th style="${th}" colspan=5>${taxEsc(c)} — deductible ${taxM(D.byCat[c].t)}${D.byCat[c].spent!==D.byCat[c].t?' (spent '+taxM(D.byCat[c].spent)+')':''}</th></tr></thead><tbody>`+
+        (note?`<tr><td colspan=5 style="font-size:10px;color:#6b7280">${taxEsc(note)}</td></tr>`:'')+
+        D.byCat[c].items.map(e=>{ const x=r==='mileage'?(parseFloat(e.miles)||0)+' mi':r==='home'&&e.office_sqft?e.office_sqft+' sq ft':r==='pct'&&parseFloat(e.biz_pct)!==100?e.biz_pct+'% business':'';
+          return `<tr><td style="width:84px">${taxEsc(e.expense_date)}</td><td>${taxEsc(e.vendor)}${e.job_name?'<div style="font-size:10px;color:#6b7280">Job: '+taxEsc(e.job_name)+'</div>':''}</td><td>${taxEsc(e.description)}${x?' <span style="color:#6b7280">('+taxEsc(x)+')</span>':''}</td><td class=r>${taxM(e.amount)}</td><td class=r>${taxM(e._ded)}</td></tr>`; }).join('')+'</tbody></table>'; }).join('')||'<div class=note>No expenses entered for this year.</div>')+
+      `<table><tbody><tr class=tot><td>Total deductible expenses & consumables</td><td class=r>${taxM(D.expTotal)}</td></tr></tbody></table>`+
+      (D.miles?`<div class=note><b>Mileage:</b> ${D.miles.toLocaleString()} business miles × ${taxM(taxMileRate(D.y))} = ${taxM(D.miles*taxMileRate(D.y))}. Attach your mileage log.</div>`:'')+
+      (D.warns.length?`<div class=note>${D.warns.map(w=>'⚠ '+taxEsc(w)).join('<br>')}</div>`:'')+
+      `<h2>Bring To Your Tax Preparer</h2><div class=note>
+      ☐ This packet and the 1099 payout schedule<br>
+      ☐ Receipts for every expense listed, plus a mileage log<br>
+      ☐ W-9 for each payee marked missing, and the 1099-NEC filings due<br>
+      ☐ Bank details for the refund direct deposit. Give these directly to your preparer or on the return itself. They are intentionally not stored in this system.<br>
+      ☐ Home office: square footage of the space used for business and of the whole home<br>
+      ☐ Insurance, storage, phone and device statements</div>`;
+  }
+  body+=`<div style="margin-top:34px;font-size:11px;color:#6b7280">Reviewed by: ______________________________ &nbsp;&nbsp; Date: ______________</div>`;
+  const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups to print the packet.'); return; }
+  w.document.write(v4Shell(full?'Annual Tax Packet':'1099 Payout Summary','Tax year '+D.y,body,'Tax year '+D.y+' · prepared from company records · not tax advice')); w.document.close();
 }
 
 /* ---- SCHEDULE HOURS SUMMARY (shown in UI after csRender) ---- */
@@ -6438,8 +6460,9 @@ function csClientInvoice(){
     slots.forEach(s=>{
       const p=peopleMap[s.tech]||{};
       const name=((p.first_name||'')+' '+(p.last_name||'')).trim()||'Technician';
-      const L=csLine(s,p);
-      const hrs=L.hrs, rate=L.billRate, amt=L.bill;
+      const hrs=parseHours(s.time);
+      const rate=csBillRate(s.pos);
+      const amt=hrs*rate;
       dayTotal+=amt; dayHrs+=hrs;
       lines.push({name,pos:s.pos,time:s.time,hrs,rate,amt});
     });
@@ -6452,9 +6475,8 @@ function csClientInvoice(){
   const total=grandSubtotal+tax;
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const firstShowLabel=(CS.days[0] && CS.days[0].label) ? CS.days[0].label : null;
-  const _psData={netTerms:(CS.netTerms??'30'),days:CS.days};
-  const due=psFmtLong(psDueDate(_psData, CS.createdAt||new Date()));
-  const invNum=CS.id?psInvNumber(CS.id):'7VE-'+Date.now().toString().slice(-6);
+  const due=csDueDate(firstShowLabel);
+  const invNum='7VE-'+Date.now().toString().slice(-6);
   const fmt=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   const dayBlocks=dayData.map(d=>`
@@ -6627,7 +6649,7 @@ function renderRentalOrders() {
       <div style="font-weight:700;font-size:15px;font-family:monospace">$${t.total.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
       <span onclick="roCycleStatus('${o.id}')" style="cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 10px;border-radius:12px;background:${sc}22;color:${sc};border:1px solid ${sc}55">${o.status}</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="openRentalOrder('${o.id}')">Edit</button><button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="repeatRentalOrder('${o.id}')" title="Create a new order pre-filled with this client, items and settings">🔁 Repeat</button>
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="openRentalOrder('${o.id}')">Edit</button><button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="repeatRentalOrder('${o.id}')" title="Duplicate this order: new quote pre-filled with the same client, items and settings (set new dates)">⧉ Duplicate Order</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','invoice')">Invoice</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','internal')">Internal</button>
         <button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="roDoc('${o.id}','pull')">Pull Sheet</button>
@@ -6758,7 +6780,7 @@ function repeatRentalOrder(id){
   roEditId = null;
   document.getElementById('roStart').value = '';
   document.getElementById('roEnd').value = '';
-  document.getElementById('roModalTitle').textContent = 'Repeat Order - set new dates';
+  document.getElementById('roModalTitle').textContent = 'Duplicate Order - set new dates, then Save as a new quote';
 }
 
 function roUpdateMargin() {
