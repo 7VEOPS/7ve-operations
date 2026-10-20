@@ -273,6 +273,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       <div class="nav-item" onclick="setView('people',this)">🧑‍🤝‍🧑 People</div>
       <div class="nav-item" onclick="setView('payscale',this)">💰 Pay Scale</div>
       <div class="nav-item" onclick="setView('jobs',this)">📋 Jobs</div>
+      <div class="nav-item" onclick="setView('techportal',this)">🛠️ Tech Portal</div>
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:#4ADE80;letter-spacing:0.1em">MONEY</div>
@@ -739,6 +740,33 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 
       
       <!-- JOBS VIEW -->
+      <div class="view" id="view-techportal">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:16px;font-weight:700">Tech Portal</div>
+            <div style="font-size:11px;color:var(--muted)">Live status, hours and gear from the Technician &amp; Vendor Portal · refreshes every 30s</div>
+          </div>
+          <button class="btn btn-ghost" onclick="tpLoad()">↻ Refresh</button>
+        </div>
+        <div id="tpMsg" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;background:rgba(232,64,64,0.1);color:#F87171;font-size:12px"></div>
+        <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card"><div class="stat-label">On shift now</div><div class="stat-val" id="tpOn" style="color:#4ADE80">–</div><div class="stat-sub">clocked in</div></div>
+          <div class="stat-card"><div class="stat-label">Hours today</div><div class="stat-val" id="tpToday">–</div><div class="stat-sub">all techs</div></div>
+          <div class="stat-card"><div class="stat-label">Hours this week</div><div class="stat-val" id="tpWeek">–</div><div class="stat-sub">Mon–Sun</div></div>
+          <div class="stat-card"><div class="stat-label">Gear listed</div><div class="stat-val" id="tpGearN">–</div><div class="stat-sub">tech-owned items</div></div>
+        </div>
+        <div id="tpTabBar" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+          <div class="tab active" onclick="tpTab('team',this)">Team &amp; Hours</div>
+          <div class="tab" onclick="tpTab('shifts',this)">Shift Log</div>
+          <div class="tab" onclick="tpTab('gear',this)">Tech Gear</div>
+          <div class="tab" onclick="tpTab('skills',this)">Skills</div>
+        </div>
+        <div id="tpPane-team"></div>
+        <div id="tpPane-shifts" style="display:none"></div>
+        <div id="tpPane-gear" style="display:none"></div>
+        <div id="tpPane-skills" style="display:none"></div>
+      </div>
+
       <div class="view" id="view-jobs">
         <div id="jobsTabBar" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px"><div class="tab active" onclick="setJobsTab('list',this)">📋 Jobs by Client</div><div class="tab" onclick="setJobsTab('schedule',this)">📅 Crew Schedule</div></div>
         <div id="jobsTab-list">
@@ -3371,13 +3399,87 @@ ${missionMissing.length ? `
 }
 
 // Patch setView for new tabs
+
+// ── TECH PORTAL (admin view of technician data) ──
+let tpTimer=null, tpData={roster:[],clock:[],gear:[],skills:[]};
+function tpEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tpFmtH(ms){const m=Math.max(0,Math.round(ms/60000));return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m';}
+function tpTab(name,el){
+  ['team','shifts','gear','skills'].forEach(t=>{document.getElementById('tpPane-'+t).style.display=t===name?'block':'none';});
+  document.querySelectorAll('#tpTabBar .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+function tpMsg(t){const b=document.getElementById('tpMsg');if(!t){b.style.display='none';return;}b.textContent=t;b.style.display='block';}
+async function tpLoad(){
+  try{
+    const weekAgo=new Date(Date.now()-14*864e5).toISOString();
+    const [roster,clock,gear,skills]=await Promise.all([
+      sbGet('tech_roster?select=id,auth_user_id,full_name,email,account_status,last_active_at&is_admin=eq.false&order=full_name'),
+      sbGet('tech_time_clock?select=*&clock_in_at=gte.'+weekAgo+'&order=clock_in_at.desc'),
+      sbGet('tech_gear?select=*&order=created_at.desc'),
+      sbGet('tech_skills?select=*&order=created_at.desc')
+    ]);
+    tpData={roster,clock,gear,skills};
+    tpMsg(roster.length===0?'No technician rows came back. If you have technicians set up, sign out and back in as admin@7virtuesentertainment.com, and make sure the admin-read SQL has been run.':'');
+    tpRender();
+  }catch(e){tpMsg('Could not load Tech Portal data: '+(e.message||e).slice(0,200));}
+}
+function tpRender(){
+  const {roster,clock,gear,skills}=tpData, now=Date.now();
+  const name={}; roster.forEach(r=>{if(r.auth_user_id)name[r.auth_user_id]=r.full_name;});
+  const d0=new Date();d0.setHours(0,0,0,0);
+  const wk=new Date(d0);wk.setDate(wk.getDate()-((wk.getDay()+6)%7));
+  const dur=(c,from)=>{const a=Math.max(new Date(c.clock_in_at).getTime(),from),b=c.clock_out_at?new Date(c.clock_out_at).getTime():now;return Math.max(0,b-a);};
+  let todayMs=0,weekMs=0,on=0; const per={};
+  clock.forEach(c=>{
+    const p=per[c.tech_user_id]||(per[c.tech_user_id]={today:0,week:0,open:null});
+    const t=dur(c,d0.getTime()),w=dur(c,wk.getTime());
+    if(new Date(c.clock_out_at||now)>=d0)p.today+=t; p.week+=w; todayMs+=t; weekMs+=w;
+    if(!c.clock_out_at){p.open=c;on++;}
+  });
+  document.getElementById('tpOn').textContent=on;
+  document.getElementById('tpToday').textContent=tpFmtH(todayMs);
+  document.getElementById('tpWeek').textContent=tpFmtH(weekMs);
+  document.getElementById('tpGearN').textContent=gear.reduce((n,g)=>n+(g.quantity||1),0);
+  const th='style="text-align:left;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)"';
+  const td='style="padding:9px 10px;border-bottom:1px solid var(--border);font-size:12px"';
+  const empty=m=>'<div style="padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px">'+m+'</div>';
+  // Team
+  document.getElementById('tpPane-team').innerHTML=!roster.length?empty('No technicians yet.'):
+   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Status</th><th '+th+'>Today</th><th '+th+'>This week</th><th '+th+'>Last active</th></tr></thead><tbody>'+
+   roster.map(r=>{
+     const p=per[r.auth_user_id]||{today:0,week:0,open:null};
+     const la=r.last_active_at?new Date(r.last_active_at).getTime():0, mins=la?(now-la)/60000:1e9;
+     let dot='#6B7280',label=r.account_status==='active'?'Offline':'Not activated';
+     if(p.open){dot='#2D7FF9';label='On shift since '+new Date(p.open.clock_in_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+' ('+tpFmtH(now-new Date(p.open.clock_in_at))+')';}
+     else if(mins<10){dot='#4ADE80';label='Online';}
+     else if(mins<720){dot='#F5A623';label='Active recently';}
+     if(p.open&&mins<10)dot='#4ADE80';
+     return '<tr><td '+td+'><b>'+tpEsc(r.full_name)+'</b><div style="color:var(--muted);font-size:10px">'+tpEsc(r.email)+'</div></td><td '+td+'><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+dot+';margin-right:6px"></span>'+tpEsc(label)+'</td><td '+td+'>'+tpFmtH(p.today)+'</td><td '+td+'>'+tpFmtH(p.week)+'</td><td '+td+'>'+(la?new Date(la).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—')+'</td></tr>';
+   }).join('')+'</tbody></table>';
+  // Shifts
+  document.getElementById('tpPane-shifts').innerHTML=!clock.length?empty('No shifts in the last 14 days.'):
+   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th></tr></thead><tbody>'+
+   clock.map(c=>{const i=new Date(c.clock_in_at),o=c.clock_out_at?new Date(c.clock_out_at):null,tf={hour:'numeric',minute:'2-digit'};
+     return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td></tr>';}).join('')+'</tbody></table>';
+  // Gear
+  document.getElementById('tpPane-gear').innerHTML=!gear.length?empty('No techs have listed gear yet.'):
+   '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Gear techs own and list in their portal. Use it as a pool for rentals, and pay the owner a share.</div><table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Item</th><th '+th+'>Owner</th><th '+th+'>Category</th><th '+th+'>Qty</th><th '+th+'>Daily rate</th><th '+th+'>Notes</th></tr></thead><tbody>'+
+   gear.map(g=>'<tr><td '+td+'><b>'+tpEsc(g.item_name)+'</b></td><td '+td+'>'+tpEsc(name[g.tech_user_id]||'Unknown')+'</td><td '+td+'>'+tpEsc(g.category||'—')+'</td><td '+td+'>'+(g.quantity||1)+'</td><td '+td+'>'+(g.daily_rate!=null&&g.daily_rate!==''?'$'+Number(g.daily_rate).toFixed(2):'—')+'</td><td '+td+'>'+tpEsc(g.notes||'')+'</td></tr>').join('')+'</tbody></table>';
+  // Skills
+  document.getElementById('tpPane-skills').innerHTML=!skills.length?empty('No skills or certifications added yet.'):
+   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Skill</th><th '+th+'>Tech</th><th '+th+'>Type</th><th '+th+'>Expires</th></tr></thead><tbody>'+
+   skills.map(k=>'<tr><td '+td+'><b>'+tpEsc(k.skill_name)+'</b></td><td '+td+'>'+tpEsc(name[k.tech_user_id]||'Unknown')+'</td><td '+td+'>'+tpEsc(k.cert_type||'—')+'</td><td '+td+'>'+(k.expiry_date?tpEsc(k.expiry_date):'—')+'</td></tr>').join('')+'</tbody></table>';
+}
+function tpStart(){tpLoad();clearInterval(tpTimer);tpTimer=setInterval(()=>{const v=document.getElementById('view-techportal');if(v&&v.classList.contains('active'))tpLoad();else{clearInterval(tpTimer);tpTimer=null;}},30000);}
+
 const __origSetView2 = setView;
 setView = function(name, el) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
-  const titles = {inventory:'Inventory', scan:'QR Scanner', rentals:'Rentals', contacts:'Contacts', truckpack:'Truck Pack'};
+  const titles = {inventory:'Inventory', scan:'QR Scanner', rentals:'Rentals', contacts:'Contacts', truckpack:'Truck Pack', techportal:'Tech Portal'};
   document.getElementById('viewTitle').textContent = titles[name]||name;
   document.getElementById('viewCrumb').textContent = {inventory:'All Assets',scan:'Scan Asset',rentals:'Rental Tracker',contacts:'Project Contacts',truckpack:'Load Order'}[name]||name;
   if (name==='scan') populateScanSelect();
@@ -3388,6 +3490,7 @@ setView = function(name, el) {
   if (name==='payscale') { renderPayMatrix(); runSimulator(); }
   if (name==='money') loadMoney();
   if (name==='jobs') loadJobs();
+  if (name==='techportal') tpStart();
   closeSidebar();
 };
 
