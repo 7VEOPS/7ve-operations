@@ -14,6 +14,10 @@
   ],
   "rewrites": [
     {
+      "source": "/irs/fw9.pdf",
+      "destination": "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
+    },
+    {
       "source": "/(.*)",
       "has": [
         {

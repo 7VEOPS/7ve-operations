@@ -216,6 +216,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="7VE Ops">
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 <datalist id="csRoomsDL"></datalist>
@@ -274,6 +275,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       <div class="nav-item" onclick="setView('payscale',this)">💰 Pay Scale</div>
       <div class="nav-item" onclick="setView('jobs',this)">📋 Jobs</div>
       <div class="nav-item" onclick="setView('techportal',this)">🛠️ Tech Portal</div>
+      <div class="nav-item" onclick="setView('onboarding',this)">📝 Onboarding</div>
     </div>
     <div class="nav-section">
       <div class="section-label" style="color:#4ADE80;letter-spacing:0.1em">MONEY</div>
@@ -740,6 +742,25 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 
       
       <!-- JOBS VIEW -->
+      <div class="view" id="view-onboarding">
+<div style="margin-bottom:14px">
+<div style="font-size:16px;font-weight:700">Onboarding Packet</div>
+<div style="font-size:11px;color:var(--muted)">Pick a staff member, choose COI or decline, and get their paperwork as separate PDFs plus an email to paste into Outlook.</div>
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px">
+<div style="flex:1;min-width:220px">
+<div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:.05em">STAFF MEMBER</div>
+<select id="obPerson" onchange="obPick()" style="width:100%;padding:9px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)"><option value="">Loading…</option></select>
+</div>
+<div>
+<div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:.05em">INSURANCE</div>
+<label style="font-size:12px;margin-right:12px"><input type="radio" name="obCoi" value="coi" checked> Provides COI (full rate)</label>
+<label style="font-size:12px"><input type="radio" name="obCoi" value="decline"> Declines COI (reduced rate)</label>
+</div>
+<button id="obGo" class="btn btn-primary" disabled onclick="obGenerate()">Build packet</button>
+</div>
+<div id="obOut"></div>
+</div>
       <div class="view" id="view-techportal">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div>
@@ -3473,13 +3494,239 @@ function tpRender(){
 }
 function tpStart(){tpLoad();clearInterval(tpTimer);tpTimer=setInterval(()=>{const v=document.getElementById('view-techportal');if(v&&v.classList.contains('active'))tpLoad();else{clearInterval(tpTimer);tpTimer=null;}},30000);}
 
+// ── ONBOARDING PACKET ──
+const OB_CO = '7 Virtues Entertainment, LLC';
+const OB_EMAIL = 'admin@7virtuesentertainment.com';
+const OB_PHONE = '202-306-4375';
+const OB_GL_EACH = '$1,000,000';
+const OB_GL_AGG = '$2,000,000';
+let obFiles = [];
+let obPerson = null;
+function obEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function obLoad(){
+const sel=document.getElementById('obPerson');
+if(!sel) return;
+const draw=()=>{
+const rows=(people||[]).slice().sort((a,b)=>(a.status===b.status?0:a.status==='prospect'?-1:1)||String(a.last_name).localeCompare(String(b.last_name)));
+const keep=sel.value;
+sel.innerHTML='<option value="">Select a staff member…</option>'+rows.map(p=>'<option value="'+obEsc(p.id)+'">'+obEsc((p.first_name||'')+' '+(p.last_name||''))+(p.status==='prospect'?' (prospect)':'')+'</option>').join('');
+if(keep) sel.value=keep;
+};
+if(people&&people.length) draw();
+else loadPeople().then(draw).catch(()=>{});
+}
+function obPick(){
+const id=document.getElementById('obPerson').value;
+obPerson=(people||[]).find(p=>String(p.id)===String(id))||null;
+document.getElementById('obGo').disabled=!obPerson;
+document.getElementById('obOut').innerHTML='';
+obFiles=[];
+}
+function obWrap(font,text,size,maxW){
+const out=[];
+String(text).split('\n').forEach(par=>{
+const words=par.split(/\s+/);let line='';
+words.forEach(w=>{
+const t=line?line+' '+w:w;
+if(font.widthOfTextAtSize(t,size)>maxW&&line){out.push(line);line=w;}else line=t;
+});
+out.push(line);
+});
+return out;
+}
+async function obNewDoc(title,subtitle){
+const {PDFDocument,StandardFonts,rgb}=PDFLib;
+const doc=await PDFDocument.create();
+const page=doc.addPage([612,792]);
+const f=await doc.embedFont(StandardFonts.Helvetica);
+const b=await doc.embedFont(StandardFonts.HelveticaBold);
+const red=rgb(0.78,0.12,0.14), ink=rgb(0.1,0.1,0.1), grey=rgb(0.4,0.4,0.4);
+page.drawRectangle({x:0,y:742,width:612,height:50,color:rgb(0.07,0.07,0.07)});
+page.drawRectangle({x:0,y:738,width:612,height:4,color:red});
+page.drawText('7 VIRTUES ENTERTAINMENT',{x:40,y:760,size:14,font:b,color:rgb(1,1,1)});
+page.drawText('LLC  ·  '+OB_EMAIL+'  ·  '+OB_PHONE,{x:40,y:746,size:8,font:f,color:rgb(0.75,0.75,0.75)});
+const ctx={doc,page,f,b,red,ink,grey,rgb,y:712};
+ctx.text=(t,o={})=>{
+const size=o.size||10,font=o.bold?b:f,x=o.x||40,maxW=o.w||532;
+obWrap(font,t,size,maxW).forEach(l=>{
+ctx.page.drawText(l,{x,y:ctx.y,size,font,color:o.color||ink});
+ctx.y-=size+(o.lead||4);
+});
+ctx.y-=(o.after||0);
+};
+ctx.line=(x1,x2,y,th)=>ctx.page.drawLine({start:{x:x1,y:y},end:{x:x2,y:y},thickness:th||0.7,color:ink});
+ctx.field=(label,x,w,val)=>{
+if(val) ctx.page.drawText(String(val),{x:x+2,y:ctx.y+3,size:10,font:f,color:ink});
+ctx.line(x,x+w,ctx.y);
+ctx.page.drawText(label,{x:x,y:ctx.y-9,size:7,font:f,color:grey});
+};
+ctx.box=(x,y,sz)=>ctx.page.drawRectangle({x,y,width:sz||11,height:sz||11,borderColor:ink,borderWidth:1});
+ctx.text(title,{size:17,bold:true,after:0,lead:6});
+if(subtitle) ctx.text(subtitle,{size:9,color:grey,after:10});
+return ctx;
+}
+async function obAch(p){
+const c=await obNewDoc('ACH Direct Deposit Authorization','Vendor / technician payment enrollment');
+const name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+c.text('PAYEE INFORMATION',{size:9,bold:true,color:c.red,after:6});
+c.y-=8;c.field('FULL LEGAL NAME / BUSINESS NAME',40,300,name);c.field('PHONE',360,212,p.phone||'');c.y-=34;
+c.field('EMAIL',40,300,p.email||'');c.field('DATE',360,212,'');c.y-=34;
+c.field('MAILING ADDRESS',40,532,'');c.y-=34;
+c.field('CITY / STATE / ZIP',40,532,'');c.y-=40;
+c.text('BANK INFORMATION',{size:9,bold:true,color:c.red,after:6});
+c.y-=8;c.field('BANK NAME',40,300,'');
+c.page.drawText('Account type:',{x:372,y:c.y+3,size:9,font:c.f,color:c.ink});
+c.box(440,c.y+1);c.page.drawText('Checking',{x:454,y:c.y+3,size:9,font:c.f,color:c.ink});
+c.box(508,c.y+1);c.page.drawText('Savings',{x:522,y:c.y+3,size:9,font:c.f,color:c.ink});
+c.y-=56;
+c.page.drawText('ROUTING NUMBER (9 digits)',{x:40,y:c.y+24,size:7,font:c.f,color:c.grey});
+for(let i=0;i<9;i++)c.page.drawRectangle({x:40+i*22,y:c.y-4,width:20,height:20,borderColor:c.ink,borderWidth:0.8});
+c.page.drawText('ACCOUNT NUMBER',{x:290,y:c.y+24,size:7,font:c.f,color:c.grey});
+for(let i=0;i<12;i++)c.page.drawRectangle({x:290+i*23,y:c.y-4,width:21,height:20,borderColor:c.ink,borderWidth:0.8});
+c.y-=40;
+c.text('Attach a voided check or a bank letter showing your routing and account numbers. Please return this form only by a secure method (hand delivery, or a password-protected file). Do not type banking details into the body of an email.',{size:8.5,color:c.grey,after:10});
+c.text('AUTHORIZATION',{size:9,bold:true,color:c.red,after:6});
+c.text('I authorize '+OB_CO+' ("7VE") to initiate electronic (ACH) credit entries to the account listed above for payment of services I perform for 7VE, and, if an entry is made in error, to initiate a correcting debit limited to the amount of the error. I understand this authorization stays in effect until I give 7VE written notice of cancellation or an updated form, with enough time for 7VE to act on it. Payments are issued per the agreed rate and the pay schedule for each engagement. I am responsible for keeping my bank information accurate.',{size:9.5,lead:5,after:20});
+c.field('PAYEE SIGNATURE',40,300,'');c.field('DATE',360,212,'');c.y-=34;
+c.field('PRINTED NAME',40,300,name);c.y-=40;
+c.page.drawRectangle({x:40,y:c.y-40,width:532,height:48,borderColor:c.grey,borderWidth:0.6});
+c.page.drawText('FOR 7VE USE ONLY',{x:48,y:c.y-2,size:7,font:c.b,color:c.grey});
+c.page.drawText('Received by: ____________   Date: ____________   Verified (voided check / bank letter): [  ]   Entered in system: [  ]',{x:48,y:c.y-20,size:8,font:c.f,color:c.ink});
+return await c.doc.save();
+}
+async function obCoiRequest(p){
+const c=await obNewDoc('Certificate of Insurance (COI) Request','Option A: you carry your own coverage');
+const name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+c.text('Prepared for: '+name,{bold:true,size:11,after:8});
+c.text('If you carry your own general liability insurance, send us a Certificate of Insurance (COI) before your first engagement. Your pay rate stays at the full agreed rate when you provide a valid COI.',{size:10,lead:5,after:10});
+c.text('WHAT THE CERTIFICATE MUST SHOW',{size:9,bold:true,color:c.red,after:6});
+const items=[
+'Named insured: you (or your business), matching the name on your W-9.',
+'Commercial General Liability: at least '+OB_GL_EACH+' per occurrence and '+OB_GL_AGG+' general aggregate.',
+'Certificate holder: '+OB_CO+'.',
+'Additional insured: '+OB_CO+' (endorsement requested; note on the certificate).',
+'Policy active for the dates you will work, with the expiration date visible.',
+'Workers\' compensation, if you have employees or hire help.'
+];
+items.forEach(t=>{c.box(44,c.y-1,9);c.text(t,{x:60,w:510,size:10,lead:5,after:2});});
+c.y-=8;
+c.text('HOW TO SEND IT',{size:9,bold:true,color:c.red,after:6});
+c.text('Ask your insurance agent to email the COI to '+OB_EMAIL+'. Most agents turn this around the same day. A renewed COI is needed each time the policy renews.',{size:10,lead:5,after:12});
+c.text('NO INSURANCE?',{size:9,bold:true,color:c.red,after:6});
+c.text('You can instead choose Option B (Insurance Decline & Rate Acknowledgment) and work under 7VE\'s policy at a reduced rate. Return only one option.',{size:10,lead:5,after:22});
+c.field('INSURANCE AGENT / COMPANY',40,300,'');c.field('PHONE / EMAIL',360,212,'');c.y-=34;
+c.field('POLICY NUMBER',40,300,'');c.field('EXPIRATION DATE',360,212,'');c.y-=40;
+c.field('PRINTED NAME',40,300,name);c.field('DATE',360,212,'');c.y-=34;
+c.field('SIGNATURE',40,300,'');
+return await c.doc.save();
+}
+async function obCoiDecline(p){
+const c=await obNewDoc('Insurance Decline & Rate Acknowledgment','Option B: you do not carry your own coverage');
+const name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+c.text('Name: '+name,{bold:true,size:11,after:8});
+c.text('I do not carry (or choose not to provide) my own general liability insurance or a Certificate of Insurance (COI). I understand and agree to the following:',{size:10,lead:5,after:8});
+const items=[
+'7 Virtues Entertainment, LLC ("7VE") will cover me under its own insurance for work I perform on 7VE engagements, and 7VE pays the cost of that coverage.',
+'Because 7VE carries that cost, my pay rate is reduced as shown below. The reduction applies to every engagement while this form is on file.',
+'I can switch to the full rate at any time by providing a valid COI that meets 7VE\'s requirements. The change applies from the date 7VE receives it.',
+'This form does not make me an employee of 7VE and does not replace my own responsibility to work safely and follow 7VE\'s on-site instructions.'
+];
+items.forEach((t,i)=>c.text((i+1)+'.  '+t,{x:50,w:520,size:10,lead:5,after:3}));
+c.y-=6;
+c.text('RATE ADJUSTMENT',{size:9,bold:true,color:c.red,after:6});
+c.y-=10;
+c.field('FULL RATE',40,130,'');c.field('REDUCTION',190,130,'');c.field('RATE WITH 7VE COVERAGE',340,232,'');c.y-=32;
+c.page.drawText('Rate basis:',{x:40,y:c.y,size:9,font:c.f,color:c.ink});
+c.box(100,c.y-1,10);c.page.drawText('per day',{x:114,y:c.y,size:9,font:c.f,color:c.ink});
+c.box(170,c.y-1,10);c.page.drawText('per hour',{x:184,y:c.y,size:9,font:c.f,color:c.ink});
+c.box(250,c.y-1,10);c.page.drawText('per event',{x:264,y:c.y,size:9,font:c.f,color:c.ink});
+c.y-=34;
+c.field('SIGNATURE',40,300,'');c.field('DATE',360,212,'');c.y-=34;
+c.field('PRINTED NAME',40,300,name);c.y-=40;
+c.page.drawRectangle({x:40,y:c.y-26,width:532,height:34,borderColor:c.grey,borderWidth:0.6});
+c.page.drawText('FOR 7VE USE ONLY   Approved by: ____________   Date: ____________',{x:48,y:c.y-12,size:8,font:c.f,color:c.ink});
+return await c.doc.save();
+}
+async function obW9(p){
+const {PDFDocument}=PDFLib;
+const r=await fetch('/irs/fw9.pdf');
+if(!r.ok) throw new Error('IRS W-9 not reachable ('+r.status+')');
+const bytes=new Uint8Array(await r.arrayBuffer());
+const doc=await PDFDocument.load(bytes,{ignoreEncryption:true});
+try{
+const form=doc.getForm();
+const fields=form.getFields().map(f=>f.getName());
+const name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+const first=fields.find(n=>/f1_0?1\[0\]$/.test(n)||/f1_1\[0\]$/.test(n));
+if(first) form.getTextField(first).setText(name);
+}catch(e){console.warn('W-9 prefill skipped',e);}
+return await doc.save();
+}
+function obDl(i){
+const f=obFiles[i];
+const blob=new Blob([f.bytes],{type:'application/pdf'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();
+setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+function obDlAll(){obFiles.forEach((f,i)=>setTimeout(()=>obDl(i),i*500));}
+function obView(i){
+const f=obFiles[i];
+window.open(URL.createObjectURL(new Blob([f.bytes],{type:'application/pdf'})),'_blank');
+}
+function obEmail(p,mode){
+const first=p.first_name||'there';
+const subj='Welcome to 7VE – onboarding paperwork';
+const coi=mode==='coi'
+?'3. Certificate of Insurance (COI) Request – please have your insurance agent email your COI to '+OB_EMAIL+'. (Your rate stays at the full agreed rate with a valid COI.)'
+:'3. Insurance Decline & Rate Acknowledgment – you will work under 7VE\'s insurance at a reduced rate. Sign and return it. (You can switch to the full rate any time by providing a valid COI.)';
+const body='Hi '+first+',\n\nWelcome to 7 Virtues Entertainment. Please complete and return the attached paperwork before your first engagement:\n\n'+
+'1. W-9 – fill out lines 1–7, sign and date it.\n2. ACH Direct Deposit Authorization – so we can pay you by direct deposit. Please send banking details only on this form with a voided check or bank letter, never typed into an email.\n'+coi+
+'\n\nYou can also sign in to the technician portal at https://tech.7virtuesentertainment.com (activate with your email and the last 4 digits of your phone number).\n\nQuestions? Reply here or call '+OB_PHONE+'.\n\nThank you,\nTito Rodriguez\n7 Virtues Entertainment, LLC';
+return {subj,body};
+}
+async function obCopy(id){
+const el=document.getElementById(id);
+try{await navigator.clipboard.writeText(el.value);}catch(e){el.select();document.execCommand('copy');}
+const b=document.getElementById(id+'Btn');if(b){const t=b.textContent;b.textContent='Copied ✓';setTimeout(()=>b.textContent=t,1500);}
+}
+async function obGenerate(){
+const p=obPerson;if(!p)return;
+const mode=document.querySelector('input[name="obCoi"]:checked').value;
+const out=document.getElementById('obOut');
+out.innerHTML='<div style="color:var(--muted);font-size:12px;padding:10px">Building packet…</div>';
+const base=((p.first_name||'')+'_'+(p.last_name||'')).replace(/[^A-Za-z0-9_]/g,'')||'Staff';
+obFiles=[];const notes=[];
+try{obFiles.push({name:'7VE_'+base+'_ACH_Direct_Deposit.pdf',bytes:await obAch(p),label:'ACH Direct Deposit Authorization'});}catch(e){notes.push('ACH form: '+e.message);}
+try{
+if(mode==='coi')obFiles.push({name:'7VE_'+base+'_COI_Request.pdf',bytes:await obCoiRequest(p),label:'COI Request'});
+else obFiles.push({name:'7VE_'+base+'_Insurance_Decline.pdf',bytes:await obCoiDecline(p),label:'Insurance Decline & Rate Acknowledgment'});
+}catch(e){notes.push('Insurance form: '+e.message);}
+try{obFiles.unshift({name:'W-9_'+base+'.pdf',bytes:await obW9(p),label:'IRS Form W-9 (name prefilled)'});}
+catch(e){notes.push('W-9: '+e.message+'. Download it from irs.gov/pub/irs-pdf/fw9.pdf.');}
+const em=obEmail(p,mode);
+const row=(f,i)=>'<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);margin-bottom:8px;flex-wrap:wrap">'+
+'<div style="font-size:20px">📄</div><div style="flex:1;min-width:160px"><div style="font-weight:700;font-size:13px">'+obEsc(f.label)+'</div><div style="font-size:11px;color:var(--muted);font-family:monospace">'+obEsc(f.name)+'</div></div>'+
+'<button class="btn btn-ghost" onclick="obView('+i+')">View</button><button class="btn btn-primary" onclick="obDl('+i+')">Download</button></div>';
+out.innerHTML=(notes.length?'<div style="color:#F87171;font-size:12px;margin-bottom:10px">'+notes.map(obEsc).join('<br>')+'</div>':'')+
+'<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;flex-wrap:wrap;gap:8px"><div style="font-weight:700">Packet for '+obEsc((p.first_name||'')+' '+(p.last_name||''))+'</div>'+
+'<button class="btn btn-primary" onclick="obDlAll()">⬇ Download all ('+obFiles.length+')</button></div>'+
+obFiles.map(row).join('')+
+'<div style="margin-top:16px;font-weight:700;font-size:13px">Email for Outlook</div>'+
+'<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">Download the files, then drag them into a new Outlook message and paste this in.'+(p.email?' Send to: <b>'+obEsc(p.email)+'</b>':' (no email on file for this person)')+'</div>'+
+'<input id="obSubj" readonly value="'+obEsc(em.subj)+'" style="width:100%;margin-bottom:6px;padding:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)">'+
+'<button id="obSubjBtn" class="btn btn-ghost" style="margin-bottom:10px" onclick="obCopy(\'obSubj\')">Copy subject</button>'+
+'<textarea id="obBody" readonly rows="14" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px">'+obEsc(em.body)+'</textarea>'+
+'<button id="obBodyBtn" class="btn btn-primary" style="margin-top:8px" onclick="obCopy(\'obBody\')">Copy email text</button>'+
+(p.email?' <a class="btn btn-ghost" style="text-decoration:none;display:inline-block;margin-top:8px" href="mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(em.subj)+'&body='+encodeURIComponent(em.body)+'">Open in email app</a>':'');
+}
 const __origSetView2 = setView;
 setView = function(name, el) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
-  const titles = {inventory:'Inventory', scan:'QR Scanner', rentals:'Rentals', contacts:'Contacts', truckpack:'Truck Pack', techportal:'Tech Portal'};
+  const titles = {inventory:'Inventory', scan:'QR Scanner', rentals:'Rentals', contacts:'Contacts', truckpack:'Truck Pack', techportal:'Tech Portal', onboarding:'Onboarding'};
   document.getElementById('viewTitle').textContent = titles[name]||name;
   document.getElementById('viewCrumb').textContent = {inventory:'All Assets',scan:'Scan Asset',rentals:'Rental Tracker',contacts:'Project Contacts',truckpack:'Load Order'}[name]||name;
   if (name==='scan') populateScanSelect();
@@ -3491,6 +3738,7 @@ setView = function(name, el) {
   if (name==='money') loadMoney();
   if (name==='jobs') loadJobs();
   if (name==='techportal') tpStart();
+  if (name==='onboarding') obLoad();
   closeSidebar();
 };
 
