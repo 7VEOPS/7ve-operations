@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>7VE Technician Portal</title>
+
+<!-- iOS home-screen / PWA meta -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="7VE Techs">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="tech-portal-icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="tech-portal-icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="tech-portal-icon-512.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   7VE TECHNICIAN PORTAL — design tokens
+   Brand: black / white / red — shared with 7VE Operations Platform
+   Signature element: "rack LED" status dots — every live status
+   in this app (online, synced, pending, flagged) reads like an
+   indicator light on a gear rack, not a generic UI badge.
+   ============================================================ */
+:root{
+  --black:#0A0A0A;
+  --charcoal:#171717;
+  --panel:#1D1D1D;
+  --line:#2A2A2A;
+  --white:#F5F5F3;
+  --dim:#9A9A96;
+  --red:#E0332C;
+  --red-dim:#5A1512;
+  --amber:#E8A33D;
+  --green:#3DAA5C;
+
+  --display:'Saira Condensed', sans-serif;
+  --body:'Inter', sans-serif;
+  --mono:'IBM Plex Mono', monospace;
+
+  --radius:10px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; height:100%; background:var(--black); color:var(--white); font-family:var(--body); overscroll-behavior:none;}
+h1,h2,h3,h4{font-family:var(--display); font-weight:700; letter-spacing:.01em; margin:0;}
+button{font-family:var(--body); cursor:pointer;}
+input{font-family:var(--body);}
+::selection{background:var(--red); color:var(--white);}
+
+/* focus visibility */
+button:focus-visible, input:focus-visible, .tab-btn:focus-visible{
+  outline:2px solid var(--red); outline-offset:2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ---------- LED status dot, the signature element ---------- */
+.led{
+  width:8px; height:8px; border-radius:50%;
+  display:inline-block; position:relative; flex-shrink:0;
+}
+.led::after{
+  content:''; position:absolute; inset:-4px; border-radius:50%;
+  opacity:.35; filter:blur(3px);
+}
+.led-green{background:var(--green);} .led-green::after{background:var(--green);}
+.led-amber{background:var(--amber);} .led-amber::after{background:var(--amber);}
+.led-red{background:var(--red);} .led-red::after{background:var(--red);}
+.led-off{background:#3a3a3a;}
+.led-pulse::after{animation:ledpulse 1.8s ease-in-out infinite;}
+@keyframes ledpulse{0%,100%{opacity:.35;} 50%{opacity:.75;}}
+
+/* ================= LOGIN ================= */
+#login-screen{
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:24px; background:
+    radial-gradient(ellipse at 50% -10%, rgba(224,51,44,.18), transparent 55%), var(--black);
+}
+.login-card{width:100%; max-width:380px;}
+.brand-mark{display:flex; align-items:center; gap:10px; margin-bottom:36px; justify-content:center;}
+.brand-mark .bars{display:flex; gap:3px; align-items:flex-end; height:22px;}
+.brand-mark .bars span{width:4px; background:var(--red); display:block;}
+.brand-mark .bars span:nth-child(1){height:60%;}
+.brand-mark .bars span:nth-child(2){height:100%;}
+.brand-mark .bars span:nth-child(3){height:40%;}
+.brand-mark .bars span:nth-child(4){height:80%;}
+.brand-mark .word{font-family:var(--display); font-size:22px; letter-spacing:.08em; text-transform:uppercase;}
+.brand-mark .word b{color:var(--red);}
+.login-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); text-align:center; margin-bottom:6px;}
+.login-title{font-size:32px; text-align:center; margin-bottom:28px; text-transform:uppercase;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12px; color:var(--dim); margin-bottom:6px; font-family:var(--mono); letter-spacing:.05em;}
+.field input{
+  width:100%; padding:14px 14px; background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius);
+  color:var(--white); font-size:15px;
+}
+.field input:focus{border-color:var(--red);}
+.btn-primary{
+  width:100%; padding:15px; background:var(--red); border:none; border-radius:var(--radius);
+  color:var(--white); font-family:var(--display); font-size:17px; letter-spacing:.04em; text-transform:uppercase; font-weight:700;
+  margin-top:8px;
+}
+.btn-primary:active{transform:scale(.98);}
+.btn-primary:disabled{opacity:.5;}
+.login-foot{text-align:center; margin-top:18px; font-size:13px; color:var(--dim);}
+.login-foot a{color:var(--white); text-decoration:underline;}
+.login-error{
+  background:rgba(224,51,44,.12); border:1px solid var(--red-dim); color:#ff9d97;
+  padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:14px; display:none;
+}
+
+/* ================= APP SHELL ================= */
+#app{display:none; min-height:100vh; min-height:100dvh; flex-direction:column;}
+#app.active{display:flex;}
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; padding-top:max(14px, env(safe-area-inset-top));
+  background:var(--charcoal); border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:20;
+}
+.topbar-title{font-size:20px; text-transform:uppercase; letter-spacing:.03em;}
+.topbar-title .eyebrow{display:block; font-family:var(--mono); font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.12em; margin-bottom:2px;}
+.topbar-right{display:flex; align-items:center; gap:14px;}
+
+.bell-btn{position:relative; background:none; border:none; padding:6px; color:var(--white);}
+.bell-badge{
+  position:absolute; top:2px; right:2px; min-width:16px; height:16px; padding:0 3px; border-radius:8px;
+  background:var(--red); color:var(--white); font-size:10px; font-family:var(--mono); font-weight:600;
+  display:flex; align-items:center; justify-content:center; border:2px solid var(--charcoal);
+}
+.avatar{width:34px; height:34px; border-radius:50%; background:var(--panel); border:1px solid var(--line); padding:0; color:var(--white); font-size:14px;
+  display:flex; align-items:center; justify-content:center; font-family:var(--display); font-size:14px;}
+
+main{flex:1; overflow-y:auto; padding:20px 18px 100px;}
+.section-head{margin-bottom:18px;}
+.section-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); margin-bottom:4px;}
+.section-title{font-size:28px; text-transform:uppercase;}
+.section-sub{color:var(--dim); font-size:14px; margin-top:6px; line-height:1.5;}
+
+.card{
+  background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-bottom:12px;
+}
+.card-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+.stat{background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
+.stat-label{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:6px;}
+.stat-value{font-family:var(--display); font-size:26px;}
+.stat-value.money::before{content:'$';}
+
+.empty-state{
+  border:1px dashed var(--line); border-radius:var(--radius); padding:32px 20px; text-align:center; color:var(--dim);
+}
+.empty-state .led{margin-bottom:12px;}
+.empty-state h4{color:var(--white); margin-bottom:6px; font-size:18px;}
+.empty-state p{font-size:13px; margin:0; line-height:1.5;}
+
+.pill{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px;
+  font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  background:var(--panel); border:1px solid var(--line); color:var(--dim);
+}
+
+/* Bottom nav — mobile */
+.tabbar{
+  display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20;
+  background:var(--charcoal); border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-x:auto; scrollbar-width:none;
+}
+.tabbar::-webkit-scrollbar{display:none;}
+.tab-btn{
+  flex:1 0 auto; min-width:64px; background:none; border:none; color:var(--dim);
+  display:flex; flex-direction:column; align-items:center; gap:4px; padding:9px 6px 8px;
+  font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;
+}
+.tab-btn svg{width:20px; height:20px; stroke:var(--dim); fill:none; stroke-width:1.8;}
+.tab-btn.active{color:var(--white);}
+.tab-btn.active svg{stroke:var(--red);}
+.tab-btn.locked{opacity:.55;}
+
+/* Sidebar — desktop/PC */
+.shell-body{display:flex; flex:1; min-height:0;}
+.sidebar{
+  display:none; width:220px; flex-shrink:0; background:var(--charcoal); border-right:1px solid var(--line);
+  padding:18px 12px; flex-direction:column; gap:2px;
+}
+.side-btn{
+  display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:8px; border:none; background:none;
+  color:var(--dim); font-family:var(--body); font-size:14px; text-align:left; width:100%;
+}
+.side-btn svg{width:18px; height:18px; stroke:var(--dim); fill:none; stroke-width:1.8; flex-shrink:0;}
+.side-btn.active{background:var(--panel); color:var(--white);}
+.side-btn.active svg{stroke:var(--red);}
+.side-btn .lock-tag{margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--dim);}
+
+@media (min-width:860px){
+  .tabbar{display:none;}
+  .sidebar{display:flex;}
+  main{padding:28px 32px 32px; max-width:920px;}
+}
+
+/* Notification panel */
+.sheet-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:40; display:none;
+}
+.sheet-overlay.active{display:block;}
+.sheet{
+  position:fixed; right:0; top:0; bottom:0; width:100%; max-width:400px; background:var(--charcoal);
+  border-left:1px solid var(--line); z-index:41; transform:translateX(100%); transition:transform .28s ease;
+  display:flex; flex-direction:column;
+}
+.sheet.active{transform:translateX(0);}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; padding:18px; padding-top:max(18px, env(safe-area-inset-top)); border-bottom:1px solid var(--line);}
+.sheet-close{background:none; border:none; color:var(--white); font-size:22px; line-height:1;}
+.sheet-body{flex:1; overflow-y:auto; padding:8px 12px 24px;}
+.notif-item{display:flex; gap:12px; padding:13px 8px; border-bottom:1px solid var(--line);}
+.notif-item .led{margin-top:5px;}
+.notif-cat{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); margin-bottom:3px;}
+.notif-text{font-size:14px; line-height:1.4;}
+.notif-time{font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:3px;}
+
+/* PIN pad for Sales tab */
+.pin-wrap{max-width:280px; margin:0 auto; text-align:center;}
+.pin-dots{display:flex; justify-content:center; gap:14px; margin:24px 0;}
+.pin-dot{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); background:transparent;}
+.pin-dot.filled{background:var(--red); border-color:var(--red);}
+.pin-pad{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+.pin-key{
+  aspect-ratio:1; border-radius:50%; background:var(--charcoal); border:1px solid var(--line); color:var(--white);
+  font-family:var(--display); font-size:22px;
+}
+.pin-key:active{background:var(--panel);}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+============================================================ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="brand-mark">
+      <div class="bars"><span></span><span></span><span></span><span></span></div>
+      <div class="word">7<b>VE</b> Techs</div>
+    </div>
+    <div class="login-eyebrow">Technician &amp; Vendor Portal</div>
+    <h1 class="login-title">Sign In</h1>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn-primary" id="login-btn">Sign In</button>
+    <div id="login-debug" style="display:none; margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--dim); text-align:center;"></div>
+    <button type="button" id="show-claim-btn" style="display:block; width:100%; background:none; border:none; color:var(--dim); font-size:13px; margin-top:16px; text-decoration:underline;">First time? Activate your account</button>
+    <button type="button" id="show-reset-btn" style="display:block; width:100%; background:none; border:none; color:var(--dim); font-size:13px; margin-top:10px; text-decoration:underline;">Forgot password?</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     CLAIM ACCOUNT SCREEN
+============================================================ -->
+<div id="claim-screen" style="display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at 50% -10%, rgba(224,51,44,.18), transparent 55%), var(--black);">
+  <div class="login-card">
+    <div class="login-eyebrow">One-time setup</div>
+    <h1 class="login-title" style="font-size:26px;">Activate Your Account</h1>
+    <div class="section-sub" style="text-align:center; margin-bottom:22px;">Enter the email on file with 7VE, plus the last 4 digits of your phone number, to verify it's you.</div>
+
+    <div class="login-error" id="claim-error"></div>
+
+    <div class="field">
+      <label for="claim-email">Email on file</label>
+      <input id="claim-email" type="email" autocomplete="username" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="claim-phone4">Last 4 digits of your phone number</label>
+      <input id="claim-phone4" type="text" inputmode="numeric" maxlength="4" placeholder="0000">
+    </div>
+    <div class="field">
+      <label for="claim-password">Create a password</label>
+      <input id="claim-password" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <button class="btn-primary" id="claim-btn">Activate Account</button>
+    <button type="button" id="show-login-btn" style="display:block; width:100%; background:none; border:none; color:var(--dim); font-size:13px; margin-top:16px; text-decoration:underline;">Back to Sign In</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     RESET PASSWORD SCREEN
+============================================================ -->
+<div id="reset-screen" style="display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at 50% -10%, rgba(224,51,44,.18), transparent 55%), var(--black);">
+  <div class="login-card">
+    <div class="login-eyebrow">Forgot password</div>
+    <h1 class="login-title" style="font-size:26px;">Reset Password</h1>
+    <div class="section-sub" style="text-align:center; margin-bottom:22px;">Enter your email and the last 4 digits of your phone number to verify it's you, then set a new password.</div>
+
+    <div class="login-error" id="reset-error"></div>
+
+    <div class="field">
+      <label for="reset-email">Email on file</label>
+      <input id="reset-email" type="email" autocomplete="username" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="reset-phone4">Last 4 digits of your phone number</label>
+      <input id="reset-phone4" type="text" inputmode="numeric" maxlength="4" placeholder="0000">
+    </div>
+    <div class="field">
+      <label for="reset-password-input">New password</label>
+      <input id="reset-password-input" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+    </div>
+    <button class="btn-primary" id="reset-btn">Reset Password</button>
+    <button type="button" id="show-login-btn-2" style="display:block; width:100%; background:none; border:none; color:var(--dim); font-size:13px; margin-top:16px; text-decoration:underline;">Back to Sign In</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL
+============================================================ -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-title">
+      <span class="eyebrow" id="tab-eyebrow">Dashboard</span>
+      <span id="tab-title">Overview</span>
+    </div>
+    <div class="topbar-right">
+      <button class="bell-btn" id="help-btn" aria-label="Help" style="margin-right:2px;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.4"/><path d="M12 17.5h.01"/></svg>
+      </button>
+      <button class="bell-btn" id="bell-btn" aria-label="Notifications">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="bell-badge" id="bell-count">4</span>
+      </button>
+      <button class="avatar" id="avatar-initials" style="cursor:pointer; border:1px solid var(--line); font-family:var(--display);" aria-label="Sign out" title="Sign out">T</button>
+    </div>
+  </div>
+
+  <div class="shell-body">
+    <!-- Sidebar (desktop) -->
+    <nav class="sidebar" id="sidebar"></nav>
+
+    <main id="main-content"></main>
+  </div>
+
+  <!-- Bottom tab bar (mobile) -->
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+
+<!-- Notification sheet -->
+<div class="sheet-overlay" id="sheet-overlay"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <h3>Notifications</h3>
+    <button class="sheet-close" id="sheet-close-btn">×</button>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<!-- Help sheet -->
+<div class="sheet-overlay" id="help-overlay"></div>
+<div class="sheet" id="help-sheet">
+  <div class="sheet-head">
+    <h3>Help &amp; Support</h3>
+    <button class="sheet-close" id="help-close-btn">×</button>
+  </div>
+  <div class="sheet-body" style="padding:14px 16px 24px;">
+    <div class="section-eyebrow">Need Help?</div>
+    <p class="section-sub" style="margin-bottom:14px;">Having an issue, an error code, or a question about a job? Reach out directly:</p>
+    <div class="card">
+      <div class="card-row"><span>Email</span><a href="mailto:admin@7virtuesentertainment.com" style="color:var(--white);">admin@7virtuesentertainment.com</a></div>
+    </div>
+    <div class="card">
+      <div class="card-row"><span>Phone</span><a href="tel:+12023064375" style="color:var(--white);">(202) 306-4375</a></div>
+    </div>
+
+    <div class="section-eyebrow" style="margin-top:22px;">Report an Issue</div>
+    <p class="section-sub" style="margin-bottom:10px;">Paste an error code, describe what happened, or paste a screenshot directly into the box below (Ctrl+V / Cmd+V).</p>
+    <textarea id="feedback-text" placeholder="Describe the issue or paste an error code…" style="width:100%; min-height:100px; padding:12px; background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius); color:var(--white); font-family:var(--body); font-size:14px; resize:vertical;"></textarea>
+    <div id="feedback-image-preview" style="display:none; margin-top:10px;">
+      <img id="feedback-image-tag" style="max-width:100%; border-radius:8px; border:1px solid var(--line);" alt="Pasted screenshot">
+      <button type="button" id="feedback-image-remove" style="margin-top:6px; background:none; border:none; color:var(--red); font-size:13px; text-decoration:underline;">Remove image</button>
+    </div>
+    <div class="login-error" id="feedback-error" style="display:none; margin-top:12px;"></div>
+    <div class="section-sub" id="feedback-success" style="display:none; margin-top:12px; color:var(--green);">Thanks — your report was sent.</div>
+    <button class="btn-primary" id="feedback-submit-btn" style="margin-top:14px;">Send Report</button>
+
+    <div style="margin-top:28px; padding-top:18px; border-top:1px solid var(--line);">
+      <button class="btn-primary" id="help-signout-btn" style="background:var(--panel); border:1px solid var(--line);">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic "Add" modal, reused across Skills/Gear/Schedule/Crew/Info -->
+<div class="sheet-overlay" id="modal-overlay"></div>
+<div class="sheet" id="add-modal" style="right:0; left:auto; max-width:420px;">
+  <div class="sheet-head">
+    <h3 id="add-modal-title">Add</h3>
+    <button class="sheet-close" id="add-modal-close-btn">×</button>
+  </div>
+  <div class="sheet-body" id="add-modal-fields" style="padding:14px 16px;"></div>
+  <div style="padding:0 16px 20px;">
+    <div class="login-error" id="add-modal-error" style="display:none; margin-bottom:12px;"></div>
+    <button class="btn-primary" id="add-modal-save-btn">Save</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SUPABASE CONFIG
+   Fill these in with your project's values (Settings > API).
+   This portal expects the SAME Supabase project as the
+   7VE Operations Platform so tech-submitted data (skills,
+   availability, gear) shows up as a tab on the admin side.
+============================================================ */
+const SUPABASE_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_M29g62qrLYCwNfs-0tJe5A_8f8KPrDO';
+// Set after deploying the claim-account edge function, e.g.
+// 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/claim-account'
+const CLAIM_ACCOUNT_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co/functions/v1/claim-account';
+const CLAIM_CONFIGURED = CLAIM_ACCOUNT_URL !== 'YOUR_CLAIM_ACCOUNT_FUNCTION_URL';
+const RESET_PASSWORD_URL = 'https://pjgthflwhcciiqgbzmrs.supabase.co/functions/v1/reset-password';
+const RESET_CONFIGURED = !!RESET_PASSWORD_URL && RESET_PASSWORD_URL.indexOf('YOUR_') !== 0;
+const SUPABASE_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+let supabase = null;
+
+let supabaseCreateClientFn = null;
+
+async function loadSupabaseLib(){
+  if(supabaseCreateClientFn) return supabaseCreateClientFn;
+
+  // Dynamic ES module import — no reliance on a global variable being
+  // attached by a <script> tag, which has proven unreliable across
+  // different networks/browsers. Two CDN endpoints tried in sequence.
+  const moduleUrls = [
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
+    'https://esm.sh/@supabase/supabase-js@2'
+  ];
+  let lastErr = null;
+  for(const url of moduleUrls){
+    try{
+      const mod = await import(/* webpackIgnore: true */ url);
+      if(mod && typeof mod.createClient === 'function'){
+        supabaseCreateClientFn = mod.createClient;
+        return supabaseCreateClientFn;
+      }
+      lastErr = new Error('Loaded ' + url + ' but createClient was not exported.');
+    }catch(e){
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Could not load the Supabase library.');
+}
+
+async function getSupabaseClient(){
+  if(supabase) return supabase;
+  if(!SUPABASE_CONFIGURED) return null;
+  const createClient = await loadSupabaseLib();
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return supabase;
+}
+
+/* ============================================================
+   TAB DEFINITIONS
+============================================================ */
+const ICONS = {
+  skills:  `<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>`,
+  info:    `<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>`,
+  gear:    `<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10v4M12 10v4M17 10v4"/>`,
+  schedule:`<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>`,
+  finance: `<path d="M12 2v20M17 6.5c0-2-2.2-3.5-5-3.5s-5 1.5-5 3.5 2.2 3 5 3 5 1 5 3.5-2.2 3.5-5 3.5-5-1.5-5-3.5"/>`,
+  chat:    `<path d="M21 12a8 8 0 1 1-3.5-6.6"/><path d="M21 3v6h-6"/>`,
+  sales:   `<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M2 11h20M8 15h2"/>`
+};
+
+const TABS = [
+  {id:'skills',   label:'Skills',   eyebrow:'Credentials', title:'Skills & Certifications', locked:false},
+  {id:'info',     label:'Info',     eyebrow:'Profile',     title:'Your Information',         locked:false},
+  {id:'gear',     label:'Gear',     eyebrow:'Rental Pool', title:'Gear Manager',             locked:false},
+  {id:'schedule', label:'Schedule', eyebrow:'Calendar',    title:'Schedule',                 locked:false},
+  {id:'finance',  label:'Finance',  eyebrow:'Earnings',    title:'Finance',                  locked:false},
+  {id:'chat',     label:'Crew',     eyebrow:'Community',   title:'Crew Chat',                locked:false},
+  {id:'sales',    label:'Sales',    eyebrow:'Restricted',  title:'Sales',                    locked:true},
+];
+
+let activeTab = 'skills';
+let salesUnlocked = false;
+
+// Placeholder until wired to the real tech_roster/profile row from Supabase.
+// Real SSN never lives here in plain text long-term — this is demo shape only.
+let currentProfile = { ssn: '' };
+
+/* ---------- SSN masking — used anywhere a technician's SSN is shown ----------
+   Only the last 4 digits are ever rendered. Nothing upstream of this function
+   should be passing a full SSN into the DOM. */
+function maskSSN(rawSsn){
+  const digits = String(rawSsn || '').replace(/\D/g, '');
+  if(digits.length < 4) return '\u2022\u2022\u2022-\u2022\u2022-\u2022\u2022\u2022\u2022';
+  return `\u2022\u2022\u2022-\u2022\u2022-${digits.slice(-4)}`;
+}
+
+/* ---------- render nav (sidebar + tabbar) ---------- */
+function renderNav(){
+  document.getElementById('sidebar').innerHTML = TABS.map(t => `
+    <button class="side-btn ${t.id===activeTab?'active':''}" data-tab="${t.id}">
+      <svg viewBox="0 0 24 24">${ICONS[t.id]}</svg>
+      <span>${t.label}</span>
+      ${t.locked ? '<span class="lock-tag">PIN</span>' : ''}
+    </button>`).join('');
+
+  document.getElementById('tabbar').innerHTML = TABS.map(t => `
+    <button class="tab-btn ${t.id===activeTab?'active':''} ${t.locked?'locked':''}" data-tab="${t.id}">
+      <svg viewBox="0 0 24 24">${ICONS[t.id]}</svg>
+      <span>${t.label}</span>
+    </button>`).join('');
+}
+
+function selectTab(id){
+  activeTab = id;
+  const t = TABS.find(x=>x.id===id);
+  document.getElementById('tab-eyebrow').textContent = t.eyebrow;
+  document.getElementById('tab-title').textContent = t.label;
+  renderNav();
+  renderContent();
+  const mc = document.getElementById('main-content');
+  if(mc && typeof mc.scrollTo === 'function'){ mc.scrollTo(0,0); } else if(mc){ mc.scrollTop = 0; }
+}
+
+/* ---------- content per tab (placeholder shells) ---------- */
+function renderContent(){
+  const main = document.getElementById('main-content');
+  if(activeTab === 'sales' && !salesUnlocked){
+    main.innerHTML = salesLockScreen();
+    return;
+  }
+  const renderers = {
+    skills: skillsView, info: infoView, gear: gearView,
+    schedule: scheduleView, finance: financeView, chat: chatView, sales: salesView
+  };
+  main.innerHTML = renderers[activeTab]();
+  if(activeTab === 'sales' && salesUnlocked){
+    renderLineItems();
+    loadQuoteHistory();
+  }
+  if(activeTab === 'skills') loadSkillsList();
+  if(activeTab === 'info') loadTechProfile();
+  if(activeTab === 'gear') loadGearList();
+  if(activeTab === 'schedule'){ loadAvailabilityList(); loadClockStatus(); }
+  if(activeTab !== 'schedule' && clockTickTimer){ clearInterval(clockTickTimer); clockTickTimer = null; }
+  if(activeTab === 'chat') loadCrewFeed();
+}
+
+function head(eyebrow, title, sub){
+  return `<div class="section-head">
+    <div class="section-eyebrow">${eyebrow}</div>
+    <h2 class="section-title">${title}</h2>
+    ${sub ? `<div class="section-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+function skillsView(){
+  return head('01 · Credentials', 'Skills & Certifications', 'Upload certs as PDF or JPEG. These sync to your profile on the admin side so we can match you to the right jobs.') + `
+    <button class="btn-primary" id="add-skill-btn" style="margin-bottom:16px;">+ Add Certification</button>
+    <div id="skills-list"><div class="empty-state"><p>Loading…</p></div></div>`;
+}
+
+function openAddSkillModal(){
+  openAddModal({
+    title: 'Add Certification',
+    saveLabel: 'Save Certification',
+    required: ['skill_name'],
+    fields: [
+      { id:'skill_name', label:'Certification / Skill', type:'text', placeholder:'e.g. OSHA 10, ETCP, Forklift' },
+      { id:'cert_type', label:'Type', type:'text', placeholder:'License, cert, endorsement…' },
+      { id:'expiry_date', label:'Expiration date (optional)', type:'date' },
+      { id:'file', label:'Upload (PDF or image)', type:'file', accept:'image/*,.pdf' }
+    ],
+    onSave: async (values) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const { error } = await client.from('tech_skills').insert({
+        tech_user_id: userData.user.id,
+        skill_name: values.skill_name,
+        cert_type: values.cert_type || null,
+        expiry_date: values.expiry_date || null,
+        file_data_url: values.file || null
+      });
+      if(error) throw error;
+      await loadSkillsList();
+    }
+  });
+}
+
+async function loadSkillsList(){
+  const wrap = document.getElementById('skills-list');
+  if(!wrap) return;
+  if(!SUPABASE_CONFIGURED){ wrap.innerHTML = '<div class="empty-state"><p>Not connected yet.</p></div>'; return; }
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user){ wrap.innerHTML = '<div class="empty-state"><p>Sign in to view your certifications.</p></div>'; return; }
+    const { data, error } = await client
+      .from('tech_skills')
+      .select('id, skill_name, cert_type, expiry_date, file_data_url, created_at')
+      .eq('tech_user_id', userData.user.id)
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    if(!data || data.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><h4>No certifications uploaded yet</h4><p>Add things like OSHA 10, ETCP, forklift/lift certs, or driver\u2019s licenses.</p></div>';
+      return;
+    }
+    wrap.innerHTML = data.map(s => `
+      <div class="card">
+        <div class="card-row">
+          <span>${s.skill_name}</span>
+          <span class="pill">${s.file_data_url ? '<span class=\"led led-green\"></span>Uploaded' : '<span class=\"led led-off\"></span>No file'}</span>
+        </div>
+        <div class="section-sub" style="margin-top:6px;">${s.cert_type || 'No type set'}${s.expiry_date ? ' · Expires ' + new Date(s.expiry_date).toLocaleDateString() : ''}</div>
+      </div>`).join('');
+  }catch(err){
+    wrap.innerHTML = '<div class="empty-state"><p>Could not load: ' + (err && err.message ? err.message : String(err)) + '</p></div>';
+  }
+}
+let currentTechProfile = null;
+
+function infoView(){
+  const ssnDisplay = maskSSN(currentProfile.ssn);
+  const p = currentTechProfile || {};
+  const row = (label, value, extra) => `<div class="card"><div class="card-row"><span>${label}</span><span class="pill" ${extra||''}>${value}</span></div></div>`;
+  return head('02 · Profile', 'Your Information', 'Personal details, banking, and contractor paperwork — visible only to you and 7VE admin.') + `
+    <button class="btn-primary" id="edit-profile-btn" style="margin-bottom:16px;">${currentTechProfile ? 'Edit Information' : '+ Add Your Information'}</button>
+    ${row('Address', p.address || '<span class="led led-off"></span> Not started')}
+    ${row('Direct deposit / banking', p.bank_name ? (p.bank_name + ' •••• ' + (p.bank_account_last4||'')) : '<span class="led led-off"></span> Not started')}
+    ${row('Social Security Number', ssnDisplay, 'style="font-family:var(--mono); letter-spacing:.05em;"')}
+    ${row('W-9', p.w9_file_data_url ? '<span class="led led-green"></span> Uploaded' : '<span class="led led-off"></span> Not uploaded')}
+    ${row('TSA PreCheck #', p.tsa_number || '<span class="led led-off"></span> —')}
+    ${row('Shirt size', p.shirt_size || '<span class="led led-off"></span> —')}
+    ${row('Allergies', p.allergies || '<span class="led led-off"></span> —')}
+    ${row('Travel preferences', p.travel_preference || '<span class="led led-off"></span> —')}
+  `;
+}
+
+function openEditProfileModal(){
+  const p = currentTechProfile || {};
+  openAddModal({
+    title: currentTechProfile ? 'Edit Your Information' : 'Add Your Information',
+    saveLabel: 'Save Information',
+    fields: [
+      { id:'address', label:'Address', type:'text', value:p.address, placeholder:'Street, city, state, ZIP' },
+      { id:'bank_name', label:'Bank name', type:'text', value:p.bank_name },
+      { id:'bank_account_last4', label:'Account # (last 4 only)', type:'text', value:p.bank_account_last4, placeholder:'1234' },
+      { id:'bank_routing', label:'Routing number', type:'text', value:p.bank_routing },
+      { id:'tsa_number', label:'TSA PreCheck #', type:'text', value:p.tsa_number },
+      { id:'shirt_size', label:'Shirt size', type:'text', value:p.shirt_size, placeholder:'S, M, L, XL…' },
+      { id:'allergies', label:'Allergies', type:'text', value:p.allergies, placeholder:'None, or list them' },
+      { id:'travel_preference', label:'Travel preference', type:'text', value:p.travel_preference, placeholder:'Aisle seat, no red-eyes, etc.' },
+      { id:'w9', label:'W-9 upload (PDF or image)', type:'file', accept:'image/*,.pdf' }
+    ],
+    onSave: async (values) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const upsertRow = {
+        tech_user_id: userData.user.id,
+        address: values.address || null,
+        bank_name: values.bank_name || null,
+        bank_account_last4: values.bank_account_last4 ? values.bank_account_last4.slice(-4) : null,
+        bank_routing: values.bank_routing || null,
+        tsa_number: values.tsa_number || null,
+        shirt_size: values.shirt_size || null,
+        allergies: values.allergies || null,
+        travel_preference: values.travel_preference || null,
+        updated_at: new Date().toISOString()
+      };
+      if(values.w9) upsertRow.w9_file_data_url = values.w9;
+      const { error } = await client.from('tech_profile').upsert(upsertRow, { onConflict: 'tech_user_id' });
+      if(error) throw error;
+      await loadTechProfile(true);
+    }
+  });
+}
+
+let techProfileLoaded = false;
+async function loadTechProfile(force){
+  if(!SUPABASE_CONFIGURED) return;
+  if(techProfileLoaded && !force) return;
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) return;
+    const { data, error } = await client
+      .from('tech_profile')
+      .select('*')
+      .eq('tech_user_id', userData.user.id)
+      .maybeSingle();
+    if(error) return;
+    currentTechProfile = data || null;
+    techProfileLoaded = true;
+    if(activeTab === 'info') renderContent();
+  }catch(e){ /* leave profile as-is on failure */ }
+}
+function gearView(){
+  return head('03 · Rental Pool', 'Gear Manager', 'Your personal library. When your gear rents out on a show, the split runs client → 7VE → you.') + `
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Items listed</div><div class="stat-value" id="gear-count">0</div></div>
+      <div class="stat"><div class="stat-label">Est. split</div><div class="stat-value" style="font-size:16px;">$60 / $20</div></div>
+    </div>
+    <button class="btn-primary" id="add-gear-btn" style="margin-bottom:16px;">+ Add Gear Item</button>
+    <div id="gear-list"><div class="empty-state"><p>Loading…</p></div></div>`;
+}
+
+function openAddGearModal(){
+  openAddModal({
+    title: 'Add Gear Item',
+    saveLabel: 'Save Item',
+    required: ['item_name'],
+    fields: [
+      { id:'item_name', label:'Item name', type:'text', placeholder:'e.g. Shure SM58, 12x12 Truss' },
+      { id:'category', label:'Category', type:'text', placeholder:'Audio, lighting, staging…' },
+      { id:'quantity', label:'Quantity', type:'number', value:'1' },
+      { id:'daily_rate', label:'Your daily rate ($)', type:'number', placeholder:'0.00' },
+      { id:'notes', label:'Notes', type:'textarea' }
+    ],
+    onSave: async (values) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const { error } = await client.from('tech_gear').insert({
+        tech_user_id: userData.user.id,
+        item_name: values.item_name,
+        category: values.category || null,
+        quantity: values.quantity ? parseInt(values.quantity, 10) : 1,
+        daily_rate: values.daily_rate ? parseFloat(values.daily_rate) : null,
+        notes: values.notes || null
+      });
+      if(error) throw error;
+      await loadGearList();
+    }
+  });
+}
+
+async function loadGearList(){
+  const wrap = document.getElementById('gear-list');
+  if(!wrap) return;
+  if(!SUPABASE_CONFIGURED){ wrap.innerHTML = '<div class="empty-state"><p>Not connected yet.</p></div>'; return; }
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user){ wrap.innerHTML = '<div class="empty-state"><p>Sign in to view your gear.</p></div>'; return; }
+    const { data, error } = await client
+      .from('tech_gear')
+      .select('id, item_name, category, quantity, daily_rate, created_at')
+      .eq('tech_user_id', userData.user.id)
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    const countEl = document.getElementById('gear-count');
+    if(countEl) countEl.textContent = data ? data.length : 0;
+    if(!data || data.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><h4>Your gear library is empty</h4><p>Add cases, cables, wireless, or fixtures you own.</p></div>';
+      return;
+    }
+    wrap.innerHTML = data.map(g => `
+      <div class="card">
+        <div class="card-row">
+          <span>${g.item_name}</span>
+          <span class="pill">Qty ${g.quantity}</span>
+        </div>
+        <div class="section-sub" style="margin-top:6px;">${g.category || 'Uncategorized'}${g.daily_rate ? ' · $' + Number(g.daily_rate).toFixed(2) + '/day' : ''}</div>
+      </div>`).join('');
+  }catch(err){
+    wrap.innerHTML = '<div class="empty-state"><p>Could not load: ' + (err && err.message ? err.message : String(err)) + '</p></div>';
+  }
+}
+function scheduleView(){
+  return head('04 · Calendar', 'Schedule', 'View confirmed shifts and post your availability for the month — stays in sync with the admin schedule builder.') + `
+    <div class="card" id="clock-card" style="text-align:center; padding:20px;"><p class="section-sub">Loading clock status\u2026</p></div>
+    <h4 style="margin:20px 0 10px;color:var(--dim);font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;">Recent Shifts</h4>
+    <div id="shift-history"><div class="empty-state"><p>Loading\u2026</p></div></div>
+
+    <div class="card-row" style="margin:22px 0 14px;">
+      <div class="pill"><span class="led led-green"></span>Confirmed</div>
+      <div class="pill"><span class="led led-amber"></span>Pending</div>
+      <div class="pill"><span class="led led-off"></span>Open</div>
+    </div>
+    <button class="btn-primary" id="add-availability-btn" style="margin-bottom:16px;">+ Post Availability</button>
+    <div id="availability-list"><div class="empty-state"><p>Loading…</p></div></div>`;
+}
+
+let clockOpenShiftId = null;
+let clockInAtCache = null;
+let clockTickTimer = null;
+
+function formatDuration(ms){
+  const totalMin = Math.max(0, Math.round(ms / 60000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h + 'h ' + m + 'm';
+}
+
+function renderClockCard(){
+  const card = document.getElementById('clock-card');
+  if(!card) return;
+  if(clockOpenShiftId){
+    const elapsed = Date.now() - new Date(clockInAtCache).getTime();
+    card.innerHTML = `
+      <div class="section-sub" style="margin-bottom:10px;">Clocked in since ${new Date(clockInAtCache).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} \u00b7 ${formatDuration(elapsed)}</div>
+      <button class="btn-primary" id="clock-toggle-btn" style="background:#2D7FF9; width:100%; font-size:18px; padding:18px;">Clock Out</button>`;
+  } else {
+    card.innerHTML = `
+      <div class="section-sub" style="margin-bottom:10px;">You're off the clock.</div>
+      <button class="btn-primary" id="clock-toggle-btn" style="background:var(--green); width:100%; font-size:18px; padding:18px;">Clock In</button>`;
+  }
+}
+
+async function loadClockStatus(){
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) return;
+    const { data: openRow } = await client
+      .from('tech_time_clock')
+      .select('id, clock_in_at')
+      .eq('tech_user_id', userData.user.id)
+      .is('clock_out_at', null)
+      .order('clock_in_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    clockOpenShiftId = openRow ? openRow.id : null;
+    clockInAtCache = openRow ? openRow.clock_in_at : null;
+    renderClockCard();
+
+    if(clockTickTimer) clearInterval(clockTickTimer);
+    if(clockOpenShiftId){
+      clockTickTimer = setInterval(() => { if(activeTab === 'schedule') renderClockCard(); }, 30000);
+    }
+
+    const { data: history } = await client
+      .from('tech_time_clock')
+      .select('id, clock_in_at, clock_out_at')
+      .eq('tech_user_id', userData.user.id)
+      .order('clock_in_at', { ascending: false })
+      .limit(10);
+    const wrap = document.getElementById('shift-history');
+    if(!wrap) return;
+    if(!history || history.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><p>No shifts logged yet.</p></div>';
+      return;
+    }
+    wrap.innerHTML = history.map(s => {
+      const inTime = new Date(s.clock_in_at);
+      const outTime = s.clock_out_at ? new Date(s.clock_out_at) : null;
+      const dur = outTime ? formatDuration(outTime - inTime) : 'In progress';
+      return `<div class="card">
+        <div class="card-row"><span>${inTime.toLocaleDateString()}</span><span class="pill">${dur}</span></div>
+        <div class="section-sub" style="margin-top:6px;">${inTime.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} \u2192 ${outTime ? outTime.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : '\u2014'}</div>
+      </div>`;
+    }).join('');
+  }catch(e){ /* leave whatever was last rendered */ }
+}
+
+async function handleClockToggle(){
+  const btn = document.getElementById('clock-toggle-btn');
+  if(btn){ btn.disabled = true; }
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) throw new Error('Not signed in.');
+
+    if(clockOpenShiftId){
+      const { error } = await client.from('tech_time_clock')
+        .update({ clock_out_at: new Date().toISOString() })
+        .eq('id', clockOpenShiftId);
+      if(error) throw error;
+    } else {
+      const { error } = await client.from('tech_time_clock')
+        .insert({ tech_user_id: userData.user.id, clock_in_at: new Date().toISOString() });
+      if(error) throw error;
+    }
+    await loadClockStatus();
+  }catch(e){
+    alert('Clock action failed: ' + (e && e.message ? e.message : String(e)));
+  }finally{
+    if(btn){ btn.disabled = false; }
+  }
+}
+
+function openAddAvailabilityModal(){
+  openAddModal({
+    title: 'Post Availability',
+    saveLabel: 'Save Availability',
+    required: ['date_start','date_end'],
+    fields: [
+      { id:'date_start', label:'Available from', type:'date' },
+      { id:'date_end', label:'Available through', type:'date' },
+      { id:'note', label:'Notes (optional)', type:'textarea', placeholder:'e.g. Denver shows only, or evenings only' }
+    ],
+    onSave: async (values) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const { error } = await client.from('tech_availability').insert({
+        tech_user_id: userData.user.id,
+        date_start: values.date_start,
+        date_end: values.date_end,
+        note: values.note || null
+      });
+      if(error) throw error;
+      await loadAvailabilityList();
+    }
+  });
+}
+
+async function loadAvailabilityList(){
+  const wrap = document.getElementById('availability-list');
+  if(!wrap) return;
+  if(!SUPABASE_CONFIGURED){ wrap.innerHTML = '<div class="empty-state"><p>Not connected yet.</p></div>'; return; }
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user){ wrap.innerHTML = '<div class="empty-state"><p>Sign in to view your availability.</p></div>'; return; }
+    const { data, error } = await client
+      .from('tech_availability')
+      .select('id, date_start, date_end, note, created_at')
+      .eq('tech_user_id', userData.user.id)
+      .order('date_start', { ascending: true });
+    if(error) throw error;
+    if(!data || data.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><h4>No availability posted yet</h4><p>Tap above to submit your availability for this month.</p></div>';
+      return;
+    }
+    wrap.innerHTML = data.map(a => `
+      <div class="card">
+        <div class="card-row"><span>${new Date(a.date_start).toLocaleDateString()} \u2192 ${new Date(a.date_end).toLocaleDateString()}</span></div>
+        ${a.note ? '<div class="section-sub" style="margin-top:6px;">' + a.note + '</div>' : ''}
+      </div>`).join('');
+  }catch(err){
+    wrap.innerHTML = '<div class="empty-state"><p>Could not load: ' + (err && err.message ? err.message : String(err)) + '</p></div>';
+  }
+}
+function financeView(){
+  return head('05 · Earnings', 'Finance', 'Your show history, monthly and yearly totals, and any quoted jobs you declined.') + `
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">This month</div><div class="stat-value money">0</div></div>
+      <div class="stat"><div class="stat-label">Year to date</div><div class="stat-value money">0</div></div>
+    </div>
+    <h4 style="margin-bottom:10px;color:var(--dim);font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;">Show History</h4>
+    <div class="empty-state"><p>No shows on record yet.</p></div>
+    <h4 style="margin:20px 0 10px;color:var(--dim);font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;">Declined Requests</h4>
+    <div class="empty-state"><p>Jobs you turn down will show their quoted price here for your records.</p></div>`;
+}
+function chatView(){
+  return head('06 · Community', 'Crew Chat', 'Ask questions, post photos and clips from load-in, and keep the crew connected between shows.') + `
+    <button class="btn-primary" id="add-post-btn" style="margin-bottom:16px;">+ New Post</button>
+    <div id="crew-feed"><div class="empty-state"><p>Loading…</p></div></div>`;
+}
+
+function openAddPostModal(){
+  openAddModal({
+    title: 'New Crew Post',
+    saveLabel: 'Post',
+    required: ['message'],
+    fields: [
+      { id:'message', label:'What\u2019s up?', type:'textarea', placeholder:'Ask a question, share an update…' },
+      { id:'image', label:'Photo (optional)', type:'file', accept:'image/*' }
+    ],
+    onSave: async (values) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const { data: roster } = await client.from('tech_roster').select('full_name').eq('auth_user_id', userData.user.id).maybeSingle();
+      const { error } = await client.from('tech_crew_posts').insert({
+        tech_user_id: userData.user.id,
+        author_name: (roster && roster.full_name) || userData.user.email,
+        message: values.message,
+        image_data_url: values.image || null
+      });
+      if(error) throw error;
+      await loadCrewFeed();
+    }
+  });
+}
+
+async function loadCrewFeed(){
+  const wrap = document.getElementById('crew-feed');
+  if(!wrap) return;
+  if(!SUPABASE_CONFIGURED){ wrap.innerHTML = '<div class="empty-state"><p>Not connected yet.</p></div>'; return; }
+  try{
+    const client = await getSupabaseClient();
+    const { data, error } = await client
+      .from('tech_crew_posts')
+      .select('id, author_name, message, image_data_url, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if(error) throw error;
+    if(!data || data.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><h4>Crew feed is quiet</h4><p>Be the first to post \u2014 a photo, a question, anything crew-relevant.</p></div>';
+      return;
+    }
+    wrap.innerHTML = data.map(p => `
+      <div class="card">
+        <div class="card-row"><strong>${p.author_name || 'A crew member'}</strong><span class="section-sub">${new Date(p.created_at).toLocaleDateString()}</span></div>
+        <div style="margin-top:8px;">${(p.message||'').replace(/</g,'&lt;')}</div>
+        ${p.image_data_url ? '<img src="'+p.image_data_url+'" style="max-width:100%; border-radius:8px; margin-top:10px; border:1px solid var(--line);">' : ''}
+      </div>`).join('');
+  }catch(err){
+    wrap.innerHTML = '<div class="empty-state"><p>Could not load: ' + (err && err.message ? err.message : String(err)) + '</p></div>';
+  }
+}
+let salesPinExpected = null;   // last-4 phone digits for the logged-in tech, fetched once
+let salesPinLoading = false;
+let salesPinError = false;
+
+async function loadSalesPinExpected(){
+  if(salesPinExpected || salesPinLoading) return;
+  salesPinLoading = true;
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) return;
+    const { data, error } = await client
+      .from('tech_roster')
+      .select('phone')
+      .eq('auth_user_id', userData.user.id)
+      .maybeSingle();
+    if(error || !data) return;
+    salesPinExpected = String(data.phone || '').replace(/\D/g, '').slice(-4);
+  } finally {
+    salesPinLoading = false;
+    if(activeTab === 'sales' && !salesUnlocked) renderContent();
+  }
+}
+
+function salesLockScreen(){
+  if(!salesPinExpected && !salesPinLoading){ loadSalesPinExpected(); }
+  return `<div class="pin-wrap" style="padding-top:20px;">
+    <div class="section-eyebrow" style="text-align:center;">Restricted</div>
+    <h2 class="section-title">Verify It's You</h2>
+    <p class="section-sub" style="margin-top:8px;">Enter the last 4 digits of your phone number to continue.</p>
+    <div class="pin-dots" id="pin-dots">
+      ${[0,1,2,3].map(()=>`<div class="pin-dot"></div>`).join('')}
+    </div>
+    <div class="pin-pad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="pin-key" data-pin="${n}">${n}</button>`).join('')}
+      <div></div>
+      <button class="pin-key" data-pin="0">0</button>
+      <button class="pin-key" data-pin="back">⌫</button>
+    </div>
+    ${salesPinLoading ? '<p class="section-sub" style="margin-top:18px;">Loading your account…</p>' : ''}
+    ${salesPinError ? '<p class="section-sub" style="margin-top:18px; color:var(--red);">That doesn\u2019t match — try again.</p>' : ''}
+  </div>`;
+}
+let pinEntry = '';
+function pinPress(k){
+  if(salesPinLoading || !salesPinExpected) return;
+  salesPinError = false;
+  if(k==='back'){ pinEntry = pinEntry.slice(0,-1); }
+  else if(pinEntry.length < 4){ pinEntry += k; }
+  document.querySelectorAll('.pin-dot').forEach((d,i)=> d.classList.toggle('filled', i < pinEntry.length));
+  if(pinEntry.length === 4){
+    setTimeout(()=>{
+      if(pinEntry === salesPinExpected){
+        salesUnlocked = true;
+      } else {
+        salesPinError = true;
+      }
+      pinEntry = '';
+      renderContent();
+    }, 200);
+  }
+}
+function salesView(){
+  return head('07 · Point of Sale', 'Rental Requests & Quotes', 'Enter customer info and line items, then submit for admin approval. Approved quotes become real orders and earn you the 10% originator commission.') + `
+    <div class="card">
+      <h4 style="margin-bottom:12px;">New Quote</h4>
+      <div class="field"><label>Customer Name</label><input id="q-customer-name" type="text" placeholder="Jane Smith"></div>
+      <div class="card-row" style="gap:12px;">
+        <div class="field" style="flex:1;"><label>Phone</label><input id="q-customer-phone" type="tel" placeholder="(555) 555-5555"></div>
+        <div class="field" style="flex:1;"><label>Email</label><input id="q-customer-email" type="email" placeholder="jane@example.com"></div>
+      </div>
+      <div class="field"><label>Venue / Location</label><input id="q-venue" type="text" placeholder="Venue name or address"></div>
+      <div class="field"><label>Event Date</label><input id="q-event-date" type="date"></div>
+
+      <h4 style="margin:18px 0 10px;">Line Items</h4>
+      <div id="q-line-items"></div>
+      <button type="button" id="q-add-line-btn" class="pill" style="cursor:pointer; margin-top:4px;">+ Add line item</button>
+
+      <div class="field" style="margin-top:16px;"><label>Notes</label><input id="q-notes" type="text" placeholder="Optional"></div>
+
+      <div class="card-row" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--line);">
+        <span style="font-family:var(--mono); color:var(--dim);">Estimated Total</span>
+        <span id="q-total" style="font-family:var(--display); font-size:22px;">$0</span>
+      </div>
+
+      <div class="login-error" id="q-error" style="display:none; margin-top:14px;"></div>
+      <button class="btn-primary" id="q-submit-btn" style="margin-top:14px;">Submit for Approval</button>
+    </div>
+
+    <h4 style="margin:20px 0 10px;color:var(--dim);font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;">Your Submitted Quotes</h4>
+    <div id="q-history"><div class="empty-state"><p>Loading…</p></div></div>
+  `;
+}
+
+let quoteLineItems = [{ desc:'', qty:1, price:0 }];
+
+function renderLineItems(){
+  const wrap = document.getElementById('q-line-items');
+  if(!wrap) return;
+  wrap.innerHTML = quoteLineItems.map((item, i) => `
+    <div class="card-row" style="gap:8px; margin-bottom:8px;" data-line-index="${i}">
+      <input type="text" class="q-line-desc" placeholder="Item description" value="${item.desc.replace(/"/g,'&quot;')}" style="flex:3; padding:10px; background:var(--charcoal); border:1px solid var(--line); border-radius:8px; color:var(--white); font-size:14px;">
+      <input type="number" class="q-line-qty" min="1" placeholder="Qty" value="${item.qty}" style="flex:1; padding:10px; background:var(--charcoal); border:1px solid var(--line); border-radius:8px; color:var(--white); font-size:14px;">
+      <input type="number" class="q-line-price" min="0" step="0.01" placeholder="Unit $" value="${item.price}" style="flex:1; padding:10px; background:var(--charcoal); border:1px solid var(--line); border-radius:8px; color:var(--white); font-size:14px;">
+      ${quoteLineItems.length > 1 ? `<button type="button" class="q-line-remove" style="background:none;border:none;color:var(--red);font-size:18px;">×</button>` : ''}
+    </div>`).join('');
+  updateQuoteTotal();
+}
+function updateQuoteTotal(){
+  const total = quoteLineItems.reduce((sum, item) => sum + (Number(item.qty)||0) * (Number(item.price)||0), 0);
+  const el = document.getElementById('q-total');
+  if(el) el.textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  return total;
+}
+
+async function loadQuoteHistory(){
+  const wrap = document.getElementById('q-history');
+  if(!wrap) return;
+  if(!SUPABASE_CONFIGURED){
+    wrap.innerHTML = '<div class="empty-state"><p>Not connected yet.</p></div>';
+    return;
+  }
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user){ wrap.innerHTML = '<div class="empty-state"><p>Sign in to view your quotes.</p></div>'; return; }
+    const { data, error } = await client
+      .from('tech_rental_requests')
+      .select('id, customer_name, event_date, estimated_total, status, created_at')
+      .eq('tech_user_id', userData.user.id)
+      .order('created_at', { ascending: false })
+      .limit(25);
+    if(error) throw error;
+    if(!data || data.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><p>No quotes submitted yet.</p></div>';
+      return;
+    }
+    const statusLed = { pending_review:'led-amber', approved:'led-green', rejected:'led-red' };
+    wrap.innerHTML = data.map(q => `
+      <div class="card">
+        <div class="card-row">
+          <span>${(q.customer_name || 'Unnamed customer')}</span>
+          <span class="pill"><span class="led ${statusLed[q.status] || 'led-off'}"></span>${(q.status || 'pending_review').replace('_',' ')}</span>
+        </div>
+        <div class="section-sub" style="margin-top:6px;">${q.event_date ? new Date(q.event_date).toLocaleDateString() : 'No date set'} · $${Number(q.estimated_total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      </div>`).join('');
+  }catch(err){
+    wrap.innerHTML = '<div class="empty-state"><p>Could not load quotes: ' + (err && err.message ? err.message : String(err)) + '</p></div>';
+  }
+}
+
+async function submitQuote(){
+  const errBox = document.getElementById('q-error');
+  errBox.style.display = 'none';
+  const customer_name = document.getElementById('q-customer-name').value.trim();
+  const customer_phone = document.getElementById('q-customer-phone').value.trim();
+  const customer_email = document.getElementById('q-customer-email').value.trim();
+  const venue = document.getElementById('q-venue').value.trim();
+  const event_date = document.getElementById('q-event-date').value || null;
+  const notes = document.getElementById('q-notes').value.trim();
+  const lineItems = quoteLineItems.filter(li => li.desc.trim() !== '');
+  const total = updateQuoteTotal();
+
+  if(!customer_name || lineItems.length === 0){
+    errBox.textContent = 'Customer name and at least one line item are required.';
+    errBox.style.display = 'block';
+    return;
+  }
+  if(!SUPABASE_CONFIGURED){
+    errBox.textContent = 'Not connected to the backend yet.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('q-submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) throw new Error('You must be signed in.');
+    const { error } = await client.from('tech_rental_requests').insert({
+      tech_user_id: userData.user.id,
+      customer_name, customer_phone, customer_email, venue, event_date,
+      line_items: lineItems,
+      estimated_total: total,
+      notes,
+      status: 'pending_review'
+    });
+    if(error) throw error;
+
+    quoteLineItems = [{ desc:'', qty:1, price:0 }];
+    document.getElementById('q-customer-name').value = '';
+    document.getElementById('q-customer-phone').value = '';
+    document.getElementById('q-customer-email').value = '';
+    document.getElementById('q-venue').value = '';
+    document.getElementById('q-event-date').value = '';
+    document.getElementById('q-notes').value = '';
+    renderLineItems();
+    await loadQuoteHistory();
+  }catch(err){
+    errBox.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    errBox.style.display = 'block';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Submit for Approval';
+  }
+}
+
+/* ---------- notifications ---------- */
+const NOTIF_TYPES = [
+  {cat:'New Job', text:'A new shift has been posted matching your skills.', led:'led-red', tab:'schedule'},
+  {cat:'Subrental Gear', text:'A client requested a subrental item for an upcoming show.', led:'led-amber', tab:'gear'},
+  {cat:'Schedule Update', text:'Your confirmed call time changed.', led:'led-amber', tab:'schedule'},
+  {cat:'New Events', text:'A new event was added to the calendar.', led:'led-green', tab:'schedule'},
+  {cat:'Newsletter', text:'The latest 7VE crew newsletter is up.', led:'led-green', tab:'chat'},
+  {cat:'System Update', text:'The portal was updated with new features.', led:'led-off', tab:null},
+  {cat:'Incoming Payment', text:'A payment has been issued to you.', led:'led-green', tab:'finance'},
+  {cat:'Invoice', text:'A new invoice was generated for a job you worked.', led:'led-amber', tab:'finance'},
+  {cat:'Bill', text:'A bill is ready for your review.', led:'led-amber', tab:'finance'},
+  {cat:'Rental', text:'One of your gear items was booked for a show.', led:'led-red', tab:'gear'},
+];
+function renderNotifications(){
+  document.getElementById('sheet-body').innerHTML = NOTIF_TYPES.map((n, i) => `
+    <div class="notif-item" data-notif-tab="${n.tab || ''}" style="${n.tab ? 'cursor:pointer;' : ''}">
+      <span class="led ${n.led}"></span>
+      <div>
+        <div class="notif-cat">${n.cat}</div>
+        <div class="notif-text">${n.text}</div>
+        <div class="notif-time">Just now</div>
+      </div>
+    </div>`).join('');
+}
+function toggleSheet(open){
+  document.getElementById('sheet').classList.toggle('active', open);
+  document.getElementById('sheet-overlay').classList.toggle('active', open);
+  if(open) renderNotifications();
+}
+
+let addModalConfig = null;
+
+function modalField(f){
+  if(f.type === 'textarea'){
+    return `<div class="field"><label>${f.label}</label><textarea id="am-${f.id}" placeholder="${f.placeholder||''}" style="width:100%; min-height:80px; padding:12px; background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius); color:var(--white); font-family:var(--body); font-size:14px;">${f.value||''}</textarea></div>`;
+  }
+  if(f.type === 'file'){
+    return `<div class="field"><label>${f.label}</label><input id="am-${f.id}" type="file" accept="${f.accept||'*'}" style="width:100%; padding:10px; background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius); color:var(--white); font-size:13px;"></div>`;
+  }
+  return `<div class="field"><label>${f.label}</label><input id="am-${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder||''}" value="${f.value||''}" style="width:100%; padding:14px; background:var(--charcoal); border:1px solid var(--line); border-radius:var(--radius); color:var(--white); font-size:15px;"></div>`;
+}
+
+function openAddModal(config){
+  addModalConfig = config;
+  document.getElementById('add-modal-title').textContent = config.title;
+  document.getElementById('add-modal-error').style.display = 'none';
+  document.getElementById('add-modal-fields').innerHTML = config.fields.map(modalField).join('');
+  document.getElementById('add-modal-save-btn').textContent = config.saveLabel || 'Save';
+  document.getElementById('add-modal').classList.add('active');
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeAddModal(){
+  document.getElementById('add-modal').classList.remove('active');
+  document.getElementById('modal-overlay').classList.remove('active');
+  addModalConfig = null;
+}
+
+async function handleAddModalSave(){
+  if(!addModalConfig) return;
+  const errBox = document.getElementById('add-modal-error');
+  errBox.style.display = 'none';
+  const values = {};
+  for(const f of addModalConfig.fields){
+    const el = document.getElementById('am-' + f.id);
+    if(!el) continue;
+    if(f.type === 'file'){
+      if(el.files && el.files[0]){
+        values[f.id] = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(el.files[0]);
+        });
+      } else {
+        values[f.id] = null;
+      }
+    } else {
+      values[f.id] = el.value.trim();
+    }
+  }
+  if(addModalConfig.required){
+    for(const reqId of addModalConfig.required){
+      if(!values[reqId]){
+        errBox.textContent = 'Please fill in all required fields.';
+        errBox.style.display = 'block';
+        return;
+      }
+    }
+  }
+  const btn = document.getElementById('add-modal-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    await addModalConfig.onSave(values);
+    closeAddModal();
+  }catch(err){
+    errBox.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    errBox.style.display = 'block';
+  }finally{
+    btn.disabled = false; btn.textContent = addModalConfig ? (addModalConfig.saveLabel || 'Save') : 'Save';
+  }
+}
+
+function toggleHelpSheet(open){
+  document.getElementById('help-sheet').classList.toggle('active', open);
+  document.getElementById('help-overlay').classList.toggle('active', open);
+  if(open){
+    document.getElementById('feedback-error').style.display = 'none';
+    document.getElementById('feedback-success').style.display = 'none';
+  }
+}
+
+let feedbackImageDataUrl = null;
+
+function handleFeedbackPaste(e){
+  const items = (e.clipboardData || window.clipboardData).items;
+  for(const item of items){
+    if(item.type.indexOf('image') !== -1){
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        feedbackImageDataUrl = ev.target.result;
+        document.getElementById('feedback-image-tag').src = feedbackImageDataUrl;
+        document.getElementById('feedback-image-preview').style.display = 'block';
+      };
+      reader.readAsDataURL(blob);
+      e.preventDefault();
+      return;
+    }
+  }
+}
+
+function removeFeedbackImage(){
+  feedbackImageDataUrl = null;
+  document.getElementById('feedback-image-preview').style.display = 'none';
+  document.getElementById('feedback-image-tag').src = '';
+}
+
+async function submitFeedback(){
+  const errBox = document.getElementById('feedback-error');
+  const successBox = document.getElementById('feedback-success');
+  errBox.style.display = 'none';
+  successBox.style.display = 'none';
+  const message = document.getElementById('feedback-text').value.trim();
+
+  if(!message && !feedbackImageDataUrl){
+    errBox.textContent = 'Add a description, error code, or screenshot before sending.';
+    errBox.style.display = 'block';
+    return;
+  }
+  if(!SUPABASE_CONFIGURED){
+    errBox.textContent = 'Not connected to the backend yet.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('feedback-submit-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) throw new Error('You must be signed in.');
+    const { error } = await client.from('tech_feedback').insert({
+      tech_user_id: userData.user.id,
+      message: message || null,
+      image_data_url: feedbackImageDataUrl || null
+    });
+    if(error) throw error;
+
+    document.getElementById('feedback-text').value = '';
+    removeFeedbackImage();
+    successBox.style.display = 'block';
+  }catch(err){
+    errBox.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    errBox.style.display = 'block';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Send Report';
+  }
+}
+
+/* ---------- auth ---------- */
+async function handleLogin(){
+  const dbg = document.getElementById('login-debug');
+  try{
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errBox = document.getElementById('login-error');
+    errBox.style.display = 'none';
+    if(!email || !password){
+      errBox.textContent = 'Enter your email and password.';
+      errBox.style.display = 'block';
+      return;
+    }
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Signing In…';
+
+    if(!SUPABASE_CONFIGURED){
+      dbg.style.display = 'block';
+      dbg.textContent = 'Demo mode (no Supabase config) — entering app…';
+      setTimeout(()=>{ enterApp(email); }, 300);
+      return;
+    }
+
+    const client = await getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if(error){
+      btn.disabled = false; btn.textContent = 'Sign In';
+      errBox.textContent = error.message;
+      errBox.style.display = 'block';
+      return;
+    }
+
+    // Admin-console accounts (team-status.html / admin review) are a
+    // separate system from the technician experience — keep them apart.
+    const { data: roster } = await client
+      .from('tech_roster')
+      .select('is_admin')
+      .eq('auth_user_id', data.user.id)
+      .maybeSingle();
+    if(roster && roster.is_admin){
+      await client.auth.signOut();
+      btn.disabled = false; btn.textContent = 'Sign In';
+      errBox.textContent = 'This account is for the admin console, not the technician portal.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = false; btn.textContent = 'Sign In';
+    enterApp(email);
+  }catch(err){
+    dbg.style.display = 'block';
+    dbg.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    const btn = document.getElementById('login-btn');
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+let activityHeartbeatTimer = null;
+
+async function pingActive(){
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const client = await getSupabaseClient();
+    const { data: userData } = await client.auth.getUser();
+    if(!userData || !userData.user) return;
+    await client.from('tech_roster')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('auth_user_id', userData.user.id);
+  }catch(e){ /* best-effort — never block the UI on this */ }
+}
+
+function startActivityHeartbeat(){
+  pingActive();
+  if(activityHeartbeatTimer) clearInterval(activityHeartbeatTimer);
+  activityHeartbeatTimer = setInterval(() => {
+    if(document.visibilityState === 'visible') pingActive();
+  }, 3 * 60 * 1000); // every 3 minutes while the tab is open and visible
+}
+
+function stopActivityHeartbeat(){
+  if(activityHeartbeatTimer){ clearInterval(activityHeartbeatTimer); activityHeartbeatTimer = null; }
+}
+
+function enterApp(email){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('claim-screen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('avatar-initials').textContent = (email[0] || 'T').toUpperCase();
+  if(!SUPABASE_CONFIGURED){ currentProfile.ssn = '123456789'; } // demo-only placeholder
+  renderNav();
+  renderContent();
+  startActivityHeartbeat();
+}
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms))
+  ]);
+}
+
+async function handleSignOut(){
+  if(!confirm('Sign out?')) return;
+  if(SUPABASE_CONFIGURED){
+    // Best-effort — a slow/unreachable network should never trap the user
+    // signed in with no way out, so this is bounded and always falls through.
+    try{
+      const client = await withTimeout(getSupabaseClient(), 4000);
+      await withTimeout(client.auth.signOut(), 4000);
+    }catch(e){ /* ignore — local session is cleared below regardless */ }
+  }
+  stopActivityHeartbeat();
+  if(clockTickTimer){ clearInterval(clockTickTimer); clockTickTimer = null; }
+  clockOpenShiftId = null;
+  clockInAtCache = null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('help-sheet').classList.remove('active');
+  document.getElementById('help-overlay').classList.remove('active');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('email').value = '';
+  document.getElementById('password').value = '';
+  salesUnlocked = false;
+  salesPinExpected = null;
+  currentProfile = { ssn: '' };
+  currentTechProfile = null;
+  techProfileLoaded = false;
+  activeTab = 'skills';
+}
+
+function showClaimScreen(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('claim-screen').style.display = 'flex';
+}
+function showResetScreen(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('reset-screen').style.display = 'flex';
+}
+function showLoginScreen(){
+  document.getElementById('claim-screen').style.display = 'none';
+  document.getElementById('reset-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function handleReset(){
+  const errBox = document.getElementById('reset-error');
+  errBox.style.display = 'none';
+  const email = document.getElementById('reset-email').value.trim();
+  const phone4 = document.getElementById('reset-phone4').value.trim();
+  const password = document.getElementById('reset-password-input').value;
+
+  if(!email || phone4.length !== 4 || password.length < 8){
+    errBox.textContent = 'Fill in every field — phone is the last 4 digits, password 8+ characters.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  if(!RESET_CONFIGURED){
+    errBox.textContent = 'Password reset isn\u2019t connected yet — this needs the reset-password function deployed and its URL set in the config.';
+    errBox.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Reset Password';
+    return;
+  }
+
+  try{
+    const res = await fetch(RESET_PASSWORD_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email, phoneLast4: phone4, newPassword: password })
+    });
+    const result = await res.json();
+    btn.disabled = false; btn.textContent = 'Reset Password';
+    if(!res.ok){
+      errBox.textContent = result.error || 'Reset failed.';
+      errBox.style.display = 'block';
+      return;
+    }
+    const client = await getSupabaseClient();
+    const { data: signInData, error: signInErr } = await client.auth.signInWithPassword({ email, password });
+    if(signInErr){
+      errBox.textContent = 'Password reset, but automatic sign-in failed (' + signInErr.message + '). Try signing in manually with your new password.';
+      errBox.style.display = 'block';
+      return;
+    }
+    const { data: rosterCheck } = await client.from('tech_roster').select('is_admin').eq('auth_user_id', signInData.user.id).maybeSingle();
+    if(rosterCheck && rosterCheck.is_admin){
+      await client.auth.signOut();
+      errBox.textContent = 'Password updated. This account is for the admin console, not the technician portal.';
+      errBox.style.display = 'block';
+      return;
+    }
+    enterApp(email);
+  }catch(err){
+    btn.disabled = false; btn.textContent = 'Reset Password';
+    errBox.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    errBox.style.display = 'block';
+  }
+}
+
+async function handleClaim(){
+  const errBox = document.getElementById('claim-error');
+  errBox.style.display = 'none';
+  const email = document.getElementById('claim-email').value.trim();
+  const phone4 = document.getElementById('claim-phone4').value.trim();
+  const password = document.getElementById('claim-password').value;
+
+  if(!email || phone4.length !== 4 || password.length < 8){
+    errBox.textContent = 'Fill in every field — phone is the last 4 digits, password 8+ characters.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('claim-btn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  if(!CLAIM_CONFIGURED){
+    errBox.textContent = 'Account activation isn\u2019t connected yet — this needs the claim-account function deployed and its URL set in the config.';
+    errBox.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Activate Account';
+    return;
+  }
+
+  try{
+    const res = await fetch(CLAIM_ACCOUNT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email, phoneLast4: phone4, newPassword: password })
+    });
+    const result = await res.json();
+    btn.disabled = false; btn.textContent = 'Activate Account';
+    if(!res.ok){
+      errBox.textContent = result.error || 'Activation failed.';
+      errBox.style.display = 'block';
+      return;
+    }
+    // Auto sign-in after successful activation
+    const client = await getSupabaseClient();
+    const { data: signInData, error: signInErr } = await client.auth.signInWithPassword({ email, password });
+    if(signInErr){
+      errBox.textContent = 'Account activated, but automatic sign-in failed (' + signInErr.message + '). Try signing in manually with the password you just set.';
+      errBox.style.display = 'block';
+      return;
+    }
+    const { data: rosterCheck } = await client.from('tech_roster').select('is_admin').eq('auth_user_id', signInData.user.id).maybeSingle();
+    if(rosterCheck && rosterCheck.is_admin){
+      await client.auth.signOut();
+      errBox.textContent = 'Account activated. This account is for the admin console, not the technician portal.';
+      errBox.style.display = 'block';
+      return;
+    }
+    enterApp(email);
+  }catch(err){
+    btn.disabled = false; btn.textContent = 'Activate Account';
+    errBox.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    errBox.style.display = 'block';
+  }
+}
+
+function wireUp(){
+  const loginBtn = document.getElementById('login-btn');
+  if(loginBtn) loginBtn.addEventListener('click', handleLogin);
+  ['email','password'].forEach(function(id){
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); handleLogin(); }
+      });
+    }
+  });
+
+  const showClaimBtn = document.getElementById('show-claim-btn');
+  if(showClaimBtn) showClaimBtn.addEventListener('click', showClaimScreen);
+  const showResetBtn = document.getElementById('show-reset-btn');
+  if(showResetBtn) showResetBtn.addEventListener('click', showResetScreen);
+  const showLoginBtn = document.getElementById('show-login-btn');
+  if(showLoginBtn) showLoginBtn.addEventListener('click', showLoginScreen);
+  const showLoginBtn2 = document.getElementById('show-login-btn-2');
+  if(showLoginBtn2) showLoginBtn2.addEventListener('click', showLoginScreen);
+  const claimBtn = document.getElementById('claim-btn');
+  if(claimBtn) claimBtn.addEventListener('click', handleClaim);
+  const resetBtn = document.getElementById('reset-btn');
+  if(resetBtn) resetBtn.addEventListener('click', handleReset);
+
+  const bellBtn = document.getElementById('bell-btn');
+  if(bellBtn) bellBtn.addEventListener('click', function(){ toggleSheet(true); });
+  const avatarBtn = document.getElementById('avatar-initials');
+  if(avatarBtn) avatarBtn.addEventListener('click', handleSignOut);
+
+  const helpBtn = document.getElementById('help-btn');
+  if(helpBtn) helpBtn.addEventListener('click', function(){ toggleHelpSheet(true); });
+  const helpCloseBtn = document.getElementById('help-close-btn');
+  if(helpCloseBtn) helpCloseBtn.addEventListener('click', function(){ toggleHelpSheet(false); });
+  const helpOverlay = document.getElementById('help-overlay');
+  if(helpOverlay) helpOverlay.addEventListener('click', function(){ toggleHelpSheet(false); });
+  const helpSignoutBtn = document.getElementById('help-signout-btn');
+  if(helpSignoutBtn) helpSignoutBtn.addEventListener('click', handleSignOut);
+  const feedbackText = document.getElementById('feedback-text');
+  if(feedbackText) feedbackText.addEventListener('paste', handleFeedbackPaste);
+  const feedbackImageRemove = document.getElementById('feedback-image-remove');
+  if(feedbackImageRemove) feedbackImageRemove.addEventListener('click', removeFeedbackImage);
+  const feedbackSubmitBtn = document.getElementById('feedback-submit-btn');
+  if(feedbackSubmitBtn) feedbackSubmitBtn.addEventListener('click', submitFeedback);
+
+  const modalCloseBtn = document.getElementById('add-modal-close-btn');
+  if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeAddModal);
+  const modalOverlay = document.getElementById('modal-overlay');
+  if(modalOverlay) modalOverlay.addEventListener('click', closeAddModal);
+  const modalSaveBtn = document.getElementById('add-modal-save-btn');
+  if(modalSaveBtn) modalSaveBtn.addEventListener('click', handleAddModalSave);
+  const sheetClose = document.getElementById('sheet-close-btn');
+  if(sheetClose) sheetClose.addEventListener('click', function(){ toggleSheet(false); });
+  const sheetOverlay = document.getElementById('sheet-overlay');
+  if(sheetOverlay) sheetOverlay.addEventListener('click', function(){ toggleSheet(false); });
+
+  // Delegated — covers tab nav + PIN pad, both of which re-render often
+  document.body.addEventListener('click', function(e){
+    const tabBtn = e.target.closest('[data-tab]');
+    if(tabBtn){ selectTab(tabBtn.getAttribute('data-tab')); return; }
+    const pinBtn = e.target.closest('[data-pin]');
+    if(pinBtn){ pinPress(pinBtn.getAttribute('data-pin')); return; }
+
+    const notifRow = e.target.closest('[data-notif-tab]');
+    if(notifRow){
+      const tab = notifRow.getAttribute('data-notif-tab');
+      if(tab){ toggleSheet(false); selectTab(tab); }
+      return;
+    }
+
+    if(e.target.closest('#q-add-line-btn')){
+      quoteLineItems.push({ desc:'', qty:1, price:0 });
+      renderLineItems();
+      return;
+    }
+    const removeBtn = e.target.closest('.q-line-remove');
+    if(removeBtn){
+      const row = removeBtn.closest('[data-line-index]');
+      const idx = Number(row.getAttribute('data-line-index'));
+      quoteLineItems.splice(idx, 1);
+      renderLineItems();
+      return;
+    }
+    if(e.target.closest('#q-submit-btn')){
+      submitQuote();
+      return;
+    }
+
+    if(e.target.closest('#add-skill-btn')){ openAddSkillModal(); return; }
+    if(e.target.closest('#edit-profile-btn')){ openEditProfileModal(); return; }
+    if(e.target.closest('#add-gear-btn')){ openAddGearModal(); return; }
+    if(e.target.closest('#add-availability-btn')){ openAddAvailabilityModal(); return; }
+    if(e.target.closest('#clock-toggle-btn')){ handleClockToggle(); return; }
+    if(e.target.closest('#add-post-btn')){ openAddPostModal(); return; }
+  });
+
+  // Delegated input handler for live-editing quote line items
+  document.body.addEventListener('input', function(e){
+    const row = e.target.closest('[data-line-index]');
+    if(!row) return;
+    const idx = Number(row.getAttribute('data-line-index'));
+    if(!quoteLineItems[idx]) return;
+    if(e.target.classList.contains('q-line-desc')) quoteLineItems[idx].desc = e.target.value;
+    if(e.target.classList.contains('q-line-qty')) quoteLineItems[idx].qty = e.target.value;
+    if(e.target.classList.contains('q-line-price')) quoteLineItems[idx].price = e.target.value;
+    updateQuoteTotal();
+  });
+}
+
+/* boot */
+document.addEventListener('DOMContentLoaded', wireUp);
+if(document.readyState === 'interactive' || document.readyState === 'complete'){ wireUp(); }
+renderNav();
+</script>
+</body>
+</html>
