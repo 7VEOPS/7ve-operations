@@ -1438,7 +1438,7 @@ async function handleLogin(){
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if(error){
       btn.disabled = false; btn.textContent = 'Sign In';
-      errBox.textContent = error.message;
+      errBox.textContent = /invalid/i.test(error.message) ? 'No account yet? Tap "First time? Activate your account" below. Already activated? Check your password or tap "Forgot password?".' : error.message;
       errBox.style.display = 'block';
       return;
     }
