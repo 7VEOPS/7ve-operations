@@ -1,4 +1,17 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "tech.7virtuesentertainment.com"
+        }
+      ],
+      "destination": "/tech/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
