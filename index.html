@@ -743,6 +743,8 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       
       <!-- JOBS VIEW -->
       <div class="view" id="view-onboarding">
+<div style="display:flex;gap:8px;margin-bottom:14px"><button id="obTabPacket" class="btn" style="background:var(--accent,#c0392b);color:#fff" onclick="obTab('packet')">📝 Packet</button><button id="obTabWeb" class="btn" onclick="obTab('web')">🌐 Website Inputs</button></div>
+<div id="obPacket">
 <div style="margin-bottom:14px">
 <div style="font-size:16px;font-weight:700">Onboarding Packet</div>
 <div style="font-size:11px;color:var(--muted)">Pick a staff member, choose COI or decline, and get their paperwork as separate PDFs plus an email to paste into Outlook.</div>
@@ -759,7 +761,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 </div>
 <button id="obGo" class="btn btn-primary" disabled onclick="obGenerate()">Build packet</button>
 </div>
-<div id="obOut"></div>
+<div id="obOut"></div></div><div id="obWeb" style="display:none"></div>
 </div>
       <div class="view" id="view-techportal">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
@@ -3715,6 +3717,78 @@ s.removeAllRanges();d.remove();
 }
 var b=document.getElementById('obRichBtn');if(b){var t=b.textContent;b.textContent=ok?'Copied ✓ paste into Outlook':'Copy failed';setTimeout(function(){b.textContent=t;},2500);}
 }
+let obWebRows=[];let obWebAll=false;
+function obTab(w){
+var p=document.getElementById('obPacket'),x=document.getElementById('obWeb');
+if(!p||!x)return;
+p.style.display=w==='web'?'none':'';x.style.display=w==='web'?'':'none';
+var a=document.getElementById('obTabPacket'),b=document.getElementById('obTabWeb');
+[[a,w!=='web'],[b,w==='web']].forEach(function(z){if(z[0]){z[0].style.background=z[1]?'var(--accent,#c0392b)':'transparent';z[0].style.color=z[1]?'#fff':'var(--text)';}});
+if(w==='web')obWebLoad();
+}
+async function obWebLoad(quiet){
+var box=document.getElementById('obWeb');if(!box)return;
+try{
+obWebRows=await sbGet('website_applications?select=*&order=created_at.desc');
+}catch(e){
+if(!quiet)box.innerHTML='<div style="color:#e74c3c;font-size:12px">Could not load website inputs: '+obEsc(e.message)+'</div>';
+return;
+}
+var n=obWebRows.filter(function(r){return r.status==='new';}).length;
+var t=document.getElementById('obTabWeb');if(t)t.textContent='🌐 Website Inputs'+(n?' ('+n+' new)':'');
+if(box.style.display!=='none')obWebDraw();
+}
+function obWebDraw(){
+var box=document.getElementById('obWeb');
+var rows=obWebRows.filter(function(r){return obWebAll||r.status!=='archived';});
+var h='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px"><div><div style="font-size:16px;font-weight:700">Website Inputs</div><div style="font-size:11px;color:var(--muted)">Everyone who submits the Join Team form on 7virtuesentertainment.com lands here automatically.</div></div><div><label style="font-size:12px;margin-right:10px"><input type="checkbox" '+(obWebAll?'checked ':'')+'onchange="obWebAll=this.checked;obWebDraw()"> Show archived</label><button class="btn" onclick="obWebLoad()">Refresh</button></div></div>';
+if(!rows.length)h+='<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:8px">No website applications yet.</div>';
+rows.forEach(function(r){
+var id=obEsc(r.id);
+var sk=(r.skills||[]).join(', ');
+var d=r.created_at?new Date(r.created_at).toLocaleString():'';
+var link=r.link&&/^https?:\/\//i.test(r.link)?'<a href="'+obEsc(r.link)+'" target="_blank" rel="noopener" style="color:var(--accent,#e74c3c)">Portfolio / resume</a>':(r.link?obEsc(r.link):'');
+var opts=['new','contacted','onboarding','added','rejected','archived'].map(function(s){return '<option value="'+s+'"'+(r.status===s?' selected':'')+'>'+s+'</option>';}).join('');
+h+='<div style="border:1px solid var(--border);background:var(--bg-card);border-radius:8px;padding:12px;margin-bottom:10px">'
++'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="font-weight:700;font-size:14px">'+obEsc(r.name)+(r.status==='new'?' <span style="font-size:10px;background:#c0392b;color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px">NEW</span>':'')+'</div><div style="font-size:11px;color:var(--muted)">'+obEsc(d)+(r.market?' · '+obEsc(r.market):'')+'</div></div>'
++'<div style="font-size:12px;margin-top:6px">'+(r.email?'<a href="mailto:'+obEsc(r.email)+'" style="color:var(--accent,#e74c3c)">'+obEsc(r.email)+'</a>':'')+(r.phone?' · <a href="tel:'+obEsc(r.phone)+'" style="color:var(--accent,#e74c3c)">'+obEsc(r.phone)+'</a>':'')+(link?' · '+link:'')+'</div>'
++(sk?'<div style="font-size:12px;margin-top:6px"><b>Skills:</b> '+obEsc(sk)+'</div>':'')
++(r.experience?'<div style="font-size:12px;margin-top:4px;white-space:pre-wrap"><b>Experience / gear:</b> '+obEsc(r.experience)+'</div>':'')
++'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">'
++'<select onchange="obWebStatus(\''+id+'\',this.value)" style="padding:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)">'+opts+'</select>'
++'<input value="'+obEsc(r.admin_notes||'')+'" placeholder="Notes" onchange="obWebNote(\''+id+'\',this.value)" style="flex:1;min-width:160px;padding:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)">'
++'<button class="btn btn-primary" onclick="obWebAdd(\''+id+'\')">Add to staff &amp; onboard</button></div></div>';
+});
+box.innerHTML=h;
+}
+async function obWebStatus(id,v){
+try{await sbPatch('website_applications?id=eq.'+encodeURIComponent(id),{status:v,reviewed_at:new Date().toISOString()});}catch(e){alert('Save failed: '+e.message);}
+await obWebLoad();
+}
+async function obWebNote(id,v){
+try{await sbPatch('website_applications?id=eq.'+encodeURIComponent(id),{admin_notes:v});}catch(e){alert('Save failed: '+e.message);}
+}
+async function obWebAdd(id){
+var r=obWebRows.find(function(x){return String(x.id)===String(id);});if(!r)return;
+var parts=String(r.name||'').trim().split(/\s+/);var first=parts.shift()||'';var last=parts.join(' ');
+var rec=null;
+try{
+var found=(people||[]).find(function(p){return r.email&&p.email&&String(p.email).toLowerCase()===String(r.email).toLowerCase();});
+if(found)rec=found;
+else{
+var res=await sbPost('staff_people',{first_name:first,last_name:last,email:r.email||null,phone:r.phone||null,status:'prospect'});
+rec=Array.isArray(res)?res[0]:res;
+}
+await sbPatch('website_applications?id=eq.'+encodeURIComponent(id),{status:'added',reviewed_at:new Date().toISOString()});
+try{await loadPeople();}catch(_){}
+}catch(e){alert('Could not add to staff: '+e.message);return;}
+obTab('packet');
+if(typeof obLoad==='function')obLoad();
+setTimeout(function(){var sel=document.getElementById('obPerson');if(sel&&rec&&rec.id){sel.value=rec.id;obPick();}},400);
+obWebLoad(true);
+}
+(function(){var o=obLoad;obLoad=function(){o();obWebLoad(true);};})();
+
 function obDl(i){
 const f=obFiles[i];
 const blob=new Blob([f.bytes],{type:'application/pdf'});
