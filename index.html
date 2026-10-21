@@ -3480,9 +3480,9 @@ function tpRender(){
    }).join('')+'</tbody></table>';
   // Shifts
   document.getElementById('tpPane-shifts').innerHTML=!clock.length?empty('No shifts in the last 14 days.'):
-   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th></tr></thead><tbody>'+
+   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th><th '+th+'>Location</th></tr></thead><tbody>'+
    clock.map(c=>{const i=new Date(c.clock_in_at),o=c.clock_out_at?new Date(c.clock_out_at):null,tf={hour:'numeric',minute:'2-digit'};
-     return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td></tr>';}).join('')+'</tbody></table>';
+     return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td><td '+td+'>'+(c.in_lat!=null?'<a href="https://www.google.com/maps?q='+c.in_lat+','+c.in_lng+'" target="_blank" rel="noopener" style="color:#4ADE80;text-decoration:none">\ud83d\udccd Clock-in</a>'+(c.in_accuracy_m!=null?'<div style="color:var(--muted);font-size:10px">\u00b1'+Math.round(c.in_accuracy_m)+' m</div>':''):'<span style="color:var(--muted)">Not shared</span>')+'</td></tr>';}).join('')+'</tbody></table>';
   // Gear
   document.getElementById('tpPane-gear').innerHTML=!gear.length?empty('No techs have listed gear yet.'):
    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Gear techs own and list in their portal. Use it as a pool for rentals, and pay the owner a share.</div><table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Item</th><th '+th+'>Owner</th><th '+th+'>Category</th><th '+th+'>Qty</th><th '+th+'>Daily rate</th><th '+th+'>Notes</th></tr></thead><tbody>'+
