@@ -3662,6 +3662,59 @@ if(first) form.getTextField(first).setText(name);
 }catch(e){console.warn('W-9 prefill skipped',e);}
 return await doc.save();
 }
+const OB_NDA_PARAS=[
+['1. Confidential Information.','"Confidential Information" means non-public information that 7VE or its clients disclose to me or that I learn while working with 7VE, including client and venue names, contacts, pricing, rates, quotes, rental and inventory lists, show files, production plans, schedules, run-of-show, network and system credentials, software, business plans, and anything marked or reasonably understood to be confidential.'],
+['2. My obligations.','I will keep Confidential Information secret, use it only to perform work for 7VE, and not copy, share, post or disclose it to anyone except 7VE personnel who need it. I will protect it with at least reasonable care.'],
+['3. Exceptions.','This does not cover information that is or becomes public through no fault of mine, that I already knew without a duty of confidentiality, that I receive lawfully from a third party, or that I am required by law to disclose (in which case I will tell 7VE first when permitted).'],
+['4. No poaching or side deals.','While working with 7VE and for 12 months afterward, I will not use Confidential Information to solicit 7VE\'s clients or venues for work that competes with 7VE.'],
+['5. Return of materials.','When asked, or when my work with 7VE ends, I will return or delete all Confidential Information and materials in my possession.'],
+['6. Term.','These obligations last for 2 years after my last work with 7VE, and for as long as any trade secret remains a trade secret.'],
+['7. Remedies and law.','7VE may seek an injunction and other remedies if this agreement is breached. This agreement is governed by the laws of the Commonwealth of Virginia. It is the entire agreement on this subject and can be changed only in writing signed by both parties.']
+];
+async function obNda(p){
+const c=await obNewDoc('Non-Disclosure Agreement (NDA)','Technician / vendor confidentiality agreement');
+const name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+c.text('This agreement is between '+OB_CO+' ("7VE") and '+(name||'the undersigned')+' ("I", "me").',{size:10,lead:5,after:6});
+OB_NDA_PARAS.forEach(function(pp){c.text(pp[0],{bold:true,size:9.5,lead:3});c.text(pp[1],{size:9.5,lead:4,after:3});});
+c.y-=14;
+c.field('SIGNATURE',40,300,'');c.field('DATE',360,212,'');c.y-=32;
+c.field('PRINTED NAME',40,300,name);c.field('7VE REPRESENTATIVE',360,212,'');
+return await c.doc.save();
+}
+function obHtml(p,mode){
+var name=((p.first_name||'')+' '+(p.last_name||'')).trim();
+var L='<span>______________________________</span>';
+var h='<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt">';
+h+='<h2>7 Virtues Entertainment, LLC &ndash; Onboarding Forms</h2><p>Name: <b>'+obEsc(name)+'</b></p>';
+h+='<p><b>Attach separately:</b> IRS Form W-9 (fill out lines 1&ndash;7, sign and date). Official PDF: https://www.irs.gov/pub/irs-pdf/fw9.pdf</p><hr>';
+h+='<h3>1. ACH Direct Deposit Authorization</h3><p>Full legal name / business name: '+obEsc(name)+'<br>Phone: '+obEsc(p.phone||'')+'<br>Email: '+obEsc(p.email||'')+'<br>Mailing address: '+L+'<br>Bank name: '+L+'<br>Account type: &#9744; Checking &nbsp; &#9744; Savings<br>Routing number: '+L+'<br>Account number: '+L+'</p>';
+h+='<p>I authorize '+OB_CO+' to initiate electronic (ACH) credit entries to the account above for payment of services I perform for 7VE, and, if an entry is made in error, a correcting debit limited to the amount of the error. This stays in effect until I give 7VE written notice of cancellation or an updated form. I am responsible for keeping my bank information accurate.</p><p><i>For your security, please return banking details only on the attached PDF form with a voided check or bank letter, or by phone, not typed into an email reply.</i></p><p>Signature: '+L+' &nbsp; Date: '+L+'</p><hr>';
+h+='<h3>2. Non-Disclosure Agreement (NDA)</h3><p>This agreement is between '+OB_CO+' ("7VE") and '+obEsc(name)+' ("I", "me").</p>';
+OB_NDA_PARAS.forEach(function(pp){h+='<p><b>'+obEsc(pp[0])+'</b> '+obEsc(pp[1])+'</p>';});
+h+='<p>Signature: '+L+' &nbsp; Date: '+L+'</p><hr>';
+if(mode==='coi'){
+h+='<h3>3. Certificate of Insurance (COI) Request</h3><p>Please have your insurance agent email a Certificate of Insurance to '+OB_EMAIL+' before your first engagement. It must show: (a) named insured matching your W-9; (b) Commercial General Liability of at least '+OB_GL_EACH+' per occurrence and '+OB_GL_AGG+' aggregate; (c) certificate holder and additional insured: '+OB_CO+'; (d) an active policy for the dates you will work; (e) workers\' compensation if you have employees. Your rate stays at the full agreed rate with a valid COI.</p>';
+}else{
+h+='<h3>3. Insurance Decline &amp; Rate Acknowledgment</h3><p>I do not carry (or choose not to provide) my own general liability insurance or COI. I understand: (1) 7VE will cover me under its own insurance for work on 7VE engagements, and 7VE pays the cost of that coverage; (2) because of that cost my pay rate is reduced as shown below, for every engagement while this form is on file; (3) I can switch to the full rate any time by providing a valid COI; (4) this form does not make me an employee of 7VE.</p><p>Full rate: '+L+' &nbsp; Reduction: '+L+' &nbsp; Rate with 7VE coverage: '+L+'<br>Basis: &#9744; per day &nbsp; &#9744; per hour &nbsp; &#9744; per event</p><p>Signature: '+L+' &nbsp; Date: '+L+'</p>';
+}
+return h+'</div>';
+}
+async function obCopyRich(){
+var p=obPerson;if(!p)return;
+var mode=document.querySelector('input[name="obCoi"]:checked').value;
+var html=obHtml(p,mode);
+var ok=false;
+try{
+var tmp=document.createElement('div');tmp.innerHTML=html;
+await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([tmp.innerText],{type:'text/plain'})})]);ok=true;
+}catch(e){
+var d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0';d.innerHTML=html;document.body.appendChild(d);
+var r=document.createRange();r.selectNodeContents(d);var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+try{ok=document.execCommand('copy');}catch(_){}
+s.removeAllRanges();d.remove();
+}
+var b=document.getElementById('obRichBtn');if(b){var t=b.textContent;b.textContent=ok?'Copied ✓ paste into Outlook':'Copy failed';setTimeout(function(){b.textContent=t;},2500);}
+}
 function obDl(i){
 const f=obFiles[i];
 const blob=new Blob([f.bytes],{type:'application/pdf'});
@@ -3682,7 +3735,7 @@ const coi=mode==='coi'
 :'3. Insurance Decline & Rate Acknowledgment – you will work under 7VE\'s insurance at a reduced rate. Sign and return it. (You can switch to the full rate any time by providing a valid COI.)';
 const body='Hi '+first+',\n\nWelcome to 7 Virtues Entertainment. Please complete and return the attached paperwork before your first engagement:\n\n'+
 '1. W-9 – fill out lines 1–7, sign and date it.\n2. ACH Direct Deposit Authorization – so we can pay you by direct deposit. Please send banking details only on this form with a voided check or bank letter, never typed into an email.\n'+coi+
-'\n\nYou can also sign in to the technician portal at https://tech.7virtuesentertainment.com (activate with your email and the last 4 digits of your phone number).\n\nQuestions? Reply here or call '+OB_PHONE+'.\n\nThank you,\nTito Rodriguez\n7 Virtues Entertainment, LLC';
+'\n4. Non-Disclosure Agreement (NDA) – sign and return it.\n\nYou can also sign in to the technician portal at https://tech.7virtuesentertainment.com (activate with your email and the last 4 digits of your phone number).\n\nQuestions? Reply here or call '+OB_PHONE+'.\n\nThank you,\nTito Rodriguez\n7 Virtues Entertainment, LLC';
 return {subj,body};
 }
 async function obCopy(id){
@@ -3702,6 +3755,7 @@ try{
 if(mode==='coi')obFiles.push({name:'7VE_'+base+'_COI_Request.pdf',bytes:await obCoiRequest(p),label:'COI Request'});
 else obFiles.push({name:'7VE_'+base+'_Insurance_Decline.pdf',bytes:await obCoiDecline(p),label:'Insurance Decline & Rate Acknowledgment'});
 }catch(e){notes.push('Insurance form: '+e.message);}
+try{obFiles.push({name:'7VE_'+base+'_NDA.pdf',bytes:await obNda(p),label:'Non-Disclosure Agreement (NDA)'});}catch(e){notes.push('NDA: '+e.message);}
 try{obFiles.unshift({name:'W-9_'+base+'.pdf',bytes:await obW9(p),label:'IRS Form W-9 (name prefilled)'});}
 catch(e){notes.push('W-9: '+e.message+'. Download it from irs.gov/pub/irs-pdf/fw9.pdf.');}
 const em=obEmail(p,mode);
@@ -3717,7 +3771,7 @@ obFiles.map(row).join('')+
 '<input id="obSubj" readonly value="'+obEsc(em.subj)+'" style="width:100%;margin-bottom:6px;padding:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)">'+
 '<button id="obSubjBtn" class="btn btn-ghost" style="margin-bottom:10px" onclick="obCopy(\'obSubj\')">Copy subject</button>'+
 '<textarea id="obBody" readonly rows="14" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px">'+obEsc(em.body)+'</textarea>'+
-'<button id="obBodyBtn" class="btn btn-primary" style="margin-top:8px" onclick="obCopy(\'obBody\')">Copy email text</button>'+
+'<button id="obBodyBtn" class="btn btn-primary" style="margin-top:8px" onclick="obCopy(\'obBody\')">Copy email text</button> <button id="obRichBtn" class="btn btn-primary" style="margin-top:8px" onclick="obCopyRich()">Copy forms for email</button>'+
 (p.email?' <a class="btn btn-ghost" style="text-decoration:none;display:inline-block;margin-top:8px" href="mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(em.subj)+'&body='+encodeURIComponent(em.body)+'">Open in email app</a>':'');
 }
 const __origSetView2 = setView;
