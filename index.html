@@ -826,6 +826,8 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-ghost" onclick="csNew()">＋ New</button>
               <button class="btn btn-ghost" onclick="csAutoFill()">✨ Auto-suggest</button>
+              <button class="btn btn-ghost" onclick="openTechRequest(false)">✉ Request Techs</button>
+              <button class="btn" style="background:#E84040;color:#fff;border:none;font-weight:700" onclick="openTechRequest(true)">🚨 Pop-Up Request</button>
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
               <button class="btn btn-ghost" onclick="csInternalPDF()">📊 Internal Report</button>
               <button class="btn btn-ghost" onclick="csPayrollPDF()">💵 Payroll Summary</button>
@@ -1862,6 +1864,25 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
   </div>
 </div>
 
+<div class="overlay" id="techReqModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-hdr"><div><div class="modal-title">Request technicians</div><div class="modal-sub">Fills from this schedule. Opens in Outlook so you review and press send.</div></div><button class="modal-close" onclick="closeModal('techReqModal')">×</button></div>
+    <div class="modal-body" id="treqBody"></div>
+    <div class="modal-ftr"><input class="fi" style="width:230px" title="Your sending address (used to pick the Outlook account and as the To line)" value="" id="treqFrom" placeholder="Send from (Outlook address)" oninput="treq.from=this.value;try{localStorage.setItem('7ve_treq_from',this.value)}catch(e){}"><select class="fs" style="width:auto" onchange="treq.client=this.value"><option value="office">Outlook (work / 365)</option><option value="live">Outlook.com (personal)</option></select><div style="flex:1"></div><button class="btn btn-ghost" onclick="treqCopy()">Copy</button><button class="btn btn-ghost" onclick="treqSendMailto()">Mail app</button><button class="btn btn-primary" onclick="treqSendOutlook()">Open in Outlook</button></div>
+  </div>
+</div>
+<div class="overlay" id="tceModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hdr"><div><div class="modal-title" id="tceTitle">Edit clock entry</div><div class="modal-sub">Times are in your local time. Leave clock-out blank if still on the clock.</div></div><button class="modal-close" onclick="closeModal('tceModal')">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Technician</label><select class="fs" id="tceTech"></select></div>
+      <div class="fg"><label class="fl">Clock in</label><input class="fi" type="datetime-local" id="tceIn"></div>
+      <div class="fg"><label class="fl">Clock out</label><input class="fi" type="datetime-local" id="tceOut"></div>
+      <div class="fg"><label class="fl">Reason (required)</label><input class="fi" id="tceNote" placeholder="Forgot to clock in / arrived late / app issue"></div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" id="tceDel" style="color:#E84040" onclick="tceDelete()">Delete</button><div style="flex:1"></div><button class="btn btn-ghost" onclick="closeModal('tceModal')">Cancel</button><button class="btn btn-primary" onclick="tceSave()">Save</button></div>
+  </div>
+</div>
 <div class="overlay" id="bulkEditModal">
   <div class="modal" style="max-width:520px">
     <div class="modal-hdr"><div><div class="modal-title" id="beTitle">Edit selected</div><div class="modal-sub">Only fields you fill in are changed; blank fields stay as they are</div></div><button class="modal-close" onclick="closeModal('bulkEditModal')">&times;</button></div>
@@ -3434,18 +3455,19 @@ function tpTab(name,el){
 }
 function tpMsg(t){const b=document.getElementById('tpMsg');if(!t){b.style.display='none';return;}b.textContent=t;b.style.display='block';}
 async function tpLoad(){
+  if(!tceAuthToken()){ tceLoginForm(''); return; }
   try{
     const weekAgo=new Date(Date.now()-14*864e5).toISOString();
     const [roster,clock,gear,skills]=await Promise.all([
-      sbGet('tech_roster?select=id,auth_user_id,full_name,email,account_status,last_active_at&is_admin=eq.false&order=full_name'),
-      sbGet('tech_time_clock?select=*&clock_in_at=gte.'+weekAgo+'&order=clock_in_at.desc'),
-      sbGet('tech_gear?select=*&order=created_at.desc'),
-      sbGet('tech_skills?select=*&order=created_at.desc')
+      tceReq('GET','tech_roster?select=id,auth_user_id,full_name,email,account_status,last_active_at&is_admin=eq.false&order=full_name'),
+      tceReq('GET','tech_time_clock?select=*&clock_in_at=gte.'+weekAgo+'&order=clock_in_at.desc'),
+      tceReq('GET','tech_gear?select=*&order=created_at.desc'),
+      tceReq('GET','tech_skills?select=*&order=created_at.desc')
     ]);
     tpData={roster,clock,gear,skills};
     tpMsg(roster.length===0?'No technician rows came back. If you have technicians set up, sign out and back in as admin@7virtuesentertainment.com, and make sure the admin-read SQL has been run.':'');
     tpRender();
-  }catch(e){tpMsg('Could not load Tech Portal data: '+(e.message||e).slice(0,200));}
+  }catch(e){if(String(e.message)==='NOAUTH'){tceLoginForm('Please sign in again.');return;}tpMsg('Could not load Tech Portal data: '+(e.message||e).slice(0,200));}
 }
 function tpRender(){
   const {roster,clock,gear,skills}=tpData, now=Date.now();
@@ -3481,10 +3503,10 @@ function tpRender(){
      return '<tr><td '+td+'><b>'+tpEsc(r.full_name)+'</b><div style="color:var(--muted);font-size:10px">'+tpEsc(r.email)+'</div></td><td '+td+'><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+dot+';margin-right:6px"></span>'+tpEsc(label)+'</td><td '+td+'>'+tpFmtH(p.today)+'</td><td '+td+'>'+tpFmtH(p.week)+'</td><td '+td+'>'+(la?new Date(la).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—')+'</td></tr>';
    }).join('')+'</tbody></table>';
   // Shifts
-  document.getElementById('tpPane-shifts').innerHTML=!clock.length?empty('No shifts in the last 14 days.'):
-   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th><th '+th+'>Location</th></tr></thead><tbody>'+
+  document.getElementById('tpPane-shifts').innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-primary" onclick="tceEdit(null)">+ Add missed shift</button></div>'+(!clock.length?empty('No shifts in the last 14 days.'):
+   '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th><th '+th+'>Location</th><th '+th+'>Fix</th></tr></thead><tbody>'+
    clock.map(c=>{const i=new Date(c.clock_in_at),o=c.clock_out_at?new Date(c.clock_out_at):null,tf={hour:'numeric',minute:'2-digit'};
-     return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td><td '+td+'>'+(c.in_lat!=null?'<a href="https://www.google.com/maps?q='+c.in_lat+','+c.in_lng+'" target="_blank" rel="noopener" style="color:#4ADE80;text-decoration:none">\ud83d\udccd Clock-in</a>'+(c.in_accuracy_m!=null?'<div style="color:var(--muted);font-size:10px">\u00b1'+Math.round(c.in_accuracy_m)+' m</div>':''):'<span style="color:var(--muted)">Not shared</span>')+'</td></tr>';}).join('')+'</tbody></table>';
+     return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td><td '+td+'>'+(c.in_lat!=null?'<a href="https://www.google.com/maps?q='+c.in_lat+','+c.in_lng+'" target="_blank" rel="noopener" style="color:#4ADE80;text-decoration:none">\ud83d\udccd Clock-in</a>'+(c.in_accuracy_m!=null?'<div style="color:var(--muted);font-size:10px">\u00b1'+Math.round(c.in_accuracy_m)+' m</div>':''):'<span style="color:var(--muted)">Not shared</span>')+'</td><td '+td+' style="white-space:nowrap">'+(o?'':'<button class="btn btn-ghost" onclick="tceClockOutNow(\''+c.id+'\')">Clock out</button> ')+'<button class="btn btn-ghost" onclick="tceEdit(\''+c.id+'\')">Edit</button>'+(c.edit_note?'<div style="color:var(--muted);font-size:10px">\u270e '+tpEsc(c.edit_note)+'</div>':'')+'</td></tr>';}).join('')+'</tbody></table>');
   // Gear
   document.getElementById('tpPane-gear').innerHTML=!gear.length?empty('No techs have listed gear yet.'):
    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Gear techs own and list in their portal. Use it as a pool for rentals, and pay the owner a share.</div><table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Item</th><th '+th+'>Owner</th><th '+th+'>Category</th><th '+th+'>Qty</th><th '+th+'>Daily rate</th><th '+th+'>Notes</th></tr></thead><tbody>'+
@@ -7024,6 +7046,176 @@ function pkgCreateOrder(kind){
   document.getElementById('roGearPct').value=100;
 }
 
+/* ===== TECH REQUEST EMAIL: template + Pop-Up urgent mode, opens in Outlook (you press send) ===== */
+const TREQ_KEY='7ve_treq_v1';
+const TREQ_DEFAULT={
+ std:{subject:'Tech request: {event} - {date}',body:`Hi team,
+
+We're staffing {event} and would like you on it.
+
+DETAILS
+Date: {date}
+Call time: {time}
+Location: {location}
+Position: {position}
+Pay: {pay}
+Techs needed: {count}
+
+Please reply by {deadline} to let us know if you're available.
+
+Thanks,
+{sender}
+7 Virtues Entertainment
+{phone}`},
+ pop:{subject:'URGENT pop-up event {date} - reply within {window}: {event}',body:`Hi team,
+
+URGENT - this is a last-minute pop-up event and we need to confirm crew fast.
+
+DETAILS
+Event: {event}
+Date: {date}
+Call time: {time}
+Location: {location}
+Position: {position}
+Pay: {pay}
+Techs needed: {count} (first confirmed, first booked)
+
+PLEASE REPLY WITHIN {window} with "YES" if you can work it, or "NO" if you can't. Spots are filled in the order replies come in, so a quick answer matters.
+
+Thanks,
+{sender}
+7 Virtues Entertainment
+{phone}`}};
+const treq={mode:'std',sel:{},extra:'',f:{location:'',time:'',position:'',pay:'',count:'',window:'2 hours',sender:'Tito',phone:'',date:''},subject:'',body:'',edited:false,client:'office',from:(function(){try{return localStorage.getItem('7ve_treq_from')||'staffing@7virtuesentertainment.com';}catch(e){return 'staffing@7virtuesentertainment.com';}})()};
+function treqTemplates(){ try{ const s=JSON.parse(localStorage.getItem(TREQ_KEY)||'null'); if(s&&s.std&&s.pop) return s; }catch(e){} return JSON.parse(JSON.stringify(TREQ_DEFAULT)); }
+function treqSaveTemplate(){ try{ const t=treqTemplates(); t[treq.mode]={subject:treq.subject,body:treq.body}; localStorage.setItem(TREQ_KEY,JSON.stringify(t)); toast('Template saved','Your '+(treq.mode==='pop'?'pop-up':'standard')+' wording is saved on this browser.'); }catch(e){ toast('Not saved','This browser blocked saving.'); } }
+function treqResetTemplate(){ try{ const t=treqTemplates(); t[treq.mode]=JSON.parse(JSON.stringify(TREQ_DEFAULT[treq.mode])); localStorage.setItem(TREQ_KEY,JSON.stringify(t)); }catch(e){} treq.edited=false; treqRegen(); }
+function treqFill(str){
+  const v=Object.assign({},treq.f,{event:CS.event||'(event name)',deadline:treq.f.deadline||'end of day',window:(treq.f.window||'2 hours').toUpperCase()});
+  return str.replace(/\{(\w+)\}/g,(m,k)=>(v[k]!==undefined&&v[k]!=='')?v[k]:(k==='phone'?'':m)).replace(/\s+$/,'');
+}
+function treqRegen(full){ if(treq.edited){ treqDraw(false); return; } const t=treqTemplates()[treq.mode]; treq.subject=treqFill(t.subject); treq.body=treqFill(t.body); treqDraw(full!==false); }
+function treqPrefill(){
+  const d=(CS.days||[]); const lbl=d.map(x=>x.label).join(', ');
+  const cur=CS.days.find(x=>x.id===CS.cur)||CS.days[0];
+  const slot=cur&&(CS.assign[cur.id]||[])[0];
+  const need=CS.days.reduce((m,x)=>Math.max(m,x.needed||0),0);
+  if(!treq.f.date) treq.f.date=lbl;
+  if(!treq.f.time&&slot) treq.f.time=slot.time||'';
+  if(!treq.f.position&&slot) treq.f.position=slot.pos||'';
+  if(!treq.f.location&&slot) treq.f.location=(slot.room&&slot.room!=='Other')?slot.room:'';
+  if(!treq.f.count&&need) treq.f.count=String(need);
+  if(!treq.f.pay) treq.f.pay='$'+(CS.rateSetup||50)+'/hr setup, $'+(CS.rateSkilled||60)+'/hr skilled';
+  try{ const s=JSON.parse(localStorage.getItem(TREQ_KEY+'_f')||'null'); if(s){ if(!treq.f.phone) treq.f.phone=s.phone||''; if(s.sender) treq.f.sender=s.sender; } }catch(e){}
+}
+async function openTechRequest(pop){
+  if(!(typeof people!=='undefined'&&people&&people.length)){ try{ people=await sbGet('staff_people?select=*&order=last_name'); }catch(e){} }
+  treq.mode=pop?'pop':'std'; treq.edited=false; treq.sel={}; treq.crmSel={}; treq.crmQ=''; treq.f.date=''; treq.f.time=''; treq.f.position=''; treq.f.location=''; treq.f.count=''; treq.f.pay='';
+  treqPrefill();
+  const staff=(people||[]).filter(p=>p.status==='staff'&&p.email);
+  staff.forEach(p=>{ const off=CS.cur&&csIsOff(String(p.id),CS.cur); treq.sel[p.id]=!off; });
+  treq.staff=staff; { const f=document.getElementById('treqFrom'); if(f) f.value=treq.from; }
+  try{ const c=await sbGet('project_contacts?select=*&order=name'); const s2=(people||[]).filter(p=>p.status!=='staff'&&p.email).map(p=>({id:'p'+p.id,name:((p.first_name||'')+' '+(p.last_name||'')).trim(),company:p.department||'Vendor / contractor',role:p.title||'',email:p.email}));
+    const seen={}; treq.crm=(c||[]).filter(x=>x.email).map(x=>({id:'c'+x.id,name:x.name||'',company:x.company||'',role:x.role||'',email:x.email})).concat(s2).filter(x=>{ const k=x.email.toLowerCase(); if(seen[k]) return false; seen[k]=1; return true; }); }catch(e){ treq.crm=[]; }
+  treqRegen(); openModal('techReqModal');
+}
+function treqMode(m){ treq.mode=m; treq.edited=false; treqRegen(); }
+function treqField(k,v){ treq.f[k]=v; if(k==='phone'||k==='sender'){ try{ localStorage.setItem(TREQ_KEY+'_f',JSON.stringify({phone:treq.f.phone,sender:treq.f.sender})); }catch(e){} } treqRegen(false); }
+function treqToggle(id,on){ treq.sel[id]=on; treqCount(); }
+function treqAll(on){ (treq.staff||[]).forEach(p=>treq.sel[p.id]=on); treqDraw(false); }
+function treqEmails(){ const l=(treq.staff||[]).filter(p=>treq.sel[p.id]).map(p=>p.email.trim()).concat((treq.crm||[]).filter(c=>treq.crmSel[c.id]).map(c=>c.email.trim())); (treq.extra||'').split(/[,;\s]+/).forEach(e=>{ if(/.+@.+\..+/.test(e)) l.push(e); }); return [...new Set(l)]; }
+function treqCount(){ const el=document.getElementById('treqCount'); if(el) el.textContent=treqEmails().length+' recipient'+(treqEmails().length===1?'':'s'); }
+function treqSendOutlook(){
+  const em=treqEmails(); if(!em.length){ toast('No recipients','Tick at least one person.'); return; }
+  const host=treq.client==='live'?'https://outlook.live.com/mail/0/deeplink/compose':'https://outlook.office.com/mail/deeplink/compose';
+  const fr=(treq.from||'').trim(); const url=host+'?'+(fr?'login_hint='+encodeURIComponent(fr)+'&to='+encodeURIComponent(fr)+'&':'')+'bcc='+encodeURIComponent(em.join(';'))+'&subject='+encodeURIComponent(treq.subject)+'&body='+encodeURIComponent(treq.body);
+  window.open(url,'_blank','noopener');
+}
+function treqSendMailto(){
+  const em=treqEmails(); if(!em.length){ toast('No recipients','Tick at least one person.'); return; }
+  location.href='mailto:'+encodeURIComponent((treq.from||'').trim())+'?bcc='+encodeURIComponent(em.join(','))+'&subject='+encodeURIComponent(treq.subject)+'&body='+encodeURIComponent(treq.body);
+}
+async function treqCopy(){ try{ await navigator.clipboard.writeText('Bcc: '+treqEmails().join('; ')+'\nSubject: '+treq.subject+'\n\n'+treq.body); toast('Copied','Recipients, subject and message are on your clipboard.'); }catch(e){ toast('Copy blocked','Select the text and copy it by hand.'); } }
+function treqDraw(full){
+  const el=document.getElementById('treqBody'); if(!el) return;
+  const pop=treq.mode==='pop';
+  if(!full){ const s=document.getElementById('treqSubj'),b=document.getElementById('treqMsg'); if(s&&b){ s.value=treq.subject; b.value=treq.body; } const l=document.getElementById('treqList'); if(l) l.innerHTML=treqList(); treqCount(); return; }
+  const F=(k,label,ph)=>`<div class="fg" style="margin:0"><label class="fl">${label}</label><input class="fi" value="${roiEsc(treq.f[k]||'')}" placeholder="${ph||''}" oninput="treqField('${k}',this.value)"></div>`;
+  el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn ${pop?'btn-ghost':'btn-primary'}" onclick="treqMode('std')">Standard request</button><button class="btn ${pop?'btn-primary':'btn-ghost'}" style="${pop?'background:#E84040;border-color:#E84040':''}" onclick="treqMode('pop')">🚨 Pop-up (urgent)</button></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
+    ${F('date','Date(s)')}${F('time','Call time','6:00a–6:00p')}${F('location','Location / venue')}${F('position','Position')}${F('pay','Pay')}${F('count','Techs needed')}
+    ${pop?F('window','Reply within','2 hours'):F('deadline','Reply by','tomorrow noon')}${F('sender','Your name')}${F('phone','Your phone')}</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><label class="fl" style="margin:0">Send to (hidden from each other via Bcc)</label><span style="font-size:11px"><a href="#" onclick="treqAll(true);return false">all</a> · <a href="#" onclick="treqAll(false);return false">none</a> · <b id="treqCount"></b></span></div>
+  <div id="treqList" style="max-height:130px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:6px">${treqList()}</div>
+  <label class="fl">Business contacts (CRM)</label>
+  <input class="fi" placeholder="Search contacts by name, company or email" value="${roiEsc(treq.crmQ||'')}" oninput="treq.crmQ=this.value;treqCrmDraw()" style="margin-bottom:4px">
+  <div id="treqCrm" style="max-height:130px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:8px">${treqCrmList()}</div>
+  <input class="fi" placeholder="Other emails (comma separated)" value="${roiEsc(treq.extra)}" oninput="treq.extra=this.value;treqCount()" style="margin-bottom:12px">
+  <label class="fl">Subject</label><input class="fi" id="treqSubj" value="${roiEsc(treq.subject)}" oninput="treq.subject=this.value;treq.edited=true" style="margin-bottom:8px">
+  <label class="fl">Message (edit freely)</label><textarea class="fi" id="treqMsg" rows="14" style="width:100%;font-family:inherit" oninput="treq.body=this.value;treq.edited=true">${roiEsc(treq.body)}</textarea>
+  <div style="display:flex;gap:8px;margin-top:6px;font-size:11px;align-items:center;flex-wrap:wrap"><button class="btn btn-ghost" onclick="treqSaveTemplate()">Save this wording as my template</button><button class="btn btn-ghost" onclick="treqResetTemplate()">Reset wording</button><span style="color:var(--muted)">Typing in the fields above rewrites the message unless you've edited it.</span></div>`;
+  treqCount();
+}
+function treqCrmList(){ const q=(treq.crmQ||'').toLowerCase(); const l=(treq.crm||[]).filter(c=>!q||(c.name+' '+c.company+' '+c.email+' '+c.role).toLowerCase().includes(q)); if(!(treq.crm||[]).length) return '<div style="font-size:12px;color:var(--muted)">No contacts with an email yet. Add them in Contacts.</div>'; if(!l.length) return '<div style="font-size:12px;color:var(--muted)">No match.</div>'; return l.map(c=>`<label style="display:flex;gap:8px;align-items:center;font-size:12px;padding:2px 0;cursor:pointer"><input type="checkbox" ${treq.crmSel[c.id]?'checked':''} onchange="treq.crmSel['${c.id}']=this.checked;treqCount()"> ${roiEsc(c.name)} ${c.company?'<span style="color:var(--steel)">· '+roiEsc(c.company)+'</span>':''} <span style="color:var(--muted)">${roiEsc(c.email)}</span></label>`).join(''); }
+function treqCrmDraw(){ const el=document.getElementById('treqCrm'); if(el) el.innerHTML=treqCrmList(); }
+function treqList(){ const s=treq.staff||[]; if(!s.length) return '<div style="font-size:12px;color:var(--muted)">No staff with an email on file. Add emails in People, or type them below.</div>'; return s.map(p=>`<label style="display:flex;gap:8px;align-items:center;font-size:12px;padding:2px 0;cursor:pointer"><input type="checkbox" ${treq.sel[p.id]?'checked':''} onchange="treqToggle('${p.id}',this.checked)"> ${roiEsc((p.first_name||'')+' '+(p.last_name||''))} <span style="color:var(--muted)">${roiEsc(p.email)}</span></label>`).join(''); }
+
+/* ===== TECH CLOCK EDITS: fix late / missed clock-ins (admin) ===== */
+const tceLocal=iso=>{ if(!iso) return ''; const d=new Date(iso); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); };
+let tceToken=null;
+function tceIsUserJwt(t){ try{ if(!t||t==='dev-bypass') return false; const c=JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); return c.role==='authenticated'&&(!c.exp||c.exp*1000>Date.now()); }catch(e){ return false; } }
+function tceAuthToken(){ try{ if(typeof token!=='undefined'&&tceIsUserJwt(token)) return token; }catch(e){} return tceToken; }
+async function tceReq(method,path,body){
+  const t=tceAuthToken(); if(!t) throw new Error('NOAUTH');
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{method,mode:'cors',cache:'no-cache',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+t,'Content-Type':'application/json',Prefer:'return=representation'},body:body?JSON.stringify(body):undefined});
+  if(r.status===401){ tceToken=null; throw new Error('NOAUTH'); }
+  if(!r.ok) throw new Error(await r.text());
+  const tx=await r.text(); return tx?JSON.parse(tx):[];
+}
+function tceLoginForm(msg){
+  const h=`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:380px"><div style="font-weight:700;margin-bottom:4px">Admin sign-in for tech data</div><div style="font-size:12px;color:var(--steel);margin-bottom:10px">Technician clock data is private, so this page needs a real admin login. It applies only to the Tech Portal page and is not saved.</div>${msg?'<div style="color:var(--accent);font-size:12px;margin-bottom:8px">'+tpEsc(msg)+'</div>':''}<div class="fg"><label class="fl">Admin email</label><input class="fi" id="tceEmail" value="admin@7virtuesentertainment.com"></div><div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="tcePass" onkeydown="if(event.key===\'Enter\')tceSignIn()"></div><button class="btn btn-primary" style="width:100%" onclick="tceSignIn()">Sign in</button></div>`;
+  ['team','shifts','gear','skills'].forEach(k=>{ const e=document.getElementById('tpPane-'+k); if(e) e.innerHTML=(k==='team')?h:''; });
+  const tb=document.getElementById('tpTabBar'); if(tb){ const first=tb.querySelector('.tab'); if(first) tpTab('team',first); }
+}
+async function tceSignIn(){
+  const e=document.getElementById('tceEmail').value.trim(), pw=document.getElementById('tcePass').value;
+  if(!e||!pw){ tceLoginForm('Enter your email and password.'); return; }
+  try{ const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{method:'POST',mode:'cors',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:pw})}); const d=await r.json(); if(!r.ok||!d.access_token){ tceLoginForm('Sign-in failed. Check the email and password.'); return; } tceToken=d.access_token; tpLoad(); }catch(x){ tceLoginForm('Connection error. Try again.'); }
+}
+let tceId=null;
+function tceEdit(id,tech){
+  tceId=id; const c=id?(tpData.clock||[]).find(x=>x.id===id):null;
+  const sel=document.getElementById('tceTech'); sel.innerHTML=(tpData.roster||[]).filter(r=>r.auth_user_id).map(r=>`<option value="${r.auth_user_id}">${tpEsc(r.full_name)}</option>`).join('');
+  sel.value=c?c.tech_user_id:(tech||(sel.options[0]&&sel.options[0].value)||''); sel.disabled=!!c;
+  document.getElementById('tceIn').value=c?tceLocal(c.clock_in_at):tceLocal(new Date().toISOString());
+  document.getElementById('tceOut').value=c?tceLocal(c.clock_out_at):'';
+  document.getElementById('tceNote').value=c?(c.edit_note||''):'';
+  document.getElementById('tceTitle').textContent=c?'Edit clock entry':'Add missed shift';
+  document.getElementById('tceDel').style.display=c?'inline-block':'none';
+  openModal('tceModal');
+}
+async function tceSave(){
+  const tech=document.getElementById('tceTech').value, i=document.getElementById('tceIn').value, o=document.getElementById('tceOut').value, note=document.getElementById('tceNote').value.trim();
+  if(!tech||!i){ toast('Missing info','Pick a tech and a clock-in time.'); return; }
+  if(o&&new Date(o)<=new Date(i)){ toast('Check the times','Clock-out has to be after clock-in.'); return; }
+  if(!note){ toast('Add a reason','e.g. forgot to clock in, arrived late.'); return; }
+  const body={clock_in_at:new Date(i).toISOString(),clock_out_at:o?new Date(o).toISOString():null};
+  const extra={edit_note:note,edited_by:(currentUser&&currentUser.email)||'admin',edited_at:new Date().toISOString(),manual:true};
+  const send=async(b)=>{ if(tceId) await tceReq('PATCH','tech_time_clock?id=eq.'+tceId,b); else await tceReq('POST','tech_time_clock',Object.assign({tech_user_id:tech},b)); };
+  try{
+    try{ await send(Object.assign({},body,extra)); }catch(e){ await send(body); toast('Saved without note','Run the time-clock SQL so edit notes can be stored.'); }
+    closeModal('tceModal'); toast('Saved','Clock entry updated.'); tpLoad();
+  }catch(e){ toast('Not saved','Sign out and back in as the admin login to edit clock entries.'); }
+}
+async function tceClockOutNow(id){
+  if(!confirm('Clock this tech out right now?')) return;
+  const b={clock_out_at:new Date().toISOString()}; const x={edit_note:'Clocked out by admin',edited_by:(currentUser&&currentUser.email)||'admin',edited_at:new Date().toISOString(),manual:true};
+  try{ try{ await tceReq('PATCH','tech_time_clock?id=eq.'+id,Object.assign({},b,x)); }catch(e){ await tceReq('PATCH','tech_time_clock?id=eq.'+id,b); } tpLoad(); }catch(e){ toast('Not saved','Sign out and back in as the admin login.'); }
+}
+async function tceDelete(){
+  if(!tceId||!confirm('Delete this clock entry? This cannot be undone.')) return;
+  try{ await tceReq('DELETE','tech_time_clock?id=eq.'+tceId); closeModal('tceModal'); tpLoad(); }catch(e){ toast('Not deleted','Sign out and back in as the admin login.'); }
+}
 /* ---- SCHEDULE HOURS SUMMARY (shown in UI after csRender) ---- */
 function csHoursSummary(){
   const el=document.getElementById('csHoursSummary'); if(!el) return;
