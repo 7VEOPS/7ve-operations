@@ -805,6 +805,17 @@ function scheduleView(){
 let clockOpenShiftId = null;
 let clockInAtCache = null;
 let clockTickTimer = null;
+let clockGeoNote = '';
+function getClockPosition(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}),
+      ()=>resolve(null),
+      {enableHighAccuracy:true,timeout:12000,maximumAge:30000}
+    );
+  });
+}
 
 function formatDuration(ms){
   const totalMin = Math.max(0, Math.round(ms / 60000));
@@ -819,7 +830,7 @@ function renderClockCard(){
   if(clockOpenShiftId){
     const elapsed = Date.now() - new Date(clockInAtCache).getTime();
     card.innerHTML = `
-      <div class="section-sub" style="margin-bottom:10px;">Clocked in since ${new Date(clockInAtCache).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} \u00b7 ${formatDuration(elapsed)}</div>
+      <div class="section-sub" style="margin-bottom:10px;">Clocked in since ${new Date(clockInAtCache).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} \u00b7 ${formatDuration(elapsed)}${clockGeoNote ? ' \u00b7 ' + clockGeoNote : ''}</div>
       <button class="btn-primary" id="clock-toggle-btn" style="background:#2D7FF9; width:100%; font-size:18px; padding:18px;">Clock Out</button>`;
   } else {
     card.innerHTML = `
@@ -889,8 +900,11 @@ async function handleClockToggle(){
         .eq('id', clockOpenShiftId);
       if(error) throw error;
     } else {
-      const { error } = await client.from('tech_time_clock')
-        .insert({ tech_user_id: userData.user.id, clock_in_at: new Date().toISOString() });
+      const pos = await getClockPosition();
+      clockGeoNote = pos ? '\ud83d\udccd Location recorded' : '\ud83d\udccd Location not shared';
+      const row = { tech_user_id: userData.user.id, clock_in_at: new Date().toISOString() };
+      if(pos){ row.in_lat = pos.lat; row.in_lng = pos.lng; row.in_accuracy_m = Math.round(pos.acc); }
+      const { error } = await client.from('tech_time_clock').insert(row);
       if(error) throw error;
     }
     await loadClockStatus();
