@@ -2194,24 +2194,234 @@ const headers = () => ({
   'Prefer': 'return=representation'
 });
 
+// ── OFFLINE ENGINE: cached reads, saved-changes queue, auto-sync ──
+const OFF = { q: [], failed: [], syncing: false, ready: null, db: null, flash: '', open: false };
+function offIdb() {
+  if (OFF.db) return OFF.db;
+  OFF.db = new Promise((res, rej) => {
+    try {
+      const rq = indexedDB.open('7ve_offline', 1);
+      rq.onupgradeneeded = () => { const d = rq.result; d.createObjectStore('cache'); d.createObjectStore('queue'); d.createObjectStore('failed'); };
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    } catch (e) { rej(e); }
+  });
+  OFF.db.catch(() => {});
+  return OFF.db;
+}
+async function offTx(store, mode, fn) {
+  const db = await offIdb();
+  return new Promise((res, rej) => {
+    const t = db.transaction(store, mode); const s = t.objectStore(store);
+    const r = fn(s); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+  });
+}
+const offGet = (s, k) => offTx(s, 'readonly', st => st.get(k)).catch(() => undefined);
+const offPut = (s, k, v) => offTx(s, 'readwrite', st => st.put(v, k)).catch(() => {});
+const offDel = (s, k) => offTx(s, 'readwrite', st => st.delete(k)).catch(() => {});
+async function offAll(s) {
+  try {
+    const db = await offIdb();
+    return await new Promise((res, rej) => {
+      const out = []; const t = db.transaction(s, 'readonly'); const c = t.objectStore(s).openCursor();
+      c.onsuccess = () => { const cur = c.result; if (cur) { out.push(cur.value); cur.continue(); } else res(out); };
+      c.onerror = () => rej(c.error);
+    });
+  } catch (e) { return []; }
+}
+OFF.ready = (async () => {
+  OFF.q = (await offAll('queue')).sort((a, b) => a.seq - b.seq);
+  OFF.failed = await offAll('failed');
+  offDraw();
+})();
+
+function offIsNet(e) { return !!e && (e.name === 'TypeError' || e.name === 'AbortError'); }
+function offUuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+}
+function offSplit(path) { const i = path.indexOf('?'); return { table: i < 0 ? path : path.slice(0, i), qs: i < 0 ? '' : path.slice(i + 1) }; }
+const OFF_SKIP = new Set(['select', 'order', 'limit', 'offset', 'on_conflict', 'columns']);
+function offFilters(qs) {
+  const out = []; if (!qs) return out;
+  new URLSearchParams(qs).forEach((v, k) => {
+    if (OFF_SKIP.has(k)) return;
+    if (v.startsWith('eq.')) out.push([k, 'eq', v.slice(3)]);
+    else if (v.startsWith('in.(') && v.endsWith(')')) out.push([k, 'in', v.slice(4, -1).split(',').map(x => x.replace(/^"|"$/g, ''))]);
+  });
+  return out;
+}
+function offMatch(row, filters) {
+  return filters.every(([k, op, v]) => { const x = row[k]; if (x === undefined) return true; return op === 'eq' ? String(x) === v : v.includes(String(x)); });
+}
+function offOverlay(path, rows) {
+  if (!Array.isArray(rows) || !OFF.q.length) return rows;
+  const { table, qs } = offSplit(path); const mine = OFF.q.filter(o => o.table === table && o.kind !== 'rpc');
+  if (!mine.length) return rows;
+  const rf = offFilters(qs); let out = rows.map(r => ({ ...r }));
+  for (const op of mine) {
+    const of = offFilters(op.qs);
+    if (op.method === 'POST') {
+      (Array.isArray(op.body) ? op.body : [op.body]).forEach(r => {
+        const i = r.id !== undefined ? out.findIndex(x => x.id === r.id) : -1;
+        if (i >= 0) out[i] = { ...out[i], ...r }; else if (offMatch(r, rf)) out.push({ ...r });
+      });
+    } else if (of.length) {
+      if (op.method === 'PATCH') out.forEach(x => { if (offMatch(x, of)) Object.assign(x, op.body); });
+      else if (op.method === 'DELETE') out = out.filter(x => !offMatch(x, of));
+    }
+  }
+  return out;
+}
+function offRpcOverlay(fn, data) {
+  if (fn !== 'tp_overview' || !data || !Array.isArray(data.clock)) return data;
+  const mine = OFF.q.filter(o => o.kind === 'rpc'); if (!mine.length) return data;
+  const clock = data.clock.map(c => ({ ...c }));
+  for (const op of mine) {
+    const a = op.body || {};
+    if (op.table === 'rpc/tp_clock_save') {
+      const c = a.p_id ? clock.find(x => x.id === a.p_id) : null;
+      if (c) Object.assign(c, { tech_user_id: a.p_tech, clock_in_at: a.p_in, clock_out_at: a.p_out, edit_note: a.p_note, edited_by: a.p_by, manual: true });
+      else clock.unshift({ id: 'offline-' + op.k, tech_user_id: a.p_tech, clock_in_at: a.p_in, clock_out_at: a.p_out, edit_note: a.p_note, edited_by: a.p_by, manual: true });
+    } else if (op.table === 'rpc/tp_clock_out_now') {
+      const c = clock.find(x => x.id === a.p_id); if (c && !c.clock_out_at) c.clock_out_at = new Date(op.ts).toISOString();
+    } else if (op.table === 'rpc/tp_clock_delete') {
+      const i = clock.findIndex(x => x.id === a.p_id); if (i >= 0) clock.splice(i, 1);
+    }
+  }
+  return { ...data, clock };
+}
+
+async function offFetch(method, path, body, ms) {
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), ms);
+  try {
+    const h = headers(); if (method === 'DELETE') delete h['Prefer'];
+    return await fetch(`${SUPA_URL}/rest/v1/${path}`, { method, mode: 'cors', cache: 'no-cache', headers: h, body: body === undefined ? undefined : JSON.stringify(body), signal: ctl.signal });
+  } finally { clearTimeout(tm); }
+}
 async function sbGet(path) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { mode: 'cors', cache: 'no-cache', headers: headers() });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  if (navigator.onLine) {
+    try {
+      const r = await offFetch('GET', path, undefined, 15000);
+      if (!r.ok) throw new Error(await r.text());
+      const rows = await r.json();
+      offPut('cache', 'g:' + path, rows);
+      return offOverlay(path, rows);
+    } catch (e) { if (!offIsNet(e)) throw e; }
+  }
+  await OFF.ready;
+  const c = await offGet('cache', 'g:' + path);
+  if (c === undefined) throw new Error('Offline and this data has not been saved on this device yet. Open it once while online.');
+  offDraw();
+  return offOverlay(path, c);
 }
-async function sbPost(path, body) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { method:'POST', mode:'cors', cache:'no-cache', headers: headers(), body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+async function offWrite(method, path, body) {
+  await OFF.ready;
+  if (navigator.onLine && !OFF.q.length) {
+    try {
+      const r = await offFetch(method, path, body, 25000);
+      if (!r.ok) throw new Error(await r.text());
+      if (method === 'DELETE') return;
+      const t = await r.text(); return t ? JSON.parse(t) : [];
+    } catch (e) { if (!offIsNet(e)) throw e; }
+  }
+  return offEnqueue(method, path, body, 'rest');
 }
-async function sbPatch(path, body) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { method:'PATCH', mode:'cors', cache:'no-cache', headers: {...headers(), 'Prefer':'return=representation'}, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+async function offEnqueue(method, path, body, kind) {
+  const { table, qs } = kind === 'rpc' ? { table: path, qs: '' } : offSplit(path);
+  let b = body, genId = false;
+  if (kind !== 'rpc' && method === 'POST' && b && typeof b === 'object') {
+    const arr = Array.isArray(b) ? b : [b];
+    arr.forEach(r => { if (r.id === undefined) { r.id = offUuid(); genId = true; } });
+  }
+  const seq = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+  const op = { seq, k: String(seq), ts: Date.now(), method, path, table, qs, body: b, genId, kind };
+  await offPut('queue', op.k, op);
+  OFF.q.push(op); offDraw();
+  if (kind === 'rpc') return null;
+  if (method === 'DELETE') return;
+  if (method === 'POST') return Array.isArray(b) ? b.map(x => ({ ...x })) : [{ ...b }];
+  return [{ ...(body || {}) }];
 }
-async function sbDelete(path) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { method:'DELETE', mode:'cors', cache:'no-cache', headers: headers() });
-  if (!r.ok) throw new Error(await r.text());
+const sbPost = (path, body) => offWrite('POST', path, body);
+const sbPatch = (path, body) => offWrite('PATCH', path, body);
+const sbDelete = (path) => offWrite('DELETE', path);
+
+async function offReplay(op) {
+  const r = op.kind === 'rpc'
+    ? await fetch(`${SUPA_URL}/rest/v1/${op.path}`, { method: 'POST', mode: 'cors', cache: 'no-cache', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(op.body || {}) })
+    : await offFetch(op.method, op.path, op.method === 'DELETE' ? undefined : op.body, 30000);
+  if (r.ok) return;
+  const txt = await r.text();
+  if (op.method === 'POST' && op.kind !== 'rpc' && (r.status === 409 || /duplicate key|23505/.test(txt))) return; // already applied
+  const err = new Error(txt || ('HTTP ' + r.status)); err.status = r.status; throw err;
+}
+async function offFlush() {
+  await OFF.ready;
+  if (OFF.syncing || !navigator.onLine || !OFF.q.length) return;
+  OFF.syncing = true; offDraw(); let done = 0;
+  while (OFF.q.length && navigator.onLine) {
+    const op = OFF.q[0];
+    try { await offReplay(op); }
+    catch (e) {
+      if (offIsNet(e)) break;
+      if (op.genId && op.method === 'POST' && !op.retried && /column|PGRST204|42703/i.test(e.message)) {
+        const arr = Array.isArray(op.body) ? op.body : [op.body]; arr.forEach(r => { delete r.id; });
+        op.retried = true; op.genId = false; await offPut('queue', op.k, op); continue;
+      }
+      OFF.q.shift(); await offDel('queue', op.k);
+      const f = { ...op, error: String(e.message || e).slice(0, 300) }; OFF.failed.push(f); await offPut('failed', f.k, f); continue;
+    }
+    OFF.q.shift(); await offDel('queue', op.k); done++;
+  }
+  OFF.syncing = false;
+  if (done) { OFF.flash = '✓ Synced ' + done + ' change' + (done > 1 ? 's' : ''); setTimeout(() => { OFF.flash = ''; offDraw(); }, 6000); }
+  offDraw();
+}
+function offLabel(op) {
+  const nice = { POST: 'Add', PATCH: 'Change', DELETE: 'Delete' }[op.method] || op.method;
+  if (op.kind === 'rpc') return { tp_clock_save: 'Save clock entry', tp_clock_out_now: 'Clock out', tp_clock_delete: 'Delete clock entry' }[op.table.replace('rpc/', '')] || op.table;
+  return nice + ' · ' + op.table.replace(/_/g, ' ');
+}
+async function offRetryFailed() { const f = OFF.failed.splice(0); for (const op of f) { await offDel('failed', op.k); delete op.error; OFF.q.push(op); await offPut('queue', op.k, op); } offFlush(); offDraw(); }
+async function offDiscardFailed() { const f = OFF.failed.splice(0); for (const op of f) await offDel('failed', op.k); offDraw(); }
+function offDraw() {
+  let pill = document.getElementById('offPill');
+  if (!pill) {
+    if (!document.body) return;
+    pill = document.createElement('div'); pill.id = 'offPill';
+    pill.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:99999;font:600 12px Inter,system-ui,sans-serif;color:#fff;border-radius:20px;padding:8px 14px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45);display:none;max-width:calc(100vw - 28px)';
+    pill.onclick = () => { OFF.open = !OFF.open; offDraw(); };
+    document.body.appendChild(pill);
+    const pn = document.createElement('div'); pn.id = 'offPanel';
+    pn.style.cssText = 'position:fixed;left:14px;bottom:56px;z-index:99999;width:min(340px,calc(100vw - 28px));max-height:50vh;overflow:auto;background:#161a20;color:#e8eaed;border:1px solid #2a3038;border-radius:12px;padding:12px;font:12px Inter,system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.55);display:none';
+    document.body.appendChild(pn);
+  }
+  const on = navigator.onLine, nq = OFF.q.length, nf = OFF.failed.length;
+  let txt = '', bg = '';
+  if (nf) { txt = '⚠ ' + nf + ' change' + (nf > 1 ? 's' : '') + ' need attention'; bg = '#b3261e'; }
+  else if (!on) { txt = '📴 Offline' + (nq ? ' · ' + nq + ' saved to sync' : ' · working from saved data'); bg = '#8a5a00'; }
+  else if (OFF.syncing) { txt = '⟳ Syncing ' + nq + '…'; bg = '#1f5fbf'; }
+  else if (nq) { txt = '⟳ ' + nq + ' waiting to sync'; bg = '#1f5fbf'; }
+  else if (OFF.flash) { txt = OFF.flash; bg = '#1b7a3a'; }
+  pill.style.display = txt ? 'block' : 'none'; pill.textContent = txt; pill.style.background = bg;
+  const pn = document.getElementById('offPanel');
+  if (!txt || !OFF.open) { pn.style.display = 'none'; return; }
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let h = '<div style="font-weight:700;margin-bottom:6px">' + (on ? 'Online' : 'Offline') + '</div>';
+  if (!on) h += '<div style="color:#9aa3ad;margin-bottom:8px">Changes you make are saved on this device and sent automatically when you are back online. Screens show data from the last time you were online.</div>';
+  if (nq) h += '<div style="margin:6px 0 4px;font-weight:600">Waiting to sync</div>' + OFF.q.map(o => '<div style="padding:3px 0;border-top:1px solid #2a3038">' + esc(offLabel(o)) + ' <span style="color:#9aa3ad">' + new Date(o.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>').join('');
+  if (nf) h += '<div style="margin:8px 0 4px;font-weight:600;color:#ff8a80">Could not sync</div>' + OFF.failed.map(o => '<div style="padding:3px 0;border-top:1px solid #2a3038">' + esc(offLabel(o)) + '<div style="color:#ff8a80;font-size:11px">' + esc(o.error || '') + '</div></div>').join('') + '<div style="margin-top:8px;display:flex;gap:8px"><button onclick="offRetryFailed()" style="flex:1;padding:6px;border-radius:8px;border:0;background:#1f5fbf;color:#fff;font-weight:600;cursor:pointer">Retry</button><button onclick="offDiscardFailed()" style="flex:1;padding:6px;border-radius:8px;border:1px solid #444;background:none;color:#e8eaed;cursor:pointer">Discard</button></div>';
+  if (on && nq && !OFF.syncing) h += '<button onclick="offFlush()" style="margin-top:8px;width:100%;padding:6px;border-radius:8px;border:0;background:#1f5fbf;color:#fff;font-weight:600;cursor:pointer">Sync now</button>';
+  pn.innerHTML = h; pn.style.display = 'block';
+}
+window.addEventListener('online', () => { offDraw(); setTimeout(offFlush, 800); });
+window.addEventListener('offline', offDraw);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) offFlush(); });
+setInterval(() => { offFlush(); offDraw(); }, 20000);
+window.addEventListener('DOMContentLoaded', () => { offDraw(); offFlush(); });
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
 }
 
 // ── AUTH (direct REST) ──
@@ -2320,7 +2530,7 @@ async function onLogin() {
     try {
       const roles = await sbGet(`user_roles?user_id=eq.${currentUser.id}&select=role`);
       isAdmin = true;
-    } catch(e) { isAdmin = false; }
+    } catch(e) { isAdmin = !navigator.onLine; }
   }
 
   if (isAdmin) document.body.classList.add('is-admin');
@@ -5905,10 +6115,7 @@ function duplicateInvoice(idx){
   toast('Invoice duplicated','Edit what changed, then Save. The original is untouched.');
 }
 async function insertInvoiceDb(rec){
-  const r = await fetch(`${SUPA_URL}/rest/v1/invoices`, {method:'POST', mode:'cors', cache:'no-cache',
-    headers:{...headers(),'Prefer':'return=representation'}, body: JSON.stringify(invoiceToRow(rec))});
-  if(!r.ok) throw new Error(await r.text());
-  const rows = await r.json();
+  const rows = await sbPost('invoices', invoiceToRow(rec));
   if(Array.isArray(rows)&&rows[0]&&rows[0].id) rec.id = rows[0].id;
   return rec;
 }
@@ -6256,9 +6463,7 @@ async function csSave(){
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
-      const r=await fetch(`${SUPA_URL}/rest/v1/crew_schedules`,{method:'POST',mode:'cors',cache:'no-cache',headers:{...headers(),'Prefer':'return=representation'},body:JSON.stringify(row)});
-      if(!r.ok) throw new Error(await r.text());
-      const rows=await r.json(); if(rows[0]&&rows[0].id) CS.id=rows[0].id;
+      const rows=await sbPost('crew_schedules', row); if(rows&&rows[0]&&rows[0].id) CS.id=rows[0].id;
     }
     toast('Schedule saved', CS.event+' — saved & persisted.'); csList();
     if(isNew){ csFlagRateCards(); await loadJobs(); csCreateJobFromSchedule(); }
@@ -7177,10 +7382,15 @@ async function tceSignIn(){
   if(!e||!pw){ tceLoginForm('Enter your email and password.'); return; }
   try{ const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{method:'POST',mode:'cors',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:pw})}); const d=await r.json(); if(!r.ok||!d.access_token){ tceLoginForm('Sign-in failed. Check the email and password.'); return; } tceToken=d.access_token; tpLoad(); }catch(x){ tceLoginForm('Connection error. Try again.'); }
 }
+async function tceRpcRaw(fn,args){ const r=await fetch(SUPA_URL+'/rest/v1/rpc/'+fn,{method:'POST',mode:'cors',cache:'no-cache',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(args||{})}); if(!r.ok) throw new Error(await r.text()); const t=await r.text(); return t?JSON.parse(t):null; }
 async function tceRpc(fn,args){
-  const r=await fetch(SUPA_URL+'/rest/v1/rpc/'+fn,{method:'POST',mode:'cors',cache:'no-cache',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(args||{})});
-  if(!r.ok) throw new Error(await r.text());
-  const t=await r.text(); return t?JSON.parse(t):null;
+  await OFF.ready;
+  if(fn==='tp_overview'){
+    if(navigator.onLine){ try{ const d=await tceRpcRaw(fn,args); offPut('cache','rpc:'+fn,d); return offRpcOverlay(fn,d); }catch(e){ if(!offIsNet(e)) throw e; } }
+    const c=await offGet('cache','rpc:'+fn); if(c===undefined) throw new Error('Offline, and Tech Portal data has not been saved on this device yet. Open it once while online.'); return offRpcOverlay(fn,c);
+  }
+  if(navigator.onLine&&!OFF.q.length){ try{ return await tceRpcRaw(fn,args); }catch(e){ if(!offIsNet(e)) throw e; } }
+  return offEnqueue('POST','rpc/'+fn,args||{},'rpc');
 }
 let tceId=null;
 function tceEdit(id,tech){
