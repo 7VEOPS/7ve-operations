@@ -807,6 +807,14 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <button class="btn btn-primary" onclick="openJobForm()">+ Add Job</button>
           </div>
         </div>
+        <div id="jqBar" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;align-self:center;margin-right:4px">⚡ Job from schedule</div>
+          <div class="fg" style="margin:0"><label class="fl">Schedule</label><select class="fs" id="jqSched" onchange="jqPickSched()" style="min-width:260px"><option value="">Loading schedules…</option></select></div>
+          <div class="fg" style="margin:0"><label class="fl">Client</label><select class="fs" id="jqClient" onchange="jqPickClient()" style="min-width:200px"></select></div>
+          <div class="fg" id="jqNewWrap" style="margin:0;display:none"><label class="fl">New client name</label><input class="fi" id="jqNew" placeholder="Client name" style="min-width:180px"></div>
+          <button class="btn btn-primary" onclick="jqCreate()">Create job</button>
+          <div id="jqNote" style="font-size:11px;color:var(--muted);align-self:center"></div>
+        </div>
         <div class="stats-row">
           <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-val" id="jobStatCount">0</div><div class="stat-sub">All clients</div></div>
           <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val" id="jobStatRev" style="color:var(--green)">$0</div><div class="stat-sub">All jobs</div></div>
@@ -819,6 +827,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
               <div class="fg" style="margin:0"><label class="fl">Event / show</label><input class="fi" id="csEvName" placeholder="Government AV — Hybrid Event" oninput="csSetEvent(this.value)" style="min-width:230px"></div>
+              <div class="fg" style="margin:0"><label class="fl">Client</label><input class="fi" id="csClient" list="csClientDL" placeholder="Pick or type a client" oninput="CS.client=this.value" style="min-width:190px"><datalist id="csClientDL"></datalist></div>
               <div class="fg" style="margin:0"><label class="fl">Setup Rate $/hr</label><input class="fi" id="csRateSetup" type="number" min="0" value="50" oninput="csSetRate('rateSetup',this.value)" style="width:100px"></div>
               <div class="fg" style="margin:0"><label class="fl">Skilled Rate $/hr</label><input class="fi" id="csRateSkilled" type="number" min="0" value="60" oninput="csSetRate('rateSkilled',this.value)" style="width:100px"></div>
               <select class="fs" id="csPicker" onchange="csLoad(this.value)" style="width:auto;min-width:150px"><option value="">— saved schedules —</option></select>
@@ -826,6 +835,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-ghost" onclick="csNew()">＋ New</button>
               <button class="btn btn-ghost" onclick="csAutoFill()">✨ Auto-suggest</button>
+              <button class="btn btn-ghost" onclick="csAddToJobs()">📋 Add to Jobs</button>
               <button class="btn btn-ghost" onclick="openTechRequest(false)">✉ Request Techs</button>
               <button class="btn" style="background:#E84040;color:#fff;border:none;font-weight:700" onclick="openTechRequest(true)">🚨 Pop-Up Request</button>
               <button class="btn btn-ghost" onclick="csCallSheet()">⬇ Call Sheet</button>
@@ -888,6 +898,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div class="tab active" onclick="setMoneyTab('shows',this)">📋 Show Costs</div>
           <div class="tab" onclick="setMoneyTab('techpay',this)">👷 Tech Pay</div>
           <div class="tab" onclick="setMoneyTab('invoices',this)">📄 Invoices</div>
+          <div class="tab" onclick="setMoneyTab('payouts',this)">⏳ Payouts</div>
           <div class="tab" onclick="setMoneyTab('tax',this)">🧾 Tax &amp; Expenses</div>
         </div>
 
@@ -990,6 +1001,30 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
           <div id="taxCats" style="margin-bottom:10px"></div>
           <div id="taxExpList"></div>
           <div id="taxJobs"></div>
+        </div>
+
+<div id="moneyTab-payouts" style="display:none">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            <div style="font-size:13px;color:var(--muted);max-width:640px">Every crew schedule is an invoice. Net days count from the last show day. Day of Show is due on the first show day. Use Mark paid when the money lands.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost admin-only" onclick="psSyncAll()">⭱ Create invoices for all schedules</button><button class="btn btn-ghost" onclick="renderPayouts()">↻ Refresh</button></div>
+          </div>
+          <div class="stats-row" style="margin-bottom:16px">
+            <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-val" id="psOut" style="color:var(--text)">—</div><div class="stat-sub" id="psOutSub">Unpaid schedules</div></div>
+            <div class="stat-card"><div class="stat-label">Due in 7 days</div><div class="stat-val" id="psWeek" style="color:var(--accent)">—</div><div class="stat-sub" id="psWeekSub">Next payouts</div></div>
+            <div class="stat-card"><div class="stat-label">Due in 30 days</div><div class="stat-val" id="psMonth" style="color:var(--green)">—</div><div class="stat-sub" id="psMonthSub">This month</div></div>
+            <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-val" id="psLate" style="color:var(--red)">—</div><div class="stat-sub" id="psLateSub">Past due date</div></div>
+          </div>
+          <div class="filter-bar" style="margin-bottom:12px">
+            <div id="psChips" style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="chip active" data-ps="open" onclick="psSetFilter('open')">Unpaid</span>
+              <span class="chip" data-ps="late" onclick="psSetFilter('late')">Overdue</span>
+              <span class="chip" data-ps="paid" onclick="psSetFilter('paid')">Paid</span>
+              <span class="chip" data-ps="all" onclick="psSetFilter('all')">All</span>
+            </div>
+          </div>
+          <div class="table-wrap"><table style="width:100%"><thead><tr>
+            <th style="text-align:left">Job</th><th style="text-align:left">Invoice</th><th style="text-align:left">Terms</th><th style="text-align:left">Due</th><th style="text-align:left">Payout countdown</th><th style="text-align:right">Amount</th><th></th>
+          </tr></thead><tbody id="psBody"><tr><td colspan=7 style="color:var(--muted);padding:16px">Loading…</td></tr></tbody></table></div>
         </div>
 
 <div id="moneyTab-invoices" style="display:none">
@@ -4924,9 +4959,11 @@ function setMoneyTab(tab, el) {
   document.getElementById('moneyTab-shows').style.display = tab === 'shows' ? 'block' : 'none';
   document.getElementById('moneyTab-techpay').style.display = tab === 'techpay' ? 'block' : 'none';
   var _mi=document.getElementById('moneyTab-invoices'); if(_mi) _mi.style.display = tab === 'invoices' ? 'block' : 'none';
+  var _mp=document.getElementById('moneyTab-payouts'); if(_mp) _mp.style.display = tab === 'payouts' ? 'block' : 'none';
   if (tab === 'shows') renderShows();
   if (tab === 'techpay') renderTechPay();
   if (tab === 'invoices') ensureInvoicesLoaded();
+  if (tab === 'payouts') renderPayouts();
   var _mx=document.getElementById('moneyTab-tax'); if(_mx) _mx.style.display = tab === 'tax' ? 'block' : 'none';
   if (tab === 'tax') taxLoad();
 }
@@ -5251,6 +5288,7 @@ async function loadJobs() {
   try { jobs = await sbGet('jobs?select=*&order=show_date.desc.nullslast'); }
   catch(e) { jobs = []; toast('Error', 'Jobs table missing? ' + e.message); }
   renderJobs();
+  if(typeof jqFill==='function') jqFill();
 }
 function jobMetrics(j){
   const cost = (j.labor_cost||0)+(j.gear_cost||0)+(j.transport_cost||0)+(j.other_cost||0);
@@ -6402,7 +6440,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -6410,8 +6448,10 @@ function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 async function csList(){
   try{
     const rows=await sbGet('crew_schedules?select=id,event_name&order=created_at.desc');
+    if(!(jobs||[]).length){ try{ jobs=await sbGet('jobs?select=*&order=show_date.desc.nullslast'); }catch(e){} }
     const sel=document.getElementById('csPicker');
-    sel.innerHTML='<option value="">— saved schedules —</option>'+(rows||[]).map(r=>`<option value="${r.id}" ${r.id===CS.id?'selected':''}>${r.event_name||'(untitled)'}</option>`).join('');
+    sel.innerHTML='<option value="">— saved schedules —</option>'+(rows||[]).map(r=>`<option value="${r.id}" ${r.id===CS.id?'selected':''}>${r.event_name||'(untitled)'}${csJobFor(r.id,r.event_name)?'':'  ⚠ not in Jobs'}</option>`).join('');
+    csFillClientList();
   }catch(e){ /* table not created yet */ }
 }
 async function csLoad(id){
@@ -6420,7 +6460,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{};
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn();
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -6470,16 +6510,234 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{rateCard:CS.rateCard, budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
+  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
       const rows=await sbPost('crew_schedules', row); if(rows&&rows[0]&&rows[0].id) CS.id=rows[0].id;
     }
     toast('Schedule saved', CS.event+' — saved & persisted.'); csList();
-    if(isNew){ csFlagRateCards(); await loadJobs(); csCreateJobFromSchedule(); }
+    try{ const sr=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(CS.id)+'&select=id,event_name,data,created_at'); if(sr&&sr[0]) await psSyncInvoice(sr[0]); }
+    catch(e){ toast('Invoice not saved','The schedule saved, but its invoice did not: '+String(e).substring(0,60)); }
+    if(isNew) csFlagRateCards();
+    if((CS.client||'').trim()) await csUpsertJob(true);
+    else toast('Pick a client','Choose a client so this schedule shows up in Jobs by Client.');
   }catch(e){ toast('Saved locally','Shown now, not persisted — create the crew_schedules table.');
     if(isNew) csCreateJobFromSchedule(); }
+}
+
+
+
+
+/* ===== Jobs by Client: quick "job from schedule" bar — pick a schedule + client, one click ===== */
+let JQ_SCHEDS=[];
+async function jqFill(){
+  const ss=document.getElementById('jqSched'), cs=document.getElementById('jqClient'); if(!ss||!cs) return;
+  try{ JQ_SCHEDS=await sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc'); }catch(e){ JQ_SCHEDS=[]; }
+  const keep=ss.value;
+  const rows=JQ_SCHEDS.map(r=>{ const d=typeof r.data==='string'?JSON.parse(r.data):(r.data||{}); return {r,d,job:csJobFor(r.id,r.event_name)}; });
+  const opt=x=>`<option value="${x.r.id}">${String(x.r.event_name||'(untitled)').replace(/</g,'&lt;')}${x.d.days&&x.d.days[0]?' · '+String(x.d.days[0].label).replace(/</g,'&lt;'):''}${x.job?' · ✓ '+String(x.job.client||'').replace(/</g,'&lt;'):''}</option>`;
+  const need=rows.filter(x=>!x.job), done=rows.filter(x=>x.job);
+  ss.innerHTML='<option value="">— pick a schedule —</option>'
+    +(need.length?`<optgroup label="Not in Jobs yet (${need.length})">${need.map(opt).join('')}</optgroup>`:'')
+    +(done.length?`<optgroup label="Already in Jobs — update">${done.map(opt).join('')}</optgroup>`:'');
+  if(keep) ss.value=keep;
+  const clients=[...new Set((jobs||[]).map(j=>(j.client||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const ck=cs.value;
+  cs.innerHTML='<option value="">— pick a client —</option>'+clients.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c.replace(/</g,'&lt;')}</option>`).join('')+'<option value="__new">＋ New client…</option>';
+  if(ck) cs.value=ck;
+  const n=document.getElementById('jqNote'); if(n) n.textContent=need.length?need.length+' schedule'+(need.length!==1?'s':'')+' not in Jobs yet':'All schedules are in Jobs';
+  jqPickClient();
+}
+function jqPickSched(){
+  const id=document.getElementById('jqSched').value, x=JQ_SCHEDS.find(r=>String(r.id)===id); if(!x) return;
+  const d=typeof x.data==='string'?JSON.parse(x.data):(x.data||{}), job=csJobFor(x.id,x.event_name), c=(d.client||(job&&job.client)||'').trim();
+  const cs=document.getElementById('jqClient');
+  if(c){ if(![...cs.options].some(o=>o.value===c)) cs.insertAdjacentHTML('afterbegin',`<option value="${c.replace(/"/g,'&quot;')}">${c.replace(/</g,'&lt;')}</option>`); cs.value=c; }
+  jqPickClient();
+}
+function jqPickClient(){ const w=document.getElementById('jqNewWrap'); if(w) w.style.display=document.getElementById('jqClient').value==='__new'?'block':'none'; }
+async function jqCreate(){
+  const id=document.getElementById('jqSched').value;
+  let client=document.getElementById('jqClient').value;
+  if(client==='__new') client=document.getElementById('jqNew').value.trim();
+  if(!id){ toast('Pick a schedule','Choose which crew schedule to turn into a job.'); return; }
+  if(!client){ toast('Pick a client','Choose which client this job belongs to.'); return; }
+  if((people||[]).length===0 && typeof loadPeople==='function'){ try{ await loadPeople(); }catch(e){} }
+  await csLoad(id);                       // load the schedule (terms, tax, rate card, crew)
+  CS.client=client; const el=document.getElementById('csClient'); if(el) el.value=client;
+  await csSave();                         // saves client → invoice → job in Jobs by Client
+  document.getElementById('jqNew').value='';
+}
+
+/* ===== Schedule → Jobs by Client: one schedule, one job, linked by the schedule's invoice number ===== */
+function csFillClientList(){
+  const dl=document.getElementById('csClientDL'); if(!dl) return;
+  dl.innerHTML=[...new Set((jobs||[]).map(j=>(j.client||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(c=>`<option value="${c.replace(/"/g,'&quot;')}">`).join('');
+}
+function csJobFor(id, name){
+  const inv=psInvNumber(id);
+  return (jobs||[]).find(j=>j.invoice_no===inv)
+      || (jobs||[]).find(j=>!j.invoice_no && (j.name||'').trim().toLowerCase()===(name||'').trim().toLowerCase());
+}
+async function csUpsertJob(quiet){
+  const client=(CS.client||'').trim();
+  if(!CS.id){ toast('Save first','Save the schedule, then add it to Jobs.'); return; }
+  if(!client){ toast('Pick a client','Choose which client this job belongs to.'); const el=document.getElementById('csClient'); if(el) el.focus(); return; }
+  const peopleMap={}; (people||[]).forEach(p=>{ peopleMap[String(p.id)]=p; });
+  let labor=0, revenue=0;
+  CS.days.forEach(d=>(CS.assign[d.id]||[]).forEach(s=>{ if(!s.tech) return; const L=csLine(s,peopleMap[s.tech]||{}); labor+=L.pay; revenue+=L.bill; }));
+  const show=psShowDate({days:CS.days}, CS.createdAt||new Date());
+  const iso=show?show.getFullYear()+'-'+String(show.getMonth()+1).padStart(2,'0')+'-'+String(show.getDate()).padStart(2,'0'):null;
+  const room=CS.days.flatMap(d=>(CS.assign[d.id]||[]).map(s=>s.room)).find(Boolean)||null;
+  const body={client, name:CS.event, show_date:iso, venue:room, invoice_no:psInvNumber(CS.id), revenue:+revenue.toFixed(2), labor_cost:+labor.toFixed(2)};
+  try{
+    if(!(jobs||[]).length) await loadJobs();
+    const ex=csJobFor(CS.id, CS.event);
+    if(ex){
+      if(ex.venue || !body.venue) delete body.venue;   // keep a venue already typed on the job
+      if(!body.show_date) delete body.show_date;
+      await sbPatch('jobs?id=eq.'+ex.id, body);
+    } else {
+      await sbPost('jobs', {...body, gear_cost:0, transport_cost:0, other_cost:0,
+        notes:'From crew schedule · '+CS.days.length+' day'+(CS.days.length!==1?'s':'')+' · '+CS.days.map(d=>d.label).join(', ')});
+    }
+    await loadJobs(); csList();
+    toast(ex?'Job updated':'Added to Jobs', client+' → '+CS.event);
+  }catch(e){ toast('Job not saved', String(e).substring(0,80)); }
+}
+/* button: saves the schedule (so client, terms and invoice are current) and puts it in Jobs by Client */
+async function csAddToJobs(){
+  if(!(CS.client||'').trim()){ toast('Pick a client','Choose which client this job belongs to, then click Add to Jobs.'); const el=document.getElementById('csClient'); if(el) el.focus(); return; }
+  await csSave();
+}
+
+/* ===== PAYOUTS — every crew schedule is an invoice with a payout countdown ===== */
+let PS_ROWS=[], PS_FILTER='open', PS_TIMER=null;
+const psMoney=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const psFmtLong=d=>d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+const psFmtShort=d=>(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+function psInvNumber(id){ return '7VE-S'+String(id).replace(/[^a-z0-9]/gi,'').slice(-6).toUpperCase(); }
+function psTermsLabel(v){ v=String(v??'15'); return v==='dos'?'Due Day of Show':v==='0'?'Due on Receipt':'Net '+v; }
+/* show date from a day label like "Jul 20" or "SNS 9/24" — the year comes from when the schedule was created */
+function psShowDate(data, created, last){
+  const days=(data&&data.days)||[]; const lbl=days.length&&days[last?days.length-1:0].label; if(!lbl) return null;
+  const c=new Date(created||Date.now()), y=c.getFullYear(), t=String(lbl);
+  const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  let d=null, m;
+  if((m=t.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/))) d=new Date(m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):y, +m[1]-1, +m[2]);
+  else if((m=t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})/i))) d=new Date(y, MON.indexOf(m[1].toLowerCase()), +m[2]);
+  if(!d||isNaN(d)) return null;
+  if(d < new Date(c.getTime()-60*864e5)) d.setFullYear(d.getFullYear()+1);
+  return d;
+}
+/* due date: Day of Show = first show day; otherwise the last show day plus the net days
+   (falls back to the created date when a day label has no readable date) */
+function psDueDate(data, created){
+  const v=String((data&&data.netTerms)??'15'), c=new Date(created||Date.now());
+  let d;
+  if(v==='dos') d=psShowDate(data,c)||c;
+  else { d=new Date(psShowDate(data,c,true)||c); d.setDate(d.getDate()+(v==='0'?0:(parseInt(v,10)||15))); }
+  d=new Date(d); d.setHours(23,59,0,0); return d;
+}
+/* invoice total for a saved schedule, priced with that schedule's own rate card */
+function psTotal(data){
+  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled};
+  CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
+  let sub=0; const items=[];
+  try{
+    (data.days||[]).forEach(d=>(((data.assign||{})[d.id])||[]).forEach(s=>{
+      if(!s.tech) return;
+      const L=csLine(s,{}); sub+=L.bill;
+      items.push({technician:'',line_item:d.label+' · '+(s.pos||'Crew'),qty_hours:L.hrs.toFixed(2),unit_price:L.billRate,line_total:L.bill.toFixed(2)});
+    }));
+  } finally { Object.assign(CS,keep); }
+  const tax=(data.taxOn!==false)?sub*0.06:0;
+  return {sub,tax,total:sub+tax,items};
+}
+function psInvoiceRec(sc, existing){
+  const data=typeof sc.data==='string'?JSON.parse(sc.data):(sc.data||{});
+  const created=new Date(sc.created_at||Date.now()), t=psTotal(data);
+  return {
+    invoice_number:psInvNumber(sc.id), record_type:'Client Invoice', client:data.client||(existing&&existing.client)||'', project:sc.event_name||'Crew schedule',
+    event_location:(existing&&existing.event_location)||'', submitted_date:psFmtShort(created), due_date:psFmtShort(psDueDate(data,created)),
+    year:String(created.getFullYear()), invoice_total:t.total.toFixed(2), include_in_revenue:'Y', data_flag:'',
+    source_file:'crew_schedule:'+sc.id, bill_to:(existing&&existing.bill_to)||'', venue:(existing&&existing.venue)||'',
+    service_dates:(data.days||[]).map(d=>d.label).join(', '), terms:psTermsLabel(data.netTerms), po_number:(existing&&existing.po_number)||'', rep:(existing&&existing.rep)||'',
+    subtotal:t.sub.toFixed(2), adjustment_label:'', adjustment_amount:0, tax_label:t.tax?'Sales tax (6%)':'', tax_amount:t.tax,
+    status:(existing&&existing.status)||'unpaid', paid_info:(existing&&existing.paid_info)||'', notes:(existing&&existing.notes)||'Created from crew schedule', line_items:t.items
+  };
+}
+async function psSyncInvoice(sc){
+  const ex=await sbGet('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+sc.id)+'&select=*');
+  const row=invoiceToRow(psInvoiceRec(sc, ex&&ex[0]));
+  if(ex&&ex[0]) await sbPatch('invoices?id=eq.'+ex[0].id, row); else await sbPost('invoices', row);
+  invoicesLoaded=false;
+}
+async function psSyncAll(){
+  try{
+    const scheds=await sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc');
+    let ok=0; for(const sc of scheds){ try{ await psSyncInvoice(sc); ok++; }catch(e){} }
+    toast('Invoices updated', ok+' of '+scheds.length+' schedules now have an invoice.'); renderPayouts();
+  }catch(e){ toast('Could not create invoices', String(e).substring(0,80)); }
+}
+function psCountdown(due, paid){
+  if(paid) return {txt:'Paid', col:'var(--green)'};
+  const ms=due-Date.now(), day=864e5;
+  if(ms<0){ const d=Math.ceil(-ms/day); return {txt:'Overdue '+d+' day'+(d!==1?'s':''), col:'var(--red)'}; }
+  const d=Math.floor(ms/day), h=Math.floor(ms%day/36e5), m=Math.floor(ms%36e5/6e4);
+  if(d===0) return {txt:'Due today · '+h+'h '+m+'m left', col:'var(--accent)'};
+  return {txt:d+'d '+h+'h '+m+'m', col: d<=7?'var(--accent)':'var(--text)'};
+}
+async function renderPayouts(){
+  const body=document.getElementById('psBody'); if(!body) return;
+  try{
+    const [scheds, invs]=await Promise.all([
+      sbGet('crew_schedules?select=id,event_name,data,created_at&order=created_at.desc'),
+      sbGet('invoices?source_file=like.crew_schedule:*&select=id,invoice_number,status,paid_info,source_file,invoice_total')
+    ]);
+    const byId={}; (invs||[]).forEach(i=>byId[String(i.source_file).replace('crew_schedule:','')]=i);
+    PS_ROWS=(scheds||[]).map(sc=>{
+      const data=typeof sc.data==='string'?JSON.parse(sc.data):(sc.data||{});
+      const created=new Date(sc.created_at||Date.now()), inv=byId[String(sc.id)]||null;
+      return {id:sc.id, name:sc.event_name||'Untitled', created, data, due:psDueDate(data,created), total:psTotal(data).total,
+        terms:psTermsLabel(data.netTerms), termsSet:data.netTerms!=null, inv, paid:!!(inv&&String(inv.status).toLowerCase()==='paid')};
+    }).sort((a,b)=>a.due-b.due);
+  }catch(e){ body.innerHTML=`<tr><td colspan=7 style="color:var(--red);padding:16px">Could not load payouts: ${String(e).substring(0,80)}</td></tr>`; return; }
+  psDraw();
+  clearInterval(PS_TIMER); PS_TIMER=setInterval(()=>{ if(document.getElementById('moneyTab-payouts')?.style.display==='block') psTick(); else clearInterval(PS_TIMER); },30000);
+}
+function psSetFilter(f){ PS_FILTER=f; document.querySelectorAll('#psChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.ps===f)); psDraw(); }
+function psDraw(){
+  const now=Date.now(), open=PS_ROWS.filter(r=>!r.paid);
+  const sum=a=>a.reduce((t,r)=>t+r.total,0), set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  const wk=open.filter(r=>r.due>=now&&r.due-now<=7*864e5), mo=open.filter(r=>r.due>=now&&r.due-now<=30*864e5), late=open.filter(r=>r.due<now);
+  set('psOut',psMoney(sum(open))); set('psOutSub',open.length+' unpaid');
+  set('psWeek',psMoney(sum(wk))); set('psWeekSub',wk.length+' job'+(wk.length!==1?'s':''));
+  set('psMonth',psMoney(sum(mo))); set('psMonthSub',mo.length+' job'+(mo.length!==1?'s':''));
+  set('psLate',psMoney(sum(late))); set('psLateSub',late.length+' job'+(late.length!==1?'s':''));
+  const rows=PS_ROWS.filter(r=>PS_FILTER==='all'||(PS_FILTER==='paid'?r.paid:PS_FILTER==='late'?(!r.paid&&r.due<now):!r.paid));
+  const esc=t=>String(t).replace(/</g,'&lt;');
+  document.getElementById('psBody').innerHTML = rows.length ? rows.map(r=>{
+    const c=psCountdown(r.due,r.paid);
+    return `<tr class="arow">
+      <td><b>${esc(r.name)}</b><div style="font-size:11px;color:${r.data.client?'var(--steel)':'var(--accent)'}">${r.data.client?esc(r.data.client):'No client set'}</div><div style="font-size:11px;color:var(--muted)">Created ${psFmtShort(r.created)}${r.data.days&&r.data.days.length?' · '+esc(r.data.days.map(d=>d.label).join(', ')):''}</div></td>
+      <td style="font-family:monospace;font-size:12px">${r.inv?esc(r.inv.invoice_number):psInvNumber(r.id)}${r.inv?'':'<div style="font-size:10px;color:var(--muted);font-family:inherit">not in ledger yet</div>'}</td>
+      <td>${r.terms}${r.termsSet?'':'<div style="font-size:10px;color:var(--accent)">not set — assumed</div>'}</td>
+      <td>${psFmtShort(r.due)}</td>
+      <td data-psdue="${r.due.getTime()}" data-pspaid="${r.paid?1:0}" style="font-weight:700;color:${c.col};font-family:monospace">${c.txt}</td>
+      <td style="text-align:right;font-family:monospace">${psMoney(r.total)}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psMarkPaid('${r.id}',${r.paid?'false':'true'})">${r.paid?'Mark unpaid':'Mark paid'}</button></td>
+    </tr>`;}).join('') : `<tr><td colspan=7 style="color:var(--muted);padding:16px">No ${PS_FILTER==='all'?'':PS_FILTER==='open'?'unpaid ':PS_FILTER+' '}schedules.</td></tr>`;
+}
+function psTick(){ document.querySelectorAll('[data-psdue]').forEach(td=>{ const c=psCountdown(new Date(+td.dataset.psdue), td.dataset.pspaid==='1'); td.textContent=c.txt; td.style.color=c.col; }); }
+async function psMarkPaid(id, paid){
+  try{
+    const sr=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=id,event_name,data,created_at');
+    if(sr&&sr[0]) await psSyncInvoice(sr[0]);
+    await sbPatch('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+id), {status:paid?'paid':'unpaid', paid_info:paid?('Paid '+psFmtShort(new Date())):''});
+    toast(paid?'Marked paid':'Marked unpaid',''); renderPayouts();
+  }catch(e){ toast('Could not update', String(e).substring(0,80)); }
 }
 
 /* ---- crew-chief call sheet PDF ---- */
@@ -6604,7 +6862,7 @@ function csBillRate(pos){
 }
 
 /* ===== V4 RATE CARD (7VE-2027-V4) — labor pay / client billing ===== */
-const V4={ver:'V4',base:10,otTo:12,otX:1.5,dtX:2,burden:0.15,floor:0.35,
+const V4={ver:'V4',base:10,mini:5,otTo:12,otX:1.5,dtX:2,burden:0.15,floor:0.35,
   tiers:{
     gen:{label:'General Stagehand',pay:33,bill:60},
     skl:{label:'Skilled Stagehand / AV Tech',pay:40,bill:72},
@@ -6621,8 +6879,9 @@ function v4Tier(txt){
   if(/skilled|av tech|stream|ptz|camera|video|audio|lighting/.test(t)) return 'skl';
   return 'gen';
 }
-/* hours -> rate-hours: 10-hr guaranteed base, OT 1.5x hrs 11-12, DT 2x hr 13+ */
+/* hours -> rate-hours: 5-hr mini (calls of 5 hrs or less), else 10-hr guaranteed base, OT 1.5x hrs 11-12, DT 2x hr 13+ */
 function v4Split(hrs){
+  if(hrs<=V4.mini) return {worked:hrs,paid:V4.mini,reg:V4.mini,ot:0,dt:0,units:V4.mini,mini:true};
   const paid=Math.max(hrs,V4.base);
   const reg=V4.base, ot=Math.min(Math.max(paid-V4.base,0),V4.otTo-V4.base), dt=Math.max(paid-V4.otTo,0);
   return {worked:hrs,paid,reg,ot,dt,units:reg+ot*V4.otX+dt*V4.dtX};
@@ -6649,7 +6908,7 @@ function csSyncCardBtn(){
 }
 function csToggleCard(){
   CS.rateCard=(CS.rateCard==='legacy')?'v4':'legacy'; csSyncCardBtn(); csHoursSummary();
-  toast('Rate card', CS.rateCard==='legacy'?'Legacy flat billing (setup/skilled rates)':'V4 — 10-hr base, OT 1.5×, DT 2×');
+  toast('Rate card', CS.rateCard==='legacy'?'Legacy flat billing (setup/skilled rates)':'V4 — 5-hr mini, 10-hr base, OT 1.5×, DT 2×');
 }
 
 /* ---- Task 2: flag staff rate cards for revision (run when a schedule is created) ---- */
@@ -6698,7 +6957,8 @@ function v4Shell(title,sub,body,foot){
 }
 const v4m=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const v4Policy=`<h2>How Labor Is Charged</h2><div class=note>
-<b>10-hour day.</b> Labor is booked in a 10-hour day. A call shorter than 10 hours is billed as 10 hours, because crew are guaranteed a full day.<br>
+<b>5-hour minimum.</b> A call of 5 hours or less is billed as a 5-hour minimum.<br>
+<b>10-hour day.</b> A call longer than 5 hours is booked as a 10-hour day. A call between 5 and 10 hours is billed as 10 hours, because crew are guaranteed a full day.<br>
 <b>Overtime (1.5×).</b> Hours 11 and 12 of a day are billed at 1.5 times the hourly rate.<br>
 <b>Double time (2×).</b> Every hour after hour 12 is billed at 2 times the hourly rate.<br>
 <b>Meal penalty.</b> Crew must receive a meal break. If a required meal is missed or delayed, one additional hour at the standard hourly rate is billed for each occurrence, per person.<br>
@@ -6715,7 +6975,7 @@ function csClientEstimatePDF(){
       const L=csLine(s,peopleMap[s.tech]||{});
       sub+=L.bill;
       const sp=L.split;
-      const detail=sp?`${sp.reg} base${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
+      const detail=sp?`${sp.reg} ${sp.mini?'min':'base'}${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
       if(L.tier) usedTiers[L.tier]=1;
       rows+=`<tr><td>${d.label}</td><td>${String(s.pos||'').replace(/</g,'&lt;')}${L.T?`<div style="font-size:10px;color:#6b7280">${L.T.label}</div>`:''}</td><td>${String(s.time||'').replace(/</g,'&lt;')}</td><td>${L.hrs.toFixed(1)}<div style="font-size:10px;color:#6b7280">${detail}</div></td><td class=r>${v4m(L.billRate)}</td><td class=r>${v4m(L.bill)}</td></tr>`;
     });
@@ -6723,14 +6983,14 @@ function csClientEstimatePDF(){
   if(!rows){ toast('No crew assigned','Assign technicians to days first.'); return; }
   const taxRate=(CS.taxOn!==false)?0.06:0, tax=sub*taxRate, total=sub+tax;
   const ladder=Object.keys(usedTiers).map(k=>V4.tiers[k]);
-  const ladderRows=ladder.map(T=>{const o=T.bill*1.5,d=T.bill*2;return `<tr><td>${T.label}</td><td class=r>${v4m(T.bill)}</td><td class=r>${v4m(T.bill*V4.base)}</td><td class=r>${v4m(o)}</td><td class=r>${v4m(d)}</td></tr>`;}).join('');
+  const ladderRows=ladder.map(T=>{const o=T.bill*1.5,d=T.bill*2;return `<tr><td>${T.label}</td><td class=r>${v4m(T.bill)}</td><td class=r>${v4m(T.bill*V4.mini)}</td><td class=r>${v4m(T.bill*V4.base)}</td><td class=r>${v4m(o)}</td><td class=r>${v4m(d)}</td></tr>`;}).join('');
   const body=`<div class=note style="margin-top:0"><b>${(CS.event||'Event').replace(/</g,'&lt;')}</b><br>Labor estimate · ${CS.days.length} day${CS.days.length!==1?'s':''}</div>
   <h2>Estimated Labor</h2>
   <table><thead><tr><th>Day</th><th>Position</th><th>Call</th><th>Hours</th><th style="text-align:right">Rate/hr</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}
   <tr class=tot><td colspan=5>Labor subtotal</td><td class=r>${v4m(sub)}</td></tr>
   ${tax?`<tr><td colspan=5 style="text-align:right">Sales tax (6%)</td><td class=r>${v4m(tax)}</td></tr><tr class=tot><td colspan=5>Estimated total</td><td class=r>${v4m(total)}</td></tr>`:''}
   </tbody></table>
-  ${ladderRows?`<h2>Rates Used</h2><table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">OT/hr (1.5×)</th><th style="text-align:right">DT/hr (2×)</th></tr></thead><tbody>${ladderRows}</tbody></table>`:''}
+  ${ladderRows?`<h2>Rates Used</h2><table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">5-hr mini</th><th style="text-align:right">10-hr day</th><th style="text-align:right">OT/hr (1.5×)</th><th style="text-align:right">DT/hr (2×)</th></tr></thead><tbody>${ladderRows}</tbody></table>`:''}
   ${v4Policy}`;
   const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for estimates.'); return; }
   w.document.write(v4Shell('Labor Estimate',(CS.event||'').replace(/</g,'&lt;'),body)); w.document.close();
@@ -6739,19 +6999,19 @@ function csClientEstimatePDF(){
 /* ---- Task 3: client-facing sales guide — rates, overtime, double time, meal penalties ---- */
 function csLaborGuidePDF(){
   const T=V4.tiers;
-  const rate=Object.keys(T).map(k=>{const t=T[k];return `<tr><td>${t.label}</td><td class=r>${v4m(t.bill)}</td><td class=r>${v4m(t.bill*10)}</td><td class=r>${v4m(t.bill*1.5)}</td><td class=r>${v4m(t.bill*2)}</td></tr>`;}).join('');
+  const rate=Object.keys(T).map(k=>{const t=T[k];return `<tr><td>${t.label}</td><td class=r>${v4m(t.bill)}</td><td class=r>${v4m(t.bill*V4.mini)}</td><td class=r>${v4m(t.bill*V4.base)}</td><td class=r>${v4m(t.bill*1.5)}</td><td class=r>${v4m(t.bill*2)}</td></tr>`;}).join('');
   const ex=T.a1.bill;
   const exRow=(h,lbl)=>{const sp=v4Split(h);return `<tr><td>${lbl}</td><td class=r>${sp.reg}</td><td class=r>${sp.ot||'—'}</td><td class=r>${sp.dt||'—'}</td><td class=r>${v4m(ex*sp.units)}</td></tr>`;};
   const body=`<div class=note style="margin-top:0">This guide explains how 7 Virtues Entertainment prices crew labor so there are no surprises on your invoice. Your quote lists each position, the call times, and the rate that applies.</div>
   <h2>Hourly Rates by Position</h2>
-  <table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">10-hr day</th><th style="text-align:right">Overtime/hr</th><th style="text-align:right">Double time/hr</th></tr></thead><tbody>${rate}</tbody></table>
+  <table><thead><tr><th>Position</th><th style="text-align:right">Hourly</th><th style="text-align:right">5-hr mini</th><th style="text-align:right">10-hr day</th><th style="text-align:right">Overtime/hr</th><th style="text-align:right">Double time/hr</th></tr></thead><tbody>${rate}</tbody></table>
   ${v4Policy}
   <h2>Worked Example — ${T.a1.label.split(' / ')[0]} at ${v4m(ex)}/hr</h2>
   <table><thead><tr><th>Call length</th><th style="text-align:right">Base hrs</th><th style="text-align:right">OT hrs</th><th style="text-align:right">DT hrs</th><th style="text-align:right">Labor charge</th></tr></thead><tbody>
-  ${exRow(8,'8-hour call (billed as 10)')}${exRow(10,'10-hour call')}${exRow(12,'12-hour call')}${exRow(14,'14-hour call')}
+  ${exRow(4,'4-hour call (5-hr minimum)')}${exRow(8,'8-hour call (billed as 10)')}${exRow(10,'10-hour call')}${exRow(12,'12-hour call')}${exRow(14,'14-hour call')}
   <tr><td>Meal penalty (per occurrence)</td><td class=r colspan=3>1 hr at standard rate</td><td class=r>${v4m(ex)}</td></tr></tbody></table>
   <h2>Ways To Keep Labor Costs Down</h2>
-  <div class=note>Schedule calls to fit within 10 hours, build meal breaks into the run of show, and tell us early about changes to load-in or strike times. We will help you plan a schedule that avoids overtime where the show allows.</div>`;
+  <div class=note>Keep short calls to 5 hours or less to use the 5-hour minimum, schedule longer calls to fit within 10 hours, build meal breaks into the run of show, and tell us early about changes to load-in or strike times. We will help you plan a schedule that avoids overtime where the show allows.</div>`;
   const w=window.open('','_blank'); if(!w){ toast('Popup blocked','Allow popups for the guide.'); return; }
   w.document.write(v4Shell('Labor Rates & Charges','Client guide',body)); w.document.close();
 }
@@ -7732,9 +7992,8 @@ function csClientInvoice(){
     slots.forEach(s=>{
       const p=peopleMap[s.tech]||{};
       const name=((p.first_name||'')+' '+(p.last_name||'')).trim()||'Technician';
-      const hrs=parseHours(s.time);
-      const rate=csBillRate(s.pos);
-      const amt=hrs*rate;
+      const L=csLine(s,p);
+      const hrs=L.hrs, rate=L.billRate, amt=L.bill;
       dayTotal+=amt; dayHrs+=hrs;
       lines.push({name,pos:s.pos,time:s.time,hrs,rate,amt});
     });
@@ -7747,8 +8006,9 @@ function csClientInvoice(){
   const total=grandSubtotal+tax;
   const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const firstShowLabel=(CS.days[0] && CS.days[0].label) ? CS.days[0].label : null;
-  const due=csDueDate(firstShowLabel);
-  const invNum='7VE-'+Date.now().toString().slice(-6);
+  const _psData={netTerms:(CS.netTerms??'15'),days:CS.days};
+  const due=psFmtLong(psDueDate(_psData, CS.createdAt||new Date()));
+  const invNum=CS.id?psInvNumber(CS.id):'7VE-'+Date.now().toString().slice(-6);
   const fmt=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   const dayBlocks=dayData.map(d=>`
