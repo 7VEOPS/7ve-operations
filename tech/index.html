@@ -868,22 +868,73 @@ async function loadClockStatus(){
       .eq('tech_user_id', userData.user.id)
       .order('clock_in_at', { ascending: false })
       .limit(10);
+    let reqs = [];
+    try{
+      const rr = await client.from('tech_clock_requests').select('id, clock_id, status, created_at').eq('tech_user_id', userData.user.id).order('created_at', { ascending: false }).limit(30);
+      reqs = rr.data || [];
+    }catch(e){}
+    shiftHistoryCache = history || [];
     const wrap = document.getElementById('shift-history');
     if(!wrap) return;
+    const missed = `<button class="btn-primary" data-shift-fix="" style="margin:0 0 12px;background:transparent;border:1px solid var(--line);color:var(--white);width:100%;">+ Missed a shift? Request it</button>`;
+    const orphans = reqs.filter(r => !r.clock_id && r.status === 'pending');
+    const orphanNote = orphans.length ? `<div class="section-sub" style="margin-bottom:10px;">${orphans.length} missed-shift request${orphans.length>1?'s':''} waiting for approval.</div>` : '';
     if(!history || history.length === 0){
-      wrap.innerHTML = '<div class="empty-state"><p>No shifts logged yet.</p></div>';
+      wrap.innerHTML = missed + orphanNote + '<div class="empty-state"><p>No shifts logged yet.</p></div>';
       return;
     }
-    wrap.innerHTML = history.map(s => {
+    wrap.innerHTML = missed + orphanNote + history.map(s => {
       const inTime = new Date(s.clock_in_at);
       const outTime = s.clock_out_at ? new Date(s.clock_out_at) : null;
       const dur = outTime ? formatDuration(outTime - inTime) : 'In progress';
+      const mine = reqs.find(r => r.clock_id === s.id);
+      const flag = mine ? ({pending:'Fix requested \u00b7 waiting for approval', approved:'Fix approved', denied:'Fix not approved'}[mine.status] || '') : '';
+      const act = (mine && mine.status === 'pending') ? '' : `<button data-shift-fix="${s.id}" style="margin-top:8px;background:none;border:1px solid var(--line);color:var(--white);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">Request fix</button>`;
       return `<div class="card">
         <div class="card-row"><span>${inTime.toLocaleDateString()}</span><span class="pill">${dur}</span></div>
         <div class="section-sub" style="margin-top:6px;">${inTime.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} \u2192 ${outTime ? outTime.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : '\u2014'}</div>
+        ${flag ? `<div class="section-sub" style="margin-top:6px;color:var(--amber,#F5A623);">${flag}</div>` : ''}${act}
       </div>`;
     }).join('');
   }catch(e){ /* leave whatever was last rendered */ }
+}
+
+let shiftHistoryCache = [];
+function toLocalInput(d){
+  if(!d) return '';
+  const x = new Date(d); const p = n => String(n).padStart(2,'0');
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate())+'T'+p(x.getHours())+':'+p(x.getMinutes());
+}
+function openShiftFixModal(id){
+  const cur = id ? shiftHistoryCache.find(x => x.id === id) : null;
+  openAddModal({
+    title: cur ? 'Request a shift fix' : 'Request a missed shift',
+    saveLabel: 'Send request',
+    required: ['requested_in','reason'],
+    fields: [
+      { id:'requested_in', label:'Correct clock-in time', type:'datetime-local', value: cur ? toLocalInput(cur.clock_in_at) : '' },
+      { id:'requested_out', label:'Correct clock-out time', type:'datetime-local', value: cur ? toLocalInput(cur.clock_out_at) : '' },
+      { id:'reason', label:'What happened?', type:'textarea', placeholder:'e.g. forgot to clock in, load-in started at 5pm' }
+    ],
+    onSave: async (v) => {
+      const client = await getSupabaseClient();
+      const { data: userData } = await client.auth.getUser();
+      if(!userData || !userData.user) throw new Error('You must be signed in.');
+      const rin = new Date(v.requested_in), rout = v.requested_out ? new Date(v.requested_out) : null;
+      if(isNaN(rin)) throw new Error('Enter a valid clock-in time.');
+      if(rout && rout <= rin) throw new Error('Clock-out has to be after clock-in.');
+      const { error } = await client.from('tech_clock_requests').insert({
+        tech_user_id: userData.user.id,
+        clock_id: cur ? cur.id : null,
+        requested_in: rin.toISOString(),
+        requested_out: rout ? rout.toISOString() : null,
+        reason: v.reason
+      });
+      if(error) throw error;
+      await loadClockStatus();
+      alert('Request sent. 7VE will review it and update your hours.');
+    }
+  });
 }
 
 async function handleClockToggle(){
@@ -1786,6 +1837,7 @@ function wireUp(){
     if(e.target.closest('#add-gear-btn')){ openAddGearModal(); return; }
     if(e.target.closest('#add-availability-btn')){ openAddAvailabilityModal(); return; }
     if(e.target.closest('#clock-toggle-btn')){ handleClockToggle(); return; }
+    { const fx = e.target.closest('[data-shift-fix]'); if(fx){ openShiftFixModal(fx.getAttribute('data-shift-fix') || null); return; } }
     if(e.target.closest('#add-post-btn')){ openAddPostModal(); return; }
   });
 
