@@ -3664,12 +3664,23 @@ function tpTab(name,el){
   if(el)el.classList.add('active');
 }
 function tpMsg(t){const b=document.getElementById('tpMsg');if(!t){b.style.display='none';return;}b.textContent=t;b.style.display='block';}
+let tpReqs=[];
+async function tpReqAct(id,ok){
+  if(!confirm(ok?'Approve this change and update the shift?':'Deny this request?')) return;
+  try{ await tceRpc('tp_request_resolve',{p_id:id,p_approve:ok,p_by:(currentUser&&currentUser.email)||'admin'}); toast(ok?'Approved':'Denied',ok?'Shift updated.':'Request closed.'); tpLoad(); }catch(e){ toast('Not saved',String(e.message||e).slice(0,120)); }
+}
+function tpReqHtml(name){
+  const pend=(tpReqs||[]).filter(r=>r.status==='pending'); if(!pend.length) return '';
+  const f=d=>d?new Date(d).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—';
+  return '<div style="border:1px solid #F5A623;border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-weight:700;margin-bottom:8px">Fix requests from techs ('+pend.length+')</div>'+pend.map(r=>'<div style="padding:8px 0;border-top:1px solid var(--border);font-size:12px"><b>'+tpEsc(r.full_name||name[r.tech_user_id]||'Tech')+'</b> · '+(r.clock_id?'fix existing shift':'missed shift')+'<div style="color:var(--muted)">'+(r.clock_id?'Now: '+f(r.cur_in)+' → '+f(r.cur_out)+'<br>':'')+'Requested: '+f(r.requested_in)+' → '+f(r.requested_out)+'</div><div style="margin:4px 0">“'+tpEsc(r.reason)+'”</div><button class="btn btn-primary" onclick="tpReqAct(\''+r.id+'\',true)">Approve</button> <button class="btn" onclick="tpReqAct(\''+r.id+'\',false)">Deny</button></div>').join('')+'</div>';
+}
 async function tpLoad(){
   try{
     const o=await tceRpc('tp_overview');
     const roster=o.roster||[],clock=o.clock||[],gear=o.gear||[],skills=o.skills||[];
     const cut=Date.now()-14*864e5; const clockRecent=clock.filter(c=>new Date(c.clock_in_at).getTime()>=cut);
     tpData={roster,clock:clockRecent,gear,skills};
+    try{ tpReqs=(await tceRpc('tp_requests'))||[]; }catch(e){ tpReqs=[]; }
     tpMsg(roster.length===0?'No technicians have signed up to the portal yet.':'');
     tpRender();
   }catch(e){tpMsg('Could not load Tech Portal data: '+(e.message||e).slice(0,200));}
@@ -3708,7 +3719,7 @@ function tpRender(){
      return '<tr><td '+td+'><b>'+tpEsc(r.full_name)+'</b><div style="color:var(--muted);font-size:10px">'+tpEsc(r.email)+'</div></td><td '+td+'><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+dot+';margin-right:6px"></span>'+tpEsc(label)+'</td><td '+td+'>'+tpFmtH(p.today)+'</td><td '+td+'>'+tpFmtH(p.week)+'</td><td '+td+'>'+(la?new Date(la).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—')+'</td></tr>';
    }).join('')+'</tbody></table>';
   // Shifts
-  document.getElementById('tpPane-shifts').innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-primary" onclick="tceEdit(null)">+ Add missed shift</button></div>'+(!clock.length?empty('No shifts in the last 14 days.'):
+  document.getElementById('tpPane-shifts').innerHTML=tpReqHtml(name)+'<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-primary" onclick="tceEdit(null)">+ Add missed shift</button></div>'+(!clock.length?empty('No shifts in the last 14 days.'):
    '<table style="width:100%;border-collapse:collapse"><thead><tr><th '+th+'>Tech</th><th '+th+'>Date</th><th '+th+'>In</th><th '+th+'>Out</th><th '+th+'>Length</th><th '+th+'>Location</th><th '+th+'>Fix</th></tr></thead><tbody>'+
    clock.map(c=>{const i=new Date(c.clock_in_at),o=c.clock_out_at?new Date(c.clock_out_at):null,tf={hour:'numeric',minute:'2-digit'};
      return '<tr><td '+td+'>'+tpEsc(name[c.tech_user_id]||'Unknown')+'</td><td '+td+'>'+i.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</td><td '+td+'>'+i.toLocaleTimeString([],tf)+'</td><td '+td+'>'+(o?o.toLocaleTimeString([],tf):'<span style="color:#2D7FF9">On shift</span>')+'</td><td '+td+'>'+tpFmtH((o||now)-i)+'</td><td '+td+'>'+(c.in_lat!=null?'<a href="https://www.google.com/maps?q='+c.in_lat+','+c.in_lng+'" target="_blank" rel="noopener" style="color:#4ADE80;text-decoration:none">\ud83d\udccd Clock-in</a>'+(c.in_accuracy_m!=null?'<div style="color:var(--muted);font-size:10px">\u00b1'+Math.round(c.in_accuracy_m)+' m</div>':''):'<span style="color:var(--muted)">Not shared</span>')+'</td><td '+td+' style="white-space:nowrap">'+(o?'':'<button class="btn btn-ghost" onclick="tceClockOutNow(\''+c.id+'\')">Clock out</button> ')+'<button class="btn btn-ghost" onclick="tceEdit(\''+c.id+'\')">Edit</button>'+(c.edit_note?'<div style="color:var(--muted);font-size:10px">\u270e '+tpEsc(c.edit_note)+'</div>':'')+'</td></tr>';}).join('')+'</tbody></table>');
@@ -7385,7 +7396,7 @@ async function tceSignIn(){
 async function tceRpcRaw(fn,args){ const r=await fetch(SUPA_URL+'/rest/v1/rpc/'+fn,{method:'POST',mode:'cors',cache:'no-cache',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(args||{})}); if(!r.ok) throw new Error(await r.text()); const t=await r.text(); return t?JSON.parse(t):null; }
 async function tceRpc(fn,args){
   await OFF.ready;
-  if(fn==='tp_overview'){
+  if(fn==='tp_overview'||fn==='tp_requests'){
     if(navigator.onLine){ try{ const d=await tceRpcRaw(fn,args); offPut('cache','rpc:'+fn,d); return offRpcOverlay(fn,d); }catch(e){ if(!offIsNet(e)) throw e; } }
     const c=await offGet('cache','rpc:'+fn); if(c===undefined) throw new Error('Offline, and Tech Portal data has not been saved on this device yet. Open it once while online.'); return offRpcOverlay(fn,c);
   }
