@@ -6763,13 +6763,13 @@ function psDrawTech(){
   const rows=all.filter(t=>PS_FILTER==='all'||(PS_FILTER==='paid'?t.paid:PS_FILTER==='late'?(!t.paid&&t.due<now):!t.paid));
   const owed={}; all.filter(t=>!t.paid).forEach(t=>{ (owed[t.name]=owed[t.name]||{n:0,sum:0}); owed[t.name].n++; owed[t.name].sum+=t.pay; });
   const sum=document.getElementById('psTechSum');
-  if(sum) sum.innerHTML=Object.keys(owed).map(n=>`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px"><b>${esc(n)}</b> <span style="color:var(--muted)">owed</span> <span style="font-family:monospace;font-weight:800;color:var(--accent)">${psMoney(owed[n].sum)}</span> <span style="color:var(--muted)">· ${owed[n].n} job${owed[n].n!==1?'s':''}</span></div>`).join('');
+  if(sum) sum.innerHTML=Object.keys(owed).map(n=>`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px"><b>${esc(n)}</b> <span style="color:var(--muted)">owed</span> <span style="font-family:monospace;font-weight:800;color:#FFD43B">${psMoney(owed[n].sum)}</span> <span style="color:var(--muted)">· ${owed[n].n} job${owed[n].n!==1?'s':''}</span></div>`).join('');
   body.innerHTML=rows.length?rows.map(t=>{
     const c=psCountdown(t.due,t.paid);
     return `<tr class="arow"><td><b>${esc(t.name)}</b></td><td>${esc(t.job)}</td><td style="text-align:right;font-family:monospace">${t.hrs.toFixed(1)}</td><td>${psFmtShort(t.due)}</td>
       <td data-psdue="${t.due.getTime()}" data-pspaid="${t.paid?1:0}" style="font-weight:700;color:${c.col};font-family:monospace">${c.txt}${t.paid&&t.paidOn?'<div style="font-size:10px;font-weight:400;color:var(--muted)">'+esc(t.paidOn)+'</div>':''}</td>
       <td style="text-align:right;font-family:monospace">${psMoney(t.bill)}</td>
-      <td style="text-align:right;font-family:monospace;font-weight:700">${psMoney(t.pay)}<div style="font-size:10px;font-weight:400;color:var(--muted)">${t.bill>0?Math.round(t.pay/t.bill*100):0}% of billed</div></td>
+      <td style="text-align:right;font-family:monospace;font-weight:700;color:#FFD43B">${psMoney(t.pay)}<div style="font-size:10px;font-weight:400;color:var(--muted)">${t.bill>0?Math.round(t.pay/t.bill*100):0}% of billed</div></td>
       <td style="text-align:right;font-family:monospace;color:${t.bill-t.pay>=0?'var(--green)':'var(--red)'}">${psMoney(t.bill-t.pay)}</td>
       <td style="text-align:right"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psTechPaid('${t.sid}','${t.tid}',${t.paid?'false':'true'})">${t.paid?'Mark unpaid':'Mark paid'}</button></td></tr>`;}).join('')
     :`<tr><td colspan=9 style="color:var(--muted);padding:16px">No technicians in this view.</td></tr>`;
