@@ -1026,10 +1026,10 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
             <th style="text-align:left">Job</th><th style="text-align:left">Invoice</th><th style="text-align:left">Terms</th><th style="text-align:left">Due</th><th style="text-align:left">Payout countdown</th><th style="text-align:right">Amount</th><th></th>
           </tr></thead><tbody id="psBody"><tr><td colspan=7 style="color:var(--muted);padding:16px">Loading…</td></tr></tbody></table></div>
           <div style="margin:26px 0 8px;font-size:15px;font-weight:800">Technician payouts</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;max-width:640px">Each tech on a schedule gets their own line with their own countdown (same due date as the job). Mark a tech paid here without touching the invoice. Pay uses each person's pay rate from People.</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;max-width:640px">Each tech on a schedule gets their own line with their own countdown (same due date as the job). Mark a tech paid here without touching the invoice. Billed is what the client is charged for that tech (before tax). Tech paid uses each person's pay rate from People. 7VE keeps the difference.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px" id="psTechSum"></div>
           <div class="table-wrap"><table style="width:100%"><thead><tr>
-            <th style="text-align:left">Technician</th><th style="text-align:left">Job</th><th style="text-align:right">Hours</th><th style="text-align:left">Due</th><th style="text-align:left">Countdown</th><th style="text-align:right">Pay</th><th></th>
+            <th style="text-align:left">Technician</th><th style="text-align:left">Job</th><th style="text-align:right">Hours</th><th style="text-align:left">Due</th><th style="text-align:left">Countdown</th><th style="text-align:right">Billed</th><th style="text-align:right">Tech paid</th><th style="text-align:right">7VE keeps</th><th></th>
           </tr></thead><tbody id="psTechBody"><tr><td colspan=7 style="color:var(--muted);padding:16px">Loading…</td></tr></tbody></table></div>
         </div>
 
@@ -6748,12 +6748,12 @@ function psTechRows(){
       (r.data.days||[]).forEach(d=>(((r.data.assign||{})[d.id])||[]).forEach(sl=>{
         if(!sl.tech) return;
         const per=pm[String(sl.tech)]||{}, L=csLine(sl,per);
-        const o=by[sl.tech]||(by[sl.tech]={hrs:0,pay:0,name:((per.first_name||'')+' '+(per.last_name||'')).trim()||'(unknown tech)'});
-        o.hrs+=L.hrs; o.pay+=L.pay;
+        const o=by[sl.tech]||(by[sl.tech]={hrs:0,pay:0,bill:0,name:((per.first_name||'')+' '+(per.last_name||'')).trim()||'(unknown tech)'});
+        o.hrs+=L.hrs; o.pay+=L.pay; o.bill+=L.bill;
       }));
     } finally { Object.assign(CS,keep); }
     const tp=r.data.techPaid||{};
-    Object.keys(by).forEach(tid=>out.push({sid:r.id,tid,job:r.name,due:r.due,name:by[tid].name,hrs:by[tid].hrs,pay:by[tid].pay,paid:!!tp[tid],paidOn:tp[tid]||''}));
+    Object.keys(by).forEach(tid=>out.push({sid:r.id,tid,job:r.name,due:r.due,name:by[tid].name,hrs:by[tid].hrs,pay:by[tid].pay,bill:by[tid].bill,paid:!!tp[tid],paidOn:tp[tid]||''}));
   });
   return out.sort((a,b)=>a.due-b.due||a.name.localeCompare(b.name));
 }
@@ -6768,9 +6768,11 @@ function psDrawTech(){
     const c=psCountdown(t.due,t.paid);
     return `<tr class="arow"><td><b>${esc(t.name)}</b></td><td>${esc(t.job)}</td><td style="text-align:right;font-family:monospace">${t.hrs.toFixed(1)}</td><td>${psFmtShort(t.due)}</td>
       <td data-psdue="${t.due.getTime()}" data-pspaid="${t.paid?1:0}" style="font-weight:700;color:${c.col};font-family:monospace">${c.txt}${t.paid&&t.paidOn?'<div style="font-size:10px;font-weight:400;color:var(--muted)">'+esc(t.paidOn)+'</div>':''}</td>
-      <td style="text-align:right;font-family:monospace">${psMoney(t.pay)}</td>
+      <td style="text-align:right;font-family:monospace">${psMoney(t.bill)}</td>
+      <td style="text-align:right;font-family:monospace;font-weight:700">${psMoney(t.pay)}<div style="font-size:10px;font-weight:400;color:var(--muted)">${t.bill>0?Math.round(t.pay/t.bill*100):0}% of billed</div></td>
+      <td style="text-align:right;font-family:monospace;color:${t.bill-t.pay>=0?'var(--green)':'var(--red)'}">${psMoney(t.bill-t.pay)}</td>
       <td style="text-align:right"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psTechPaid('${t.sid}','${t.tid}',${t.paid?'false':'true'})">${t.paid?'Mark unpaid':'Mark paid'}</button></td></tr>`;}).join('')
-    :`<tr><td colspan=7 style="color:var(--muted);padding:16px">No technicians in this view.</td></tr>`;
+    :`<tr><td colspan=9 style="color:var(--muted);padding:16px">No technicians in this view.</td></tr>`;
 }
 async function psTechPaid(sid,tid,paid){
   try{
