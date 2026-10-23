@@ -6727,10 +6727,19 @@ function psDraw(){
       <td>${psFmtShort(r.due)}</td>
       <td data-psdue="${r.due.getTime()}" data-pspaid="${r.paid?1:0}" style="font-weight:700;color:${c.col};font-family:monospace">${c.txt}</td>
       <td style="text-align:right;font-family:monospace">${psMoney(r.total)}</td>
-      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psMarkPaid('${r.id}',${r.paid?'false':'true'})">${r.paid?'Mark unpaid':'Mark paid'}</button></td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px" onclick="psMarkPaid('${r.id}',${r.paid?'false':'true'})">${r.paid?'Mark unpaid':'Mark paid'}</button> <button class="btn btn-ghost admin-only" style="padding:4px 10px;font-size:11px;color:#E84040" onclick="psRemove('${r.id}')">Remove</button></td>
     </tr>`;}).join('') : `<tr><td colspan=7 style="color:var(--muted);padding:16px">No ${PS_FILTER==='all'?'':PS_FILTER==='open'?'unpaid ':PS_FILTER+' '}schedules.</td></tr>`;
 }
 function psTick(){ document.querySelectorAll('[data-psdue]').forEach(td=>{ const c=psCountdown(new Date(+td.dataset.psdue), td.dataset.pspaid==='1'); td.textContent=c.txt; td.style.color=c.col; }); }
+async function psRemove(id){
+  const r=(PS_ROWS||[]).find(x=>String(x.id)===String(id)); if(!r) return;
+  if(!confirm('Remove "'+r.name+'" ('+psMoney(r.total)+')?\n\nThis permanently deletes the schedule and its invoice from the CRM. It cannot be undone.')) return;
+  try{
+    await sbDelete('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+id));
+    await sbDelete('crew_schedules?id=eq.'+encodeURIComponent(id));
+    toast('Removed',r.name+' was deleted.'); renderPayouts();
+  }catch(e){ toast('Not removed',String(e.message||e).slice(0,120)); }
+}
 async function psMarkPaid(id, paid){
   try{
     const sr=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=id,event_name,data,created_at');
