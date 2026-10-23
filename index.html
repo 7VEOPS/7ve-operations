@@ -6735,8 +6735,10 @@ async function psRemove(id){
   const r=(PS_ROWS||[]).find(x=>String(x.id)===String(id)); if(!r) return;
   if(!confirm('Remove "'+r.name+'" ('+psMoney(r.total)+')?\n\nThis permanently deletes the schedule and its invoice from the CRM. It cannot be undone.')) return;
   try{
-    await sbDelete('invoices?source_file=eq.'+encodeURIComponent('crew_schedule:'+id));
-    await sbDelete('crew_schedules?id=eq.'+encodeURIComponent(id));
+    if(!navigator.onLine){ toast('Not removed','Connect to wifi first. Removing needs a live connection.'); return; }
+    const n=await tceRpcRaw('ps_remove_schedule',{p_id:id});
+    if(Number(n)<1){ toast('Not removed','The database did not delete it. Refresh and try again.'); return; }
+    invoicesLoaded=false;
     toast('Removed',r.name+' was deleted.'); renderPayouts();
   }catch(e){ toast('Not removed',String(e.message||e).slice(0,120)); }
 }
