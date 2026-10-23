@@ -308,6 +308,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         <button class="btn btn-ghost admin-only" onclick="openLibrary()">📚 Library</button>
         <button class="btn btn-primary admin-only" onclick="openAdd()">+ Add Asset</button>
         <button class="btn btn-ghost" onclick="printInventoryRateSheet()">📄 Print Price Sheet</button>
+        <button class="btn btn-ghost admin-only" onclick="printCostSheet()">🧾 Cost Sheet</button>
       </div>
     </div>
 
@@ -9132,6 +9133,44 @@ async function printInventoryRateSheet(){
   if (!win) { toast('Popup blocked','Allow popups for this site.'); return; }
   win.document.write(html); win.document.close();
   setTimeout(() => win.print(), 500);
+}
+async function printCostSheet(){
+  let rows=[];
+  try{ rows=await sbGet('assets?select=*&order=department,name'); }catch(e){ toast('Error','Could not load inventory'); return; }
+  const num=v=>parseFloat(v)||0, esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const fmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const items=rows.map(r=>{
+    const q=Math.max(1,parseInt(r.qty)||1), pc=num(r.purchase_cost), rv=num(r.replacement_value);
+    const real=pc>0, unit=real?pc:rv;
+    return {dept:r.department||'Other',name:r.name||'(unnamed)',aid:r.asset_id||'',q,pc,rv,real,unit,cost:unit*q,repl:rv*q,loc:r.location||''};
+  });
+  const groups={}; items.forEach(i=>(groups[i.dept]=groups[i.dept]||[]).push(i));
+  const order=['Audio','Video','Lighting','Power','Scenic','Consumables'];
+  const names=Object.keys(groups).sort((a,b)=>{const x=order.indexOf(a),y=order.indexOf(b); return x<0&&y<0?a.localeCompare(b):x<0?1:y<0?-1:x-y;});
+  const sum=(a,f)=>a.reduce((t,i)=>t+f(i),0);
+  const realItems=items.filter(i=>i.real), estItems=items.filter(i=>!i.real&&i.rv>0), noItems=items.filter(i=>!i.real&&!(i.rv>0));
+  const totDoc=sum(realItems,i=>i.cost), totEst=sum(estItems,i=>i.cost), totRepl=sum(items,i=>i.repl);
+  const sections=names.map(d=>{
+    const g=groups[d];
+    const body=g.map(i=>`<tr><td>${esc(i.name)}<div class="s">${esc(i.aid)}</div></td><td class="r">${i.q}</td><td class="r">${i.unit>0?fmt(i.unit):'—'}</td><td class="c">${i.real?'Purchase':(i.rv>0?'Estimate':'Missing')}</td><td class="r b">${i.cost>0?fmt(i.cost):'—'}</td><td class="r">${i.rv>0?fmt(i.repl):'—'}</td></tr>`).join('');
+    return `<h3>${esc(d)}</h3><table><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Unit cost</th><th class="c">Cost source</th><th class="r">Total cost</th><th class="r">Replacement value</th></tr></thead><tbody>${body}<tr class="t"><td colspan=4>${esc(d)} subtotal</td><td class="r">${fmt(sum(g,i=>i.cost))}</td><td class="r">${fmt(sum(g,i=>i.repl))}</td></tr></tbody></table>`;
+  }).join('');
+  const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const csv=[['Department','Item','Asset ID','Location','Qty','Unit cost','Cost source','Total cost','Replacement value (each)','Total replacement value']].concat(items.map(i=>[i.dept,i.name,i.aid,i.loc,i.q,i.unit.toFixed(2),i.real?'Purchase':(i.rv>0?'Estimate (replacement value)':'Missing'),i.cost.toFixed(2),i.rv.toFixed(2),i.repl.toFixed(2)]))
+    .map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  window.__costCsv=csv;
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Equipment Cost Sheet</title><style>body{font-family:Arial,Helvetica,sans-serif;margin:0;color:#111}.hd{background:#0D0F12;color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center}.hd b{font-size:22px}.hd b i{color:#E70B0E;font-style:normal}.bar{padding:10px 32px;background:#f3f4f6;display:flex;gap:10px}.bar button{padding:8px 14px;font-weight:700;border:0;border-radius:6px;background:#E70B0E;color:#fff;cursor:pointer}.bar button.g{background:#374151}.wrap{padding:20px 32px}.sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}.card{border:1px solid #d1d5db;border-radius:8px;padding:10px 14px;min-width:190px}.card .l{font-size:10px;text-transform:uppercase;color:#6b7280;letter-spacing:.05em}.card .v{font-size:20px;font-weight:800;margin-top:2px}.card .n{font-size:11px;color:#6b7280;margin-top:2px}h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#B00810;margin:22px 0 6px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#f3f4f6;color:#6b7280;font-size:10px;text-transform:uppercase;padding:7px 8px;text-align:left}td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}.r{text-align:right;font-variant-numeric:tabular-nums}.c{text-align:center;font-size:11px;color:#6b7280}.b{font-weight:700}.s{font-size:10px;color:#9ca3af}tr.t td{font-weight:800;border-top:2px solid #111;background:#fafafa}.note{font-size:11px;color:#6b7280;margin-top:18px;line-height:1.5}@media print{.bar{display:none}}</style></head><body>'
+   +'<div class="hd"><div><b><i>7</i> VIRTUES</b><div style="font-size:10px;color:#9ca3af;letter-spacing:.15em;text-transform:uppercase">Entertainment, LLC · Equipment Cost Sheet</div></div><div style="text-align:right;font-size:11px;color:#9ca3af">As of '+today+'</div></div>'
+   +'<div class="bar"><button onclick="window.print()">Print / Save PDF</button><button class="g" onclick="var b=new Blob([window.opener.__costCsv],{type:\'text/csv\'});var a=document.createElement(\'a\');a.href=URL.createObjectURL(b);a.download=\'7VE-equipment-cost-sheet.csv\';a.click()">Download CSV (for accountant)</button></div>'
+   +'<div class="wrap"><div class="sum">'
+   +`<div class="card"><div class="l">Total cost basis (taxes)</div><div class="v">${fmt(totDoc+totEst)}</div><div class="n">${items.length} items · ${sum(items,i=>i.q)} units</div></div>`
+   +`<div class="card"><div class="l">Backed by purchase cost</div><div class="v">${fmt(totDoc)}</div><div class="n">${realItems.length} items with a real purchase cost</div></div>`
+   +`<div class="card"><div class="l">Estimated from replacement value</div><div class="v">${fmt(totEst)}</div><div class="n">${estItems.length} items need a purchase cost entered</div></div>`
+   +`<div class="card"><div class="l">Replacement value (insurance)</div><div class="v">${fmt(totRepl)}</div><div class="n">${noItems.length?noItems.length+' item(s) have no value at all':'all items valued'}</div></div></div>`
+   +sections
+   +'<div class="note">Cost basis uses the actual purchase cost where one has been entered; otherwise the replacement value is used as an estimate and the line is marked "Estimate". Replace estimates with receipts as you find them. Insurance typically asks for replacement value; taxes (depreciation) use what was actually paid. Confirm treatment with your accountant.</div></div></body></html>';
+  const win=window.open('','_blank'); if(!win){ toast('Popup blocked','Allow popups for this site.'); return; }
+  win.document.write(html); win.document.close();
 }
 </script>
 </body>
