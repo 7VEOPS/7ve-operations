@@ -515,9 +515,13 @@ function clkExport(){const rows=[['Tech','Date','Clock in','Clock out','Hours','
 
 /* ================= MILEAGE ================= */
 function geoCache(){try{return JSON.parse(safeStore.getItem('sh_geo')||'{}')}catch(e){return {}}}
+function cleanAddr(a){return String(a).replace(/\b(apt|apartment|unit|suite|ste)\.?\s*#?\s*[\w-]+,?/ig,'').replace(/#\s*[\w-]+,?/g,'').replace(/\bNortheast\b/i,'NE').replace(/\bNorthwest\b/i,'NW').replace(/\bSoutheast\b/i,'SE').replace(/\bSouthwest\b/i,'SW').replace(/\bHWY\b/i,'Highway').replace(/,\s*,/g,',').replace(/\s{2,}/g,' ').replace(/[.,\s]+$/,'').trim()}
 async function geocode(addr){const c=geoCache();if(c[addr])return c[addr];
-  const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr),{headers:{'Accept':'application/json'}});
-  const j=await r.json();if(!j.length)return null;const p={lat:+j[0].lat,lng:+j[0].lon};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}
+  const tries=[addr,cleanAddr(addr)].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  for(let i=0;i<tries.length;i++){if(i)await sleep(1100);
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(tries[i]),{headers:{'Accept':'application/json'}});
+    const j=await r.json();if(j.length){const p={lat:+j[0].lat,lng:+j[0].lon};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}}
+  return null}
 function haversineMi(a,b){const R=3958.8,t=x=>x*Math.PI/180;const dLat=t(b.lat-a.lat),dLng=t(b.lng-a.lng);const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
 async function driveMiles(a,b){try{const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`);const j=await r.json();
   if(j.routes&&j.routes[0])return {mi:j.routes[0].distance/1609.344,est:false}}catch(e){}return {mi:haversineMi(a,b)*1.25,est:true}}
