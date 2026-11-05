@@ -691,7 +691,8 @@ function looksLikeAddress(t){return /\d+\s+\S+/.test(t||'')&&/,|\b(va|md|dc|virg
 function mapPoints(){
   const techs=(D.staff||[]).filter(s=>!isPlaceholder(s)).map(s=>{const a=homeAddr(s,IDX.authByStaff[s.id]);return {id:s.id,name:staffName(s),addr:a,geo:geoOf(a),staff:s}});
   const venues=[],seen=new Set();
-  const add=(v)=>{const k=(v.addr||v.name).toLowerCase().trim();if(!k||seen.has(k))return;seen.add(k);venues.push(v)};
+  const hidden=new Set(mapHidden());
+  const add=(v)=>{const k=(v.addr||v.name).toLowerCase().trim();if(!k||seen.has(k))return;seen.add(k);v.key=k;if(hidden.has(k)&&!v.place)return;venues.push(v)};
   (MAPD.places||[]).forEach(p=>add({id:'p:'+p.id,name:p.name,kind:p.kind||'venue',addr:p.address||'',geo:p.lat!=null?{lat:+p.lat,lng:+p.lng}:geoOf(p.address),place:p,note:[p.contact,p.phone,p.notes].filter(Boolean).join(' · ')}));
   (MAPD.rentals||[]).forEach((r,i)=>add({id:'r:'+i,name:r.venue||r.client||'Rental delivery',kind:'rental',addr:r.address,geo:geoOf(r.address),note:'Rental · '+(r.client||'')+(r.start_date?' · '+fmtDate(r.start_date):'')}));
   (D.schedules||[]).forEach(sc=>{const v=(sc.data||{}).venue;if(looksLikeAddress(v))add({id:'b:'+sc.id,name:sc.event_name,kind:'booking',addr:v,geo:geoOf(v),note:'Booking'})});
@@ -704,7 +705,7 @@ function rMap(){
   let side='';
   if(!MSEL){side=`<div class="cb help">Click a <b style="color:#60A5FA">tech</b> to see mileage rings and drive times to every venue.<br>Click a <b style="color:var(--red2)">venue or hotel</b> to see who's closest.</div>
      <div class="small muted" style="padding:6px 12px">TECHS</div>${P.techs.map(t=>`<div class="mrow" onclick="mapSelect('tech','${t.id}')"><span class="dot" style="background:${t.geo?'#60A5FA':'#444'}"></span>${esc(t.name)}${t.addr?(t.geo?'':' <span class="flag">not located</span>'):' <span class="flag">no address</span>'}</div>`).join('')}
-     <div class="small muted" style="padding:6px 12px">VENUES & HOTELS</div>${P.venues.length?P.venues.map(v=>`<div class="mrow" onclick="mapSelect('venue','${v.id}')"><span class="dot" style="background:${v.geo?'#E70B0E':'#444'}"></span>${esc(v.name)} <span class="small muted">${esc(v.kind)}</span></div>`).join(''):'<div class="cb small muted">No venue addresses yet. Click + Add venue / hotel.</div>'}`}
+     <div class="small muted" style="padding:6px 12px">VENUES & HOTELS</div>${P.venues.length?P.venues.map(v=>`<div class="mrow" style="display:flex;align-items:center;gap:6px" onclick="mapSelect('venue','${v.id}')"><span style="flex:1;min-width:0"><span class="dot" style="background:${v.geo?'#E70B0E':'#444'}"></span>${esc(v.name)} <span class="small muted">${esc(v.kind)}</span>${v.geo?'':' <span class="flag">no pin</span>'}</span><button class="btn s" onclick="event.stopPropagation();mapVenueEdit('${v.id}')">Edit</button><button class="btn s bad" onclick="event.stopPropagation();mapVenueDelete('${v.id}')">${v.place?'Delete':'Hide'}</button></div>`).join(''):'<div class="cb small muted">No venues yet. Click + Add venue / hotel.</div>'}${mapHidden().length?`<div class="cb small muted">${mapHidden().length} hidden from the map · <a style="cursor:pointer" onclick="mapUnhideAll()">show them again</a></div>`:''}`}
   else side=mapSideSelected(P);
   return `<div class="toolbar"><button class="btn p" onclick="mapPlaceEdit()">+ Add venue / hotel</button>
      <button class="btn" onclick="mapLocate()" ${missing.length&&!MLOCATING?'':'disabled'}>${MLOCATING?'Locating…':'Locate addresses ('+missing.length+')'}</button>
@@ -720,7 +721,7 @@ function mapSideSelected(P){
     return `<div class="cb"><b style="font-size:16px">${esc(t.name)}</b><div class="small muted">${esc(t.addr||'no address')}</div><div class="small">${esc(t.staff.lead_skill||t.staff.title||'')} · ${esc(t.staff.phone||'')}</div></div>
      <div class="small muted" style="padding:6px 12px">DRIVE TO VENUES</div>${!t.geo?'<div class="cb small flag">Locate this address first.</div>':MDRIVE==='loading'?'<div class="cb small muted">Working out drive times…</div>':rows.length?rows.map(r=>`<div class="mrow" onclick="mapSelect('venue','${r.id}')"><span class="dot" style="background:${driveColor(r.min)}"></span><b>${r.min!=null?Math.round(r.min)+' min':'—'}</b> · ${r.mi!=null?num(r.mi,1)+' mi':''}<div class="small muted">${esc(r.name)}</div></div>`).join(''):'<div class="cb small muted">No located venues yet.</div>'}`}
   const v=P.venues.find(x=>x.id===MSEL.id);if(!v)return '';const today=todayYmd();const rows=(MDRIVE&&MDRIVE.rows)||[];
-  return `<div class="cb"><b style="font-size:16px">${esc(v.name)}</b> <span class="chip">${esc(v.kind)}</span><div class="small muted">${esc(v.addr||'')}</div>${v.note?`<div class="small">${esc(v.note)}</div>`:''}${v.place?`<div style="margin-top:6px"><button class="btn s" onclick="mapPlaceEdit('${v.place.id}')">Edit</button></div>`:''}</div>
+  return `<div class="cb"><b style="font-size:16px">${esc(v.name)}</b> <span class="chip">${esc(v.kind)}</span><div class="small muted">${esc(v.addr||'')}</div>${v.note?`<div class="small">${esc(v.note)}</div>`:''}<div class="row" style="margin-top:6px"><button class="btn s" onclick="mapVenueEdit('${v.id}')">Edit</button><button class="btn s bad" onclick="mapVenueDelete('${v.id}')">${v.place?'Delete':'Hide from map'}</button></div></div>
    <div class="small muted" style="padding:6px 12px">CLOSEST TECHS</div>${!v.geo?'<div class="cb small flag">Locate this address first.</div>':MDRIVE==='loading'?'<div class="cb small muted">Working out drive times…</div>':rows.length?rows.map(r=>{const unav=isUnavailable(r.id,today),booked=shiftsOn(r.id,today).length;
      return `<div class="mrow" onclick="mapSelect('tech','${r.id}')"><span class="dot" style="background:${driveColor(r.min)}"></span><b>${r.min!=null?Math.round(r.min)+' min':'—'}</b> · ${r.mi!=null?num(r.mi,1)+' mi':''} · ${esc(r.name)}<div class="small muted">${esc(r.skill||'')}${unav?' <span class="chip c-r">unavailable today</span>':''}${booked?' <span class="chip c-a">booked today</span>':''}</div></div>`}).join(''):'<div class="cb small muted">No located techs yet.</div>'}`}
 function driveColor(m){return m==null?'#666':m<=30?'#22C55E':m<=60?'#F5A623':m<=90?'#FB923C':'#E70B0E'}
@@ -766,7 +767,7 @@ async function mapLocate(){
     await sleep(1100)}
   MLOCATING=false;MAPVIEW=null;render();toast(`Located ${ok} address(es)`+(bad.length?` · couldn't find ${bad.length} — check spelling in Crew`:''))}
 let PLGEO=null;
-function mapPlaceEdit(id){const p=id?(MAPD.places||[]).find(x=>x.id===id):{kind:'hotel'};PLGEO=p.lat!=null?{lat:+p.lat,lng:+p.lng,addr:p.address}:null;
+function mapPlaceEdit(id,pre){const p=id?(MAPD.places||[]).find(x=>x.id===id):Object.assign({kind:'hotel'},pre||{});if(!pre)PLREPL=null;PLGEO=p.lat!=null?{lat:+p.lat,lng:+p.lng,addr:p.address}:null;
   openModal(`<h3>${id?'Edit':'Add'} venue / hotel</h3>
    ${id?'':`<label class="f">Pick from the CRM (invoices, rentals, jobs, bookings)</label>
    <input class="i" id="pl_crm" placeholder="Type to search… e.g. Hilton, Westin, Gaylord" oninput="plCrmList()" onfocus="plCrmList()" autocomplete="off">
@@ -806,8 +807,21 @@ async function mapPlaceSave(id){const name=$('pl_name').value.trim(),addr=$('pl_
   if(!g){$('pl_msg').textContent='Finding the address on the map…';try{g=await geocode(addr)}catch(e){}}
   await rpc('sh_place_save',{p:{id,name,kind:$('pl_kind').value,address:addr,contact:$('pl_contact').value,phone:$('pl_phone').value,notes:$('pl_notes').value,lat:g?g.lat:null,lng:g?g.lng:null}});
   if(g&&addr)try{await sb.rpc('sh_geo_save',{p_address:addr,p_lat:g.lat,p_lng:g.lng})}catch(e){}
+  if(PLREPL){await mapSetHidden(mapHidden().concat([PLREPL]));PLREPL=null}
   closeLayer();toast(g?'Saved and pinned on the map':'Saved, but no pin — use Look up to find the address');MAPVIEW=null;await loadMapData()}
-async function mapPlaceDel(id){if(!confirm('Delete this venue/hotel?'))return;await rpc('sh_place_delete',{p_id:id});closeLayer();MSEL=null;MDRIVE=null;await loadMapData()}
+let PLREPL=null;
+function mapHidden(){const h=(D&&D.settings&&D.settings.map_hidden)||{};return Array.isArray(h.keys)?h.keys:[]}
+async function mapSetHidden(keys){keys=[...new Set(keys)];await rpc('sh_setting_save',{p_key:'map_hidden',p_value:{keys}});D.settings=D.settings||{};D.settings.map_hidden={keys}}
+function confirmBox(msg,yesLabel,onYes){window._cbYes=onYes;openModal(`<h3>Are you sure?</h3><p>${msg}</p><div class="acts"><button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="closeLayer();window._cbYes&&window._cbYes()">${esc(yesLabel)}</button></div>`)}
+function mapVenueEdit(id){const v=mapPoints().venues.find(x=>x.id===id);if(!v)return;
+  if(v.place)return mapPlaceEdit(v.place.id);
+  PLREPL=v.key;mapPlaceEdit(null,{name:v.name,address:/\d/.test(v.addr||'')?v.addr:'',kind:/hotel|hilton|marriott|westin|hyatt|inn|resort/i.test(v.name+' '+v.addr)?'hotel':'venue',notes:v.note||''});
+  setTimeout(()=>{if($('pl_msg'))$('pl_msg').textContent='This came from a '+v.kind+' record. Saving keeps your corrected copy on the map; the original record is not changed.'},50)}
+function mapVenueDelete(id){const v=mapPoints().venues.find(x=>x.id===id);if(!v)return;
+  if(v.place)return confirmBox(`Delete <b>${esc(v.name)}</b> from your venue list?`,'Delete',async()=>{await rpc('sh_place_delete',{p_id:v.place.id});if(MSEL&&MSEL.id===id){MSEL=null;MDRIVE=null}toast('Venue deleted');await loadMapData()});
+  confirmBox(`Hide <b>${esc(v.name)}</b> from the map? It comes from a ${esc(v.kind)} record, which stays in the CRM. You can show it again any time.`,'Hide',async()=>{await mapSetHidden(mapHidden().concat([v.key]));if(MSEL&&MSEL.id===id){MSEL=null;MDRIVE=null}toast('Hidden from the map');render()})}
+async function mapUnhideAll(){await mapSetHidden([]);toast('Hidden venues are back on the map');render()}
+async function mapPlaceDel(id){const p=(MAPD.places||[]).find(x=>x.id===id);confirmBox(`Delete <b>${esc(p?p.name:'this venue')}</b> from your venue list?`,'Delete',async()=>{await rpc('sh_place_delete',{p_id:id});MSEL=null;MDRIVE=null;toast('Venue deleted');await loadMapData()})}
 
 /* ================= SETTINGS ================= */
 function rSettings(){const M=settings('mileage'),P=settings('payroll');
