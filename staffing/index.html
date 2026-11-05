@@ -516,10 +516,12 @@ function clkExport(){const rows=[['Tech','Date','Clock in','Clock out','Hours','
 /* ================= MILEAGE ================= */
 function geoCache(){try{return JSON.parse(safeStore.getItem('sh_geo')||'{}')}catch(e){return {}}}
 function cleanAddr(a){return String(a).replace(/\b(apt|apartment|unit|suite|ste)\.?\s*#?\s*[\w-]+,?/ig,'').replace(/#\s*[\w-]+,?/g,'').replace(/\bNortheast\b/i,'NE').replace(/\bNorthwest\b/i,'NW').replace(/\bSoutheast\b/i,'SE').replace(/\bSouthwest\b/i,'SW').replace(/\bHWY\b/i,'Highway').replace(/,\s*,/g,',').replace(/\s{2,}/g,' ').replace(/[.,\s]+$/,'').trim()}
+function streetPart(a){const p=String(a).split(',').map(x=>x.trim());const i=p.findIndex(x=>/^\d/.test(x));return i>0?p.slice(i).join(', '):''}
+const NOMI='https://nominatim.openstreetmap.org/search?format=json&countrycodes=us&viewbox=-77.9,39.6,-76.3,38.4&addressdetails=1&';
 async function geocode(addr){const c=geoCache();if(c[addr])return c[addr];
-  const tries=[addr,cleanAddr(addr)].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  const tries=[addr,streetPart(addr),cleanAddr(addr),cleanAddr(streetPart(addr))].filter((v,i,a)=>v&&a.indexOf(v)===i);
   for(let i=0;i<tries.length;i++){if(i)await sleep(1100);
-    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(tries[i]),{headers:{'Accept':'application/json'}});
+    const r=await fetch(NOMI+'limit=1&q='+encodeURIComponent(tries[i]),{headers:{'Accept':'application/json'}});
     const j=await r.json();if(j.length){const p={lat:+j[0].lat,lng:+j[0].lon};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}}
   return null}
 function haversineMi(a,b){const R=3958.8,t=x=>x*Math.PI/180;const dLat=t(b.lat-a.lat),dLng=t(b.lng-a.lng);const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
@@ -784,11 +786,12 @@ function plCrmList(){const q=($('pl_crm').value||'').toLowerCase().trim();const 
 function plPick(i){const c=MAPD.crm[i];$('pl_crm_res').style.display='none';$('pl_crm').value=c.name;
   const nm=c.name.split(',')[0].trim();$('pl_name').value=nm;
   if(/hotel|hilton|marriott|westin|hyatt|mayflower|renaissance|gaylord|broadmoor|inn|resort|weston/i.test(c.name))$('pl_kind').value='hotel';else $('pl_kind').value='venue';
-  const a=c.addr&&c.addr!==c.name?c.addr:c.name;$('pl_addr').value=/\d/.test(a)?a:'';PLGEO=null;plLookup(a)}
-async function plLookup(q){q=q||$('pl_addr').value.trim()||$('pl_name').value.trim();const box=$('pl_look_res');if(!q)return toast('Type a name or address first');
+  const a=c.addr&&c.addr!==c.name?c.addr:c.name;$('pl_addr').value=/\d/.test(a)?(streetPart(a)||a):'';PLGEO=null;plLookup(a,nm)}
+async function plLookup(q,nm){q=q||$('pl_addr').value.trim()||$('pl_name').value.trim();nm=nm||$('pl_name').value.trim();const box=$('pl_look_res');if(!q)return toast('Type a name or address first');
   box.innerHTML='<div class="small muted" style="margin-top:6px">Searching the map…</div>';
-  const tries=[q,cleanAddr(q)].filter((v,i,a)=>v&&a.indexOf(v)===i);let res=[];
-  for(const t of tries){try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&countrycodes=us&q='+encodeURIComponent(t),{headers:{'Accept':'application/json'}});res=await r.json()}catch(e){res=[]}if(res.length)break;await sleep(1100)}
+  const hotel=$('pl_kind')&&$('pl_kind').value==='hotel';
+  const tries=[q,streetPart(q),cleanAddr(streetPart(q)||q),nm,hotel&&nm&&!/hotel/i.test(nm)?nm+' hotel':''].filter((v,i,a)=>v&&a.indexOf(v)===i);let res=[];
+  for(const t of tries){try{const r=await fetch(NOMI+'limit=5&q='+encodeURIComponent(t),{headers:{'Accept':'application/json'}});res=await r.json()}catch(e){res=[]}if(res.length)break;await sleep(1100)}
   if(!res.length){box.innerHTML='<div class="small flag" style="margin-top:6px">Not found on the map. Type the street address (number, street, city, state) and click Look up.</div>';return}
   window._plRes=res;
   box.innerHTML='<div class="small muted" style="margin:6px 0 2px">Pick the right one:</div>'+res.map((r,i)=>{const ad=r.address||{};const street=[ad.house_number,ad.road].filter(Boolean).join(' ');const city=ad.city||ad.town||ad.village||ad.suburb||ad.county||'';
