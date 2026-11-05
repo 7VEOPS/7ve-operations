@@ -94,13 +94,13 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 @media(max-width:700px){.slot{grid-template-columns:1fr 1fr}}
 .slot .warn{grid-column:1/-1;font-size:11px;color:var(--amber);margin-top:-2px}
 /* drawer & modal */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;justify-content:flex-end}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;display:flex;justify-content:flex-end}
 .dr{width:100%;max-width:460px;height:100%;overflow:auto;background:var(--panel);border-left:3px solid var(--red);padding:20px}
 .md{margin:auto;width:100%;max-width:480px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:10px;padding:20px;max-height:92vh;overflow:auto}
 .dr h3,.md h3{margin:0 0 10px;font-family:'Saira Condensed';font-size:22px;text-transform:uppercase}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--red);padding:10px 14px;border-radius:6px;z-index:99;font-size:13px;max-width:90vw}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--red);padding:10px 14px;border-radius:6px;z-index:6000;font-size:13px;max-width:90vw}
 .flag{font-size:11px;color:var(--amber)}
 .sub{background:#101010}
 .sub td{font-size:12px;color:#cfcfcf}
@@ -108,7 +108,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 .help{color:var(--muted);font-size:12px;line-height:1.5}
 .mapwrap{display:grid;grid-template-columns:1fr 340px;gap:16px}
 @media(max-width:900px){.mapwrap{grid-template-columns:1fr}}
-#map{height:calc(100vh - 230px);min-height:460px;border-radius:8px;border:1px solid var(--line);background:#111}
+#map{isolation:isolate;z-index:0;height:calc(100vh - 230px);min-height:460px;border-radius:8px;border:1px solid var(--line);background:#111}
 .mside{max-height:calc(100vh - 230px);overflow:auto}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#1C1C1C;color:#F5F5F5}
 .leaflet-container a.leaflet-popup-close-button{color:#aaa}
