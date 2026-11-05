@@ -6452,6 +6452,9 @@ function csRender(){
           <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px">Position</th>
           <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px">Time</th>
           <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px">Room</th>
+          <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px" title="Optional: type the hours you bill. Leave blank to use the schedule time.">Bill hrs</th>
+          <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px" title="Optional: type the $/hr you bill. Invoice = hrs x rate.">Bill $/hr</th>
+          <th style="text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 8px" title="Optional: type the exact amount to bill for this line. Overrides hrs x rate.">Bill total $</th>
           <th style="padding:6px 8px;width:30px"></th>
         </tr></thead>
         <tbody>${(CS.assign[d.id]||[]).map((s,i)=>{
@@ -6463,6 +6466,9 @@ function csRender(){
             <td style="padding:6px 8px"><input class="fi" list="csPosDL" value="${s.pos||''}" onchange="csSetSlot(${i},'pos',this.value)"></td>
             <td style="padding:6px 8px"><input class="fi" value="${s.time}" onchange="csSetSlot(${i},'time',this.value)" style="min-width:110px"><div style="font-size:10px;margin-top:3px">${csShiftLabel(s.time)}</div></td>
             <td style="padding:6px 8px"><input class="fi" list="csRoomsDL" value="${s.room||''}" onchange="csSetSlot(${i},'room',this.value)"></td>
+            <td style="padding:6px 8px"><input class="fi" type="number" step="0.25" min="0" placeholder="auto" value="${s.mH??''}" onchange="csSetSlot(${i},'mH',this.value)" style="width:80px"></td>
+            <td style="padding:6px 8px"><input class="fi" type="number" step="0.01" min="0" placeholder="auto" value="${s.mR??''}" onchange="csSetSlot(${i},'mR',this.value)" style="width:80px"></td>
+            <td style="padding:6px 8px"><input class="fi" type="number" step="0.01" min="0" placeholder="auto" value="${s.mT??''}" onchange="csSetSlot(${i},'mT',this.value)" style="width:90px"></td>
             <td style="padding:6px 8px"><button onclick="csDelSlot(${i})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px">×</button></td>
           </tr>`;
         }).join('')}</tbody>
@@ -6999,6 +7005,17 @@ function v4Split(hrs){
   return {worked:hrs,paid,reg,ot,dt,units:reg+ot*V4.otX+dt*V4.dtX};
 }
 function csLine(s,p){
+  const L=csLine0(s,p);
+  const mh=parseFloat(s.mH), mr=parseFloat(s.mR), mt=parseFloat(s.mT);
+  if(mh>=0||mr>=0||mt>=0){
+    const hrs=(mh>=0)?mh:L.hrs;
+    if(mt>=0) return Object.assign({},L,{hrs:hrs,billRate:hrs>0?mt/hrs:mt,bill:mt,split:null,manual:true});
+    const rate=(mr>=0)?mr:L.billRate;
+    return Object.assign({},L,{hrs:hrs,billRate:rate,bill:hrs*rate,split:null,manual:true});
+  }
+  return L;
+}
+function csLine0(s,p){
   p=p||{};
   const hrs=parseHours(s.time);
   const pr=parseFloat(p.pay_rate);
