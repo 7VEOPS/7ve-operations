@@ -848,6 +848,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <button class="btn btn-ghost" onclick="csClientEstimatePDF()">📄 Client Labor Estimate</button>
               <button class="btn btn-ghost" onclick="csLaborGuidePDF()">📘 Labor Rates Guide</button>
               <button id="csCardBtn" class="btn" style="font-weight:700" onclick="csToggleCard()">Rate Card: V4</button>
+              <button id="csHardBtn" class="btn" style="font-weight:700" onclick="csToggleHard()" title="Bill actual hours x rate. 10 hrs base, then 1.5x to 12 hrs, then 2x. No minimum.">Hard Hours: Off</button>
               <select id="csNetTerms" class="fs" style="width:auto;min-width:150px" onchange="csSetNetTerms(this.value)">
                 <option value="dos">Due Day of Show</option>
                 <option value="0">Due on Receipt</option>
@@ -6490,7 +6491,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.techPaid={}; CS.cancelled=null; csSyncCancelBtn(); CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.techPaid={}; CS.cancelled=null; csSyncCancelBtn(); CS.hardHours=false; csSyncHardBtn(); CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -6510,7 +6511,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.techPaid=data.techPaid||{}; CS.cancelled=data.cancelled||null; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn(); csSyncCancelBtn();
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.techPaid=data.techPaid||{}; CS.cancelled=data.cancelled||null; CS.hardHours=!!data.hardHours; csSyncHardBtn(); CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn(); csSyncCancelBtn();
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -6560,7 +6561,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off, techPaid:CS.techPaid||{}, cancelled:CS.cancelled||null}};
+  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off, techPaid:CS.techPaid||{}, cancelled:CS.cancelled||null, hardHours:!!CS.hardHours}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -6692,8 +6693,8 @@ function psDueDate(data, created){
 }
 /* invoice total for a saved schedule, priced with that schedule's own rate card */
 function psTotal(data){
-  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled};
-  CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
+  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled,hardHours:CS.hardHours};
+  CS.hardHours=!!data.hardHours; CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
   let sub=0; const items=[];
   try{
     (data.days||[]).forEach(d=>(((data.assign||{})[d.id])||[]).forEach(s=>{
@@ -6787,7 +6788,7 @@ function psTechRows(){
   const out=[];
   (PS_ROWS||[]).forEach(r=>{
     if(r.cancelled) return;
-    const keep={rateCard:CS.rateCard}; CS.rateCard=r.data.rateCard||'legacy';
+    const keep={rateCard:CS.rateCard,hardHours:CS.hardHours}; CS.hardHours=!!r.data.hardHours; CS.rateCard=r.data.rateCard||'legacy';
     const by={};
     try{
       (r.data.days||[]).forEach(d=>(((r.data.assign||{})[d.id])||[]).forEach(sl=>{
@@ -7002,6 +7003,12 @@ function csLine(s,p){
   const hrs=parseHours(s.time);
   const pr=parseFloat(p.pay_rate);
   const hourly=!p.pay_type||p.pay_type==='hourly';
+  if(CS.hardHours){
+    const payRate=pr||40, billRate=csBillRate(s.pos);
+    const reg=Math.min(hrs,10), ot=Math.min(Math.max(hrs-10,0),2), dt=Math.max(hrs-12,0);
+    const units=reg+ot*1.5+dt*2;
+    return {hrs,tier:null,payRate,billRate,pay:payRate*units,bill:billRate*units,split:{worked:hrs,paid:hrs,reg,ot,dt,units,hard:true}};
+  }
   if(CS.rateCard==='legacy'){
     const payRate=pr||40, billRate=csBillRate(s.pos);
     return {hrs,tier:null,payRate,billRate,pay:payRate*hrs,bill:billRate*hrs,split:null};
@@ -7016,6 +7023,15 @@ function csSyncCardBtn(){
   const v4=CS.rateCard!=='legacy';
   b.textContent=v4?'Rate Card: V4':'Rate Card: Legacy';
   b.style.background=v4?'var(--green)':'var(--accent)'; b.style.color='#0D0F12'; b.style.border='none';
+}
+function csSyncHardBtn(){
+  const b=document.getElementById('csHardBtn'); if(!b) return;
+  b.textContent=CS.hardHours?'Hard Hours: On':'Hard Hours: Off';
+  b.style.background=CS.hardHours?'var(--green)':''; b.style.color=CS.hardHours?'#0D0F12':''; b.style.border=CS.hardHours?'none':'';
+}
+function csToggleHard(){
+  CS.hardHours=!CS.hardHours; csSyncHardBtn(); csHoursSummary();
+  toast('Hard Hours', CS.hardHours?'ON - actual hours x rate. 10 base, OT 1.5x to 12 hrs, DT 2x after. No minimum. Save the schedule.':'OFF - using the selected rate card');
 }
 function csToggleCard(){
   CS.rateCard=(CS.rateCard==='legacy')?'v4':'legacy'; csSyncCardBtn(); csHoursSummary();
@@ -7086,7 +7102,7 @@ function csClientEstimatePDF(){
       const L=csLine(s,peopleMap[s.tech]||{});
       sub+=L.bill;
       const sp=L.split;
-      const detail=sp?`${sp.reg} ${sp.mini?'min':'base'}${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
+      const detail=sp?`${sp.reg} ${sp.hard?'hrs':(sp.mini?'min':'base')}${sp.ot?` + ${sp.ot} OT`:''}${sp.dt?` + ${sp.dt} DT`:''}`:`${L.hrs.toFixed(1)} hrs`;
       if(L.tier) usedTiers[L.tier]=1;
       rows+=`<tr><td>${d.label}</td><td>${String(s.pos||'').replace(/</g,'&lt;')}${L.T?`<div style="font-size:10px;color:#6b7280">${L.T.label}</div>`:''}</td><td>${String(s.time||'').replace(/</g,'&lt;')}</td><td>${L.hrs.toFixed(1)}<div style="font-size:10px;color:#6b7280">${detail}</div></td><td class=r>${v4m(L.billRate)}</td><td class=r>${v4m(L.bill)}</td></tr>`;
     });
@@ -8106,7 +8122,7 @@ function csClientInvoice(){
       const L=csLine(s,p);
       const hrs=L.hrs, rate=L.billRate, amt=L.bill;
       dayTotal+=amt; dayHrs+=hrs;
-      lines.push({name,pos:s.pos,time:s.time,hrs,rate,amt});
+      lines.push({name,pos:s.pos,time:s.time,hrs,rate,amt,sp:L.split});
     });
     grandSubtotal+=dayTotal; grandHrs+=dayHrs; grandTechs+=slots.length;
     dayData.push({label:d.label,lines,dayTotal,dayHrs,techCount:slots.length});
@@ -8148,7 +8164,7 @@ function csClientInvoice(){
             <td style="padding:7px 12px;font-size:11px;font-weight:600;color:#111827">${l.name}</td>
             <td style="padding:7px 12px;font-size:11px;color:#374151">${l.pos}</td>
             <td style="padding:7px 12px;font-size:11px;color:#374151;text-align:center;font-family:monospace">${l.time}</td>
-            <td style="padding:7px 12px;font-size:11px;text-align:center;color:#374151">${l.hrs.toFixed(1)}</td>
+            <td style="padding:7px 12px;font-size:11px;text-align:center;color:#374151">${l.hrs.toFixed(1)}${(l.sp&&l.sp.hard&&(l.sp.ot||l.sp.dt))?`<div style="font-size:9px;color:#6b7280">${l.sp.reg} base${l.sp.ot?` + ${l.sp.ot} OT 1.5\xd7`:''}${l.sp.dt?` + ${l.sp.dt} DT 2\xd7`:''}</div>`:''}</td>
             <td style="padding:7px 12px;font-size:11px;text-align:right;font-family:monospace;color:#374151">${fmt(l.rate)}/hr</td>
             <td style="padding:7px 12px;font-size:11px;text-align:right;font-family:monospace;font-weight:600;color:#111827">${fmt(l.amt)}</td>
           </tr>`).join('')}
