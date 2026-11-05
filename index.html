@@ -863,6 +863,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
                 <option value="90">Net 90</option>
               </select>
               <button id="csTaxToggleBtn" class="btn" style="font-weight:700" onclick="csToggleTax()">Taxes On</button>
+              <button id="csCancelBtn" class="btn" style="background:#7a1015;color:#fff;border:none;font-weight:700" onclick="csCancelShow()">🚫 Cancel show</button>
               <button class="btn btn-primary" onclick="csSave()">Save schedule</button>
             </div>
           </div>
@@ -1020,6 +1021,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <span class="chip active" data-ps="open" onclick="psSetFilter('open')">Unpaid</span>
               <span class="chip" data-ps="late" onclick="psSetFilter('late')">Overdue</span>
               <span class="chip" data-ps="paid" onclick="psSetFilter('paid')">Paid</span>
+              <span class="chip" data-ps="cancelled" onclick="psSetFilter('cancelled')">Cancelled</span>
               <span class="chip" data-ps="all" onclick="psSetFilter('all')">All</span>
             </div>
           </div>
@@ -6366,6 +6368,47 @@ function csAddDay(){
 }
 function csDelDay(id){ CS.days=CS.days.filter(d=>d.id!==id); delete CS.assign[id]; if(CS.cur===id) CS.cur=CS.days[0]?CS.days[0].id:null; csRender(); }
 function csSelDay(id){ CS.cur=id; csRender(); }
+function csSyncCancelBtn(){
+  const b=document.getElementById('csCancelBtn'); if(!b) return;
+  const c=!!(CS.cancelled&&CS.cancelled.on);
+  b.textContent=c?'↩ Restore show (cancelled)':'🚫 Cancel show';
+  b.style.background=c?'#374151':'#7a1015';
+}
+function csCrewEmails(){
+  const ids=new Set(); Object.keys(CS.assign||{}).forEach(d=>(CS.assign[d]||[]).forEach(sl=>{ if(sl.tech) ids.add(String(sl.tech)); }));
+  const out=[], missing=[];
+  ids.forEach(id=>{ const p=(people||[]).find(x=>String(x.id)===id); const n=p?((p.first_name||'')+' '+(p.last_name||'')).trim():id; if(p&&p.email) out.push(p.email.trim()); else missing.push(n); });
+  return {emails:[...new Set(out)],missing};
+}
+async function csCancelShow(){
+  if(!CS.id){ toast('Save first','Save the schedule once, then cancel it.'); return; }
+  if(CS.cancelled&&CS.cancelled.on){
+    if(!confirm('Restore "'+CS.event+'"? It goes back into payouts and invoices.')) return;
+    CS.cancelled=null; csSyncCancelBtn(); await csSave(); toast('Show restored',CS.event); return;
+  }
+  if(!confirm('Cancel "'+CS.event+'"?\n\nThis removes it from payouts and revenue (nothing is deleted, and you can restore it). Next you can review a cancellation email to the crew.')) return;
+  const reason=prompt('Reason for the cancellation (optional, goes in the email):','')||'';
+  CS.cancelled={on:true,at:new Date().toISOString(),reason:reason.trim()};
+  csSyncCancelBtn(); await csSave();
+  csCancelEmail();
+}
+function csCancelEmail(){
+  const {emails,missing}=csCrewEmails();
+  const days=(CS.days||[]).map(d=>d.label).join(', ');
+  const reason=(CS.cancelled&&CS.cancelled.reason)||'';
+  const subject='CANCELLED: '+CS.event+(days?' ('+days+')':'');
+  const body='Hi team,\n\nThis is to let you know that "'+CS.event+'"'+(days?' ('+days+')':'')+' has been cancelled. Please do not report for this call.'+(reason?'\n\nReason: '+reason:'')+'\n\nIf you have any questions, reply to this email or call 202-306-4375. Thank you for your flexibility, and we will be in touch about upcoming work.\n\n7 Virtues Entertainment';
+  const url='mailto:admin@7virtuesentertainment.com?bcc='+encodeURIComponent(emails.join(','))+'&subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  toast('Show cancelled',(emails.length?'Opening a draft to '+emails.length+' crew member(s). Review and press send.':'No crew emails on file, add them in People.')+(missing.length?' No email for: '+missing.join(', ')+'.':''));
+  if(emails.length) window.location.href=url;
+}
+
+function csRenameDay(id){
+  const d=CS.days.find(x=>x.id===id); if(!d) return;
+  const v=prompt('Rename this day tab.\n\nKeep the date in the name (like 9/24 or Sep 24) because the payout due date is read from it.', d.label);
+  if(v===null) return; const t=v.trim(); if(!t){ toast('Name needed','The day name cannot be empty.'); return; }
+  d.label=t.replace(/[<>]/g,''); csRender(); toast('Renamed','Save the schedule to keep the new name.');
+}
 function csAddSlot(){ if(!CS.cur)return; CS.assign[CS.cur].push({tech:'',pos:'In-room Video/Hybrid',time:'6:00a–6:00p',room:'Vessey Ballroom'}); csRender(); }
 function csDelSlot(i){ CS.assign[CS.cur].splice(i,1); csRender(); }
 function csSetSlot(i,f,v){ CS.assign[CS.cur][i][f]=v; if(f==='room'||f==='pos') csRememberOption(f,v); csRender(); }
@@ -6382,7 +6425,7 @@ function csRender(){
   document.getElementById('csDays').innerHTML = CS.days.length ? CS.days.map(d=>{
     const f=csFilled(d.id), ok=f>=d.needed;
     return `<div onclick="csSelDay('${d.id}')" style="border:1px solid ${d.id===CS.cur?'var(--accent)':'var(--border)'};background:${d.id===CS.cur?'#211a0c':'var(--bg-card)'};border-radius:10px;padding:8px 12px;min-width:98px">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:13px">${d.label}</b><span onclick="event.stopPropagation();csDelDay('${d.id}')" style="color:var(--muted2);cursor:pointer">×</span></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:13px" ondblclick="event.stopPropagation();csRenameDay('${d.id}')" title="Double-click to rename">${d.label}</b><span style="display:flex;gap:8px"><span onclick="event.stopPropagation();csRenameDay('${d.id}')" title="Rename" style="color:var(--muted2);cursor:pointer">✎</span><span onclick="event.stopPropagation();csDelDay('${d.id}')" style="color:var(--muted2);cursor:pointer">×</span></span></div>
       <div style="font-family:monospace;font-size:11px;margin-top:3px;color:${ok?'var(--green)':'var(--accent)'}">${f}/${d.needed}</div></div>`;
   }).join('') : '<div style="color:var(--muted);font-size:13px">Add a day to start building the schedule.</div>';
 
@@ -6447,7 +6490,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.techPaid={}; CS.cancelled=null; csSyncCancelBtn(); CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -6467,7 +6510,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn();
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.techPaid=data.techPaid||{}; CS.cancelled=data.cancelled||null; CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn(); csSyncCancelBtn();
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -6517,7 +6560,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off}};
+  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off, techPaid:CS.techPaid||{}, cancelled:CS.cancelled||null}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -6668,11 +6711,11 @@ function psInvoiceRec(sc, existing){
   return {
     invoice_number:psInvNumber(sc.id), record_type:'Client Invoice', client:data.client||(existing&&existing.client)||'', project:sc.event_name||'Crew schedule',
     event_location:(existing&&existing.event_location)||'', submitted_date:psFmtShort(created), due_date:psFmtShort(psDueDate(data,created)),
-    year:String(created.getFullYear()), invoice_total:t.total.toFixed(2), include_in_revenue:'Y', data_flag:'',
+    year:String(created.getFullYear()), invoice_total:t.total.toFixed(2), include_in_revenue:(data.cancelled&&data.cancelled.on)?'N':'Y', data_flag:'',
     source_file:'crew_schedule:'+sc.id, bill_to:(existing&&existing.bill_to)||'', venue:(existing&&existing.venue)||'',
     service_dates:(data.days||[]).map(d=>d.label).join(', '), terms:psTermsLabel(data.netTerms), po_number:(existing&&existing.po_number)||'', rep:(existing&&existing.rep)||'',
     subtotal:t.sub.toFixed(2), adjustment_label:'', adjustment_amount:0, tax_label:t.tax?'Sales tax (6%)':'', tax_amount:t.tax,
-    status:(existing&&existing.status)||'unpaid', paid_info:(existing&&existing.paid_info)||'', notes:(existing&&existing.notes)||'Created from crew schedule', line_items:t.items
+    status:(data.cancelled&&data.cancelled.on)?'cancelled':((existing&&existing.status&&existing.status!=='cancelled')?existing.status:'unpaid'), paid_info:(existing&&existing.paid_info)||'', notes:(existing&&existing.notes)||'Created from crew schedule', line_items:t.items
   };
 }
 async function psSyncInvoice(sc){
@@ -6709,7 +6752,7 @@ async function renderPayouts(){
       const data=typeof sc.data==='string'?JSON.parse(sc.data):(sc.data||{});
       const created=new Date(sc.created_at||Date.now()), inv=byId[String(sc.id)]||null;
       return {id:sc.id, name:sc.event_name||'Untitled', created, data, due:psDueDate(data,created), total:psTotal(data).total,
-        terms:psTermsLabel(data.netTerms), termsSet:data.netTerms!=null, inv, paid:!!(inv&&String(inv.status).toLowerCase()==='paid')};
+        cancelled:!!(data.cancelled&&data.cancelled.on), terms:psTermsLabel(data.netTerms), termsSet:data.netTerms!=null, inv, paid:!!(inv&&String(inv.status).toLowerCase()==='paid')};
     }).sort((a,b)=>a.due-b.due);
   }catch(e){ body.innerHTML=`<tr><td colspan=7 style="color:var(--red);padding:16px">Could not load payouts: ${String(e).substring(0,80)}</td></tr>`; return; }
   psDraw();
@@ -6717,18 +6760,18 @@ async function renderPayouts(){
 }
 function psSetFilter(f){ PS_FILTER=f; document.querySelectorAll('#psChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.ps===f)); psDraw(); }
 function psDraw(){
-  const now=Date.now(), open=PS_ROWS.filter(r=>!r.paid);
+  const now=Date.now(), open=PS_ROWS.filter(r=>!r.paid&&!r.cancelled);
   const sum=a=>a.reduce((t,r)=>t+r.total,0), set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
   const wk=open.filter(r=>r.due>=now&&r.due-now<=7*864e5), mo=open.filter(r=>r.due>=now&&r.due-now<=30*864e5), late=open.filter(r=>r.due<now);
   set('psOut',psMoney(sum(open))); set('psOutSub',open.length+' unpaid');
   set('psWeek',psMoney(sum(wk))); set('psWeekSub',wk.length+' job'+(wk.length!==1?'s':''));
   set('psMonth',psMoney(sum(mo))); set('psMonthSub',mo.length+' job'+(mo.length!==1?'s':''));
   set('psLate',psMoney(sum(late))); set('psLateSub',late.length+' job'+(late.length!==1?'s':''));
-  const rows=PS_ROWS.filter(r=>PS_FILTER==='all'||(PS_FILTER==='paid'?r.paid:PS_FILTER==='late'?(!r.paid&&r.due<now):!r.paid));
+  const rows=PS_ROWS.filter(r=>PS_FILTER==='all'?true:r.cancelled?PS_FILTER==='cancelled':(PS_FILTER==='paid'?r.paid:PS_FILTER==='late'?(!r.paid&&r.due<now):!r.paid));
   const esc=t=>String(t).replace(/</g,'&lt;');
   document.getElementById('psBody').innerHTML = rows.length ? rows.map(r=>{
-    const c=psCountdown(r.due,r.paid);
-    return `<tr class="arow">
+    const c=r.cancelled?{txt:'Cancelled',col:'var(--muted)'}:psCountdown(r.due,r.paid);
+    return `<tr class="arow" style="${r.cancelled?'opacity:.55':''}">
       <td><b>${esc(r.name)}</b><div style="font-size:11px;color:${r.data.client?'var(--steel)':'var(--accent)'}">${r.data.client?esc(r.data.client):'No client set'}</div><div style="font-size:11px;color:var(--muted)">Created ${psFmtShort(r.created)}${r.data.days&&r.data.days.length?' · '+esc(r.data.days.map(d=>d.label).join(', ')):''}</div></td>
       <td style="font-family:monospace;font-size:12px">${r.inv?esc(r.inv.invoice_number):psInvNumber(r.id)}${r.inv?'':'<div style="font-size:10px;color:var(--muted);font-family:inherit">not in ledger yet</div>'}</td>
       <td>${r.terms}${r.termsSet?'':'<div style="font-size:10px;color:var(--accent)">not set — assumed</div>'}</td>
@@ -6743,6 +6786,7 @@ function psTechRows(){
   const pm={}; (people||[]).forEach(p=>{ pm[String(p.id)]=p; });
   const out=[];
   (PS_ROWS||[]).forEach(r=>{
+    if(r.cancelled) return;
     const keep={rateCard:CS.rateCard}; CS.rateCard=r.data.rateCard||'legacy';
     const by={};
     try{
