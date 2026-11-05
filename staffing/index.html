@@ -763,20 +763,47 @@ async function mapLocate(){
     if(g){MAPD.geo[a.trim()]=[g.lat,g.lng];ok++;try{await sb.rpc('sh_geo_save',{p_address:a.trim(),p_lat:g.lat,p_lng:g.lng})}catch(e){}}else bad.push(a);
     await sleep(1100)}
   MLOCATING=false;MAPVIEW=null;render();toast(`Located ${ok} address(es)`+(bad.length?` · couldn't find ${bad.length} — check spelling in Crew`:''))}
-function mapPlaceEdit(id){const p=id?(MAPD.places||[]).find(x=>x.id===id):{kind:'hotel'};
+let PLGEO=null;
+function mapPlaceEdit(id){const p=id?(MAPD.places||[]).find(x=>x.id===id):{kind:'hotel'};PLGEO=p.lat!=null?{lat:+p.lat,lng:+p.lng,addr:p.address}:null;
   openModal(`<h3>${id?'Edit':'Add'} venue / hotel</h3>
+   ${id?'':`<label class="f">Pick from the CRM (invoices, rentals, jobs, bookings)</label>
+   <input class="i" id="pl_crm" placeholder="Type to search… e.g. Hilton, Westin, Gaylord" oninput="plCrmList()" onfocus="plCrmList()" autocomplete="off">
+   <div id="pl_crm_res" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin-top:4px;display:none"></div>`}
    <div class="f2"><div><label class="f">Name</label><input class="i" id="pl_name" value="${esc(p.name||'')}"></div><div><label class="f">Type</label><select class="i" id="pl_kind">${['hotel','venue','office','warehouse'].map(k=>`<option ${p.kind===k?'selected':''}>${k}</option>`).join('')}</select></div></div>
-   <label class="f">Address</label><input class="i" id="pl_addr" placeholder="1800 Jefferson Davis Hwy, Arlington, VA 22202" value="${esc(p.address||'')}">
+   <label class="f">Address</label><div class="row" style="flex-wrap:nowrap"><input class="i" id="pl_addr" placeholder="Street, city, state" value="${esc(p.address||'')}" oninput="PLGEO=null"><button class="btn" onclick="plLookup()">Look up</button></div>
+   <div id="pl_look_res"></div>
    <div class="f2"><div><label class="f">Contact</label><input class="i" id="pl_contact" value="${esc(p.contact||'')}"></div><div><label class="f">Phone</label><input class="i" id="pl_phone" value="${esc(p.phone||'')}"></div></div>
    <label class="f">Notes (loading dock, parking, AV contact…)</label><textarea class="i" id="pl_notes" rows="3">${esc(p.notes||'')}</textarea>
    <div class="small muted" id="pl_msg"></div>
    <div class="acts">${id?`<button class="btn bad" onclick="mapPlaceDel('${id}')">Delete</button><span class="sp"></span>`:''}<button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="mapPlaceSave(${id?`'${id}'`:'null'})">Save</button></div>`)}
-async function mapPlaceSave(id){const name=$('pl_name').value.trim(),addr=$('pl_addr').value.trim();if(!name||!addr)return toast('Name and address are required');
-  $('pl_msg').textContent='Finding the address on the map…';let g=null;try{g=await geocode(addr)}catch(e){}
-  if(!g)$('pl_msg').textContent='Could not find that address — saved without a pin. Check the spelling.';
-  const r=await rpc('sh_place_save',{p:{id,name,kind:$('pl_kind').value,address:addr,contact:$('pl_contact').value,phone:$('pl_phone').value,notes:$('pl_notes').value,lat:g?g.lat:null,lng:g?g.lng:null}});
-  if(g)try{await sb.rpc('sh_geo_save',{p_address:addr,p_lat:g.lat,p_lng:g.lng})}catch(e){}
-  closeLayer();toast(g?'Saved and pinned':'Saved (no pin)');MAPVIEW=null;await loadMapData()}
+function plCrmList(){const q=($('pl_crm').value||'').toLowerCase().trim();const box=$('pl_crm_res');
+  const have=new Set((MAPD.places||[]).map(p=>(p.name||'').toLowerCase()));
+  const list=(MAPD.crm||[]).filter(c=>!q||(c.name+' '+(c.addr||'')).toLowerCase().includes(q)).slice(0,40);
+  box.style.display='block';
+  box.innerHTML=list.length?list.map((c,i)=>`<div class="mrow" onclick="plPick(${(MAPD.crm||[]).indexOf(c)})"><b>${esc(c.name)}</b>${have.has(c.name.toLowerCase())?' <span class="chip c-g">already saved</span>':''}<div class="small muted">${c.addr&&c.addr!==c.name?esc(c.addr)+' · ':''}${esc(c.src)} · ${c.n}×</div></div>`).join(''):'<div class="cb small muted">No matches in the CRM. Type the name and address below instead.</div>'}
+function plPick(i){const c=MAPD.crm[i];$('pl_crm_res').style.display='none';$('pl_crm').value=c.name;
+  const nm=c.name.split(',')[0].trim();$('pl_name').value=nm;
+  if(/hotel|hilton|marriott|westin|hyatt|mayflower|renaissance|gaylord|broadmoor|inn|resort|weston/i.test(c.name))$('pl_kind').value='hotel';else $('pl_kind').value='venue';
+  const a=c.addr&&c.addr!==c.name?c.addr:c.name;$('pl_addr').value=/\d/.test(a)?a:'';PLGEO=null;plLookup(a)}
+async function plLookup(q){q=q||$('pl_addr').value.trim()||$('pl_name').value.trim();const box=$('pl_look_res');if(!q)return toast('Type a name or address first');
+  box.innerHTML='<div class="small muted" style="margin-top:6px">Searching the map…</div>';
+  const tries=[q,cleanAddr(q)].filter((v,i,a)=>v&&a.indexOf(v)===i);let res=[];
+  for(const t of tries){try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&countrycodes=us&q='+encodeURIComponent(t),{headers:{'Accept':'application/json'}});res=await r.json()}catch(e){res=[]}if(res.length)break;await sleep(1100)}
+  if(!res.length){box.innerHTML='<div class="small flag" style="margin-top:6px">Not found on the map. Type the street address (number, street, city, state) and click Look up.</div>';return}
+  window._plRes=res;
+  box.innerHTML='<div class="small muted" style="margin:6px 0 2px">Pick the right one:</div>'+res.map((r,i)=>{const ad=r.address||{};const street=[ad.house_number,ad.road].filter(Boolean).join(' ');const city=ad.city||ad.town||ad.village||ad.suburb||ad.county||'';
+    const short=[street,city,ad.state,ad.postcode].filter(Boolean).join(', ')||r.display_name;
+    return `<div class="mrow" onclick="plUse(${i})"><b>${esc(r.name||street||short)}</b><div class="small muted">${esc(short)}</div></div>`}).join('')}
+function plUse(i){const r=window._plRes[i];const ad=r.address||{};const street=[ad.house_number,ad.road].filter(Boolean).join(' ');const city=ad.city||ad.town||ad.village||ad.suburb||ad.county||'';
+  const short=[street,city,ad.state,ad.postcode].filter(Boolean).join(', ')||r.display_name;
+  $('pl_addr').value=short;PLGEO={lat:+r.lat,lng:+r.lon,addr:short};if(!$('pl_name').value&&r.name)$('pl_name').value=r.name;
+  $('pl_look_res').innerHTML=`<div class="small" style="margin-top:6px;color:var(--green)">📍 Pinned: ${esc(short)}</div>`}
+async function mapPlaceSave(id){const name=$('pl_name').value.trim(),addr=$('pl_addr').value.trim();if(!name)return toast('Give it a name');if(!addr&&!PLGEO)return toast('Add an address or pick one from Look up');
+  let g=PLGEO&&PLGEO.addr===addr?PLGEO:null;
+  if(!g){$('pl_msg').textContent='Finding the address on the map…';try{g=await geocode(addr)}catch(e){}}
+  await rpc('sh_place_save',{p:{id,name,kind:$('pl_kind').value,address:addr,contact:$('pl_contact').value,phone:$('pl_phone').value,notes:$('pl_notes').value,lat:g?g.lat:null,lng:g?g.lng:null}});
+  if(g&&addr)try{await sb.rpc('sh_geo_save',{p_address:addr,p_lat:g.lat,p_lng:g.lng})}catch(e){}
+  closeLayer();toast(g?'Saved and pinned on the map':'Saved, but no pin — use Look up to find the address');MAPVIEW=null;await loadMapData()}
 async function mapPlaceDel(id){if(!confirm('Delete this venue/hotel?'))return;await rpc('sh_place_delete',{p_id:id});closeLayer();MSEL=null;MDRIVE=null;await loadMapData()}
 
 /* ================= SETTINGS ================= */
