@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{--bg:#0A0A0A;--panel:#141414;--panel2:#1C1C1C;--line:#2A2A2A;--text:#F5F5F5;--muted:#9A9A9A;--red:#E70B0E;--red2:#FF3B3E;--green:#22C55E;--amber:#F5A623;--blue:#3B82F6;--mono:'IBM Plex Mono',monospace}
 *{box-sizing:border-box}
@@ -104,6 +106,16 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 .sub td{font-size:12px;color:#cfcfcf}
 .loading{color:var(--muted);padding:40px;text-align:center}
 .help{color:var(--muted);font-size:12px;line-height:1.5}
+.mapwrap{display:grid;grid-template-columns:1fr 340px;gap:16px}
+@media(max-width:900px){.mapwrap{grid-template-columns:1fr}}
+#map{height:calc(100vh - 230px);min-height:460px;border-radius:8px;border:1px solid var(--line);background:#111}
+.mside{max-height:calc(100vh - 230px);overflow:auto}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#1C1C1C;color:#F5F5F5}
+.leaflet-container a.leaflet-popup-close-button{color:#aaa}
+.mrow{padding:8px 12px;border-bottom:1px solid #1f1f1f;cursor:pointer;font-size:13px}
+.mrow:hover{background:var(--panel2)}
+.mrow.on{border-left:3px solid var(--red);background:var(--panel2)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
 @media print{header,nav,.toolbar,.btn,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#ccc;background:#fff}td,th{color:#000;border-color:#ddd}}
 </style>
 </head>
@@ -133,7 +145,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
       <div class="brand">7VE <b>Staffing</b> HQ</div>
       <div class="sp"></div>
       <span class="who" id="who"></span>
-      <button class="btn s" onclick="loadData()">↻ Refresh</button>
+      <button class="btn s" onclick="MAPD=null;loadData()">↻ Refresh</button>
       <button class="btn s g" id="soBtn" onclick="signOut()">Sign out</button>
     </div>
     <nav id="nav"></nav>
@@ -293,14 +305,15 @@ async function loadData(quiet){
 async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error){toast(error.message);throw error}return data}
 
 /* ================= SHELL ================= */
-const TABS=[['status','Team Status'],['booking','Booking'],['crew','Crew'],['clock','Time Clock'],['mileage','Mileage'],['payroll','Payroll Prep'],['settings','Settings']];
+const TABS=[['status','Team Status'],['booking','Booking'],['map','Map'],['crew','Crew'],['clock','Time Clock'],['mileage','Mileage'],['payroll','Payroll Prep'],['settings','Settings']];
 function render(){
   const pend=(D.requests||[]).filter(r=>r.status==='pending').length;
   const milPend=(D.mileage||[]).filter(m=>m.status==='pending').length;
   $('nav').innerHTML=TABS.map(([k,l])=>{let b='';if(k==='clock'&&pend)b=`<span class="badge">${pend}</span>`;if(k==='mileage'&&milPend)b=`<span class="badge">${milPend}</span>`;return `<button class="${TAB===k?'on':''}" onclick="go('${k}')">${l}${b}</button>`}).join('');
-  const fn={status:rStatus,booking:rBooking,crew:rCrew,clock:rClock,mileage:rMileage,payroll:rPayroll,settings:rSettings}[TAB];
+  const fn={status:rStatus,booking:rBooking,map:rMap,crew:rCrew,clock:rClock,mileage:rMileage,payroll:rPayroll,settings:rSettings}[TAB];
   $('main').innerHTML=fn();
   if(TAB==='booking')bkAfterRender();
+  if(TAB==='map')mapAfterRender();
 }
 function go(t){TAB=t;render();window.scrollTo(0,0)}
 function openDrawer(html){$('layer').innerHTML=`<div class="ov" onclick="if(event.target===this)closeLayer()"><div class="dr">${html}</div></div>`}
@@ -663,6 +676,104 @@ function payExport(){const R=buildPayroll(UI.payStart,UI.payEnd);const rows=[['P
   R.lines.forEach(l=>{const st=IDX.staff[l.staff_id];rows.push([UI.payStart,UI.payEnd,l.name,st.email||'',l.shifts.length+(UI.payIncludeBooked?l.booked.length:0),num(l.hrs),num(l.reg),num(l.ot),num(l.dt),num(l.labor),num(l.miles,1),num(l.mileAmt),num(l.total),l.pay_method,l.pay_handle,l.payBy,l.flags.join('; ')])});
   rows.push([]);rows.push(['','','TOTAL','','',num(R.totals.hrs),'','','',num(R.totals.labor),num(R.totals.miles,1),num(R.totals.mileage),num(R.totals.total)]);
   downloadCSV('7VE-payroll-'+UI.payStart+'_to_'+UI.payEnd+'.csv',rows)}
+
+/* ================= MAP ================= */
+let MAPD=null,LMAP=null,MAPVIEW=null,MSEL=null,MDRIVE=null,MLOCATING=false;
+const RINGS=[10,25,50];
+function geoOf(addr){if(!addr||!MAPD)return null;const g=MAPD.geo[addr.trim()];return g&&g[0]!=null?{lat:+g[0],lng:+g[1]}:null}
+function looksLikeAddress(t){return /\d+\s+\S+/.test(t||'')&&/,|\b(va|md|dc|virginia|maryland|co|st|street|ave|rd|road|blvd|dr)\b/i.test(t||'')}
+function mapPoints(){
+  const techs=(D.staff||[]).filter(s=>!isPlaceholder(s)).map(s=>{const a=homeAddr(s,IDX.authByStaff[s.id]);return {id:s.id,name:staffName(s),addr:a,geo:geoOf(a),staff:s}});
+  const venues=[],seen=new Set();
+  const add=(v)=>{const k=(v.addr||v.name).toLowerCase().trim();if(!k||seen.has(k))return;seen.add(k);venues.push(v)};
+  (MAPD.places||[]).forEach(p=>add({id:'p:'+p.id,name:p.name,kind:p.kind||'venue',addr:p.address||'',geo:p.lat!=null?{lat:+p.lat,lng:+p.lng}:geoOf(p.address),place:p,note:[p.contact,p.phone,p.notes].filter(Boolean).join(' · ')}));
+  (MAPD.rentals||[]).forEach((r,i)=>add({id:'r:'+i,name:r.venue||r.client||'Rental delivery',kind:'rental',addr:r.address,geo:geoOf(r.address),note:'Rental · '+(r.client||'')+(r.start_date?' · '+fmtDate(r.start_date):'')}));
+  (D.schedules||[]).forEach(sc=>{const v=(sc.data||{}).venue;if(looksLikeAddress(v))add({id:'b:'+sc.id,name:sc.event_name,kind:'booking',addr:v,geo:geoOf(v),note:'Booking'})});
+  const sites=(D.clock||[]).filter(c=>c.in_lat!=null).map(c=>({id:'c:'+c.id,name:techName(c.tech_user_id),geo:{lat:c.in_lat,lng:c.in_lng},date:c.clock_in_at,ev:(matchShift(c)||{}).event||''}));
+  return {techs,venues,sites};}
+function rMap(){
+  if(!MAPD){loadMapData();return '<div class="loading">Loading map…</div>'}
+  const P=mapPoints();const missing=[...new Set(P.techs.filter(t=>t.addr&&!t.geo).map(t=>t.addr).concat(P.venues.filter(v=>v.addr&&!v.geo).map(v=>v.addr)))];
+  const noAddr=P.techs.filter(t=>!t.addr);
+  let side='';
+  if(!MSEL){side=`<div class="cb help">Click a <b style="color:#60A5FA">tech</b> to see mileage rings and drive times to every venue.<br>Click a <b style="color:var(--red2)">venue or hotel</b> to see who's closest.</div>
+     <div class="small muted" style="padding:6px 12px">TECHS</div>${P.techs.map(t=>`<div class="mrow" onclick="mapSelect('tech','${t.id}')"><span class="dot" style="background:${t.geo?'#60A5FA':'#444'}"></span>${esc(t.name)}${t.addr?(t.geo?'':' <span class="flag">not located</span>'):' <span class="flag">no address</span>'}</div>`).join('')}
+     <div class="small muted" style="padding:6px 12px">VENUES & HOTELS</div>${P.venues.length?P.venues.map(v=>`<div class="mrow" onclick="mapSelect('venue','${v.id}')"><span class="dot" style="background:${v.geo?'#E70B0E':'#444'}"></span>${esc(v.name)} <span class="small muted">${esc(v.kind)}</span></div>`).join(''):'<div class="cb small muted">No venue addresses yet. Click + Add venue / hotel.</div>'}`}
+  else side=mapSideSelected(P);
+  return `<div class="toolbar"><button class="btn p" onclick="mapPlaceEdit()">+ Add venue / hotel</button>
+     <button class="btn" onclick="mapLocate()" ${missing.length&&!MLOCATING?'':'disabled'}>${MLOCATING?'Locating…':'Locate addresses ('+missing.length+')'}</button>
+     ${MSEL?'<button class="btn" onclick="mapSelect(null)">Clear selection</button>':''}
+     <span class="sp"></span><span class="small muted"><span class="dot" style="background:#60A5FA"></span>Tech home <span class="dot" style="background:#E70B0E;margin-left:8px"></span>Venue/hotel <span class="dot" style="background:#22C55E;margin-left:8px"></span>Clock-in site</span></div>
+   <div id="mapProg"></div>
+   <div class="mapwrap"><div id="map"></div><div class="card mside" style="margin:0"><div class="cb np">${side}</div></div></div>
+   <p class="help">Rings show straight-line miles (${RINGS.join(' / ')} mi). Drive times are normal-traffic estimates from OpenStreetMap routing, not live traffic.${noAddr.length?' '+noAddr.length+' tech(s) have no home address — add it in Crew.':''}</p>`}
+async function loadMapData(){try{MAPD=await rpc('sh_map_data',{});MAPD.geo=MAPD.geo||{};}catch(e){MAPD={places:[],geo:{},rentals:[]}}if(TAB==='map')render()}
+function mapSideSelected(P){
+  if(MSEL.type==='tech'){const t=P.techs.find(x=>x.id===MSEL.id);if(!t)return '';
+    const rows=(MDRIVE&&MDRIVE.rows)||[];
+    return `<div class="cb"><b style="font-size:16px">${esc(t.name)}</b><div class="small muted">${esc(t.addr||'no address')}</div><div class="small">${esc(t.staff.lead_skill||t.staff.title||'')} · ${esc(t.staff.phone||'')}</div></div>
+     <div class="small muted" style="padding:6px 12px">DRIVE TO VENUES</div>${!t.geo?'<div class="cb small flag">Locate this address first.</div>':MDRIVE==='loading'?'<div class="cb small muted">Working out drive times…</div>':rows.length?rows.map(r=>`<div class="mrow" onclick="mapSelect('venue','${r.id}')"><span class="dot" style="background:${driveColor(r.min)}"></span><b>${r.min!=null?Math.round(r.min)+' min':'—'}</b> · ${r.mi!=null?num(r.mi,1)+' mi':''}<div class="small muted">${esc(r.name)}</div></div>`).join(''):'<div class="cb small muted">No located venues yet.</div>'}`}
+  const v=P.venues.find(x=>x.id===MSEL.id);if(!v)return '';const today=todayYmd();const rows=(MDRIVE&&MDRIVE.rows)||[];
+  return `<div class="cb"><b style="font-size:16px">${esc(v.name)}</b> <span class="chip">${esc(v.kind)}</span><div class="small muted">${esc(v.addr||'')}</div>${v.note?`<div class="small">${esc(v.note)}</div>`:''}${v.place?`<div style="margin-top:6px"><button class="btn s" onclick="mapPlaceEdit('${v.place.id}')">Edit</button></div>`:''}</div>
+   <div class="small muted" style="padding:6px 12px">CLOSEST TECHS</div>${!v.geo?'<div class="cb small flag">Locate this address first.</div>':MDRIVE==='loading'?'<div class="cb small muted">Working out drive times…</div>':rows.length?rows.map(r=>{const unav=isUnavailable(r.id,today),booked=shiftsOn(r.id,today).length;
+     return `<div class="mrow" onclick="mapSelect('tech','${r.id}')"><span class="dot" style="background:${driveColor(r.min)}"></span><b>${r.min!=null?Math.round(r.min)+' min':'—'}</b> · ${r.mi!=null?num(r.mi,1)+' mi':''} · ${esc(r.name)}<div class="small muted">${esc(r.skill||'')}${unav?' <span class="chip c-r">unavailable today</span>':''}${booked?' <span class="chip c-a">booked today</span>':''}</div></div>`}).join(''):'<div class="cb small muted">No located techs yet.</div>'}`}
+function driveColor(m){return m==null?'#666':m<=30?'#22C55E':m<=60?'#F5A623':m<=90?'#FB923C':'#E70B0E'}
+async function osrmTable(src,dests){
+  if(!dests.length)return [];
+  const coords=[src].concat(dests).map(p=>p.lng.toFixed(5)+','+p.lat.toFixed(5)).join(';');
+  try{const r=await fetch(`https://router.project-osrm.org/table/v1/driving/${coords}?sources=0&annotations=duration,distance`);const j=await r.json();
+    if(j.code==='Ok')return dests.map((d,i)=>({min:j.durations[0][i+1]!=null?j.durations[0][i+1]/60:null,mi:j.distances&&j.distances[0][i+1]!=null?j.distances[0][i+1]/1609.344:null}));}catch(e){}
+  return dests.map(d=>{const mi=haversineMi(src,d)*1.25;return {min:mi/40*60,mi,est:true}})}
+async function mapSelect(type,id){
+  if(!type){MSEL=null;MDRIVE=null;render();return}
+  MSEL={type,id};MDRIVE='loading';render();
+  const P=mapPoints();
+  if(type==='tech'){const t=P.techs.find(x=>x.id===id);if(!t||!t.geo){MDRIVE=null;render();return}
+    const vs=P.venues.filter(v=>v.geo);const res=await osrmTable(t.geo,vs.map(v=>v.geo));
+    MDRIVE={rows:vs.map((v,i)=>({id:v.id,name:v.name,...res[i]})).sort((a,b)=>(a.min??1e9)-(b.min??1e9))}}
+  else{const v=P.venues.find(x=>x.id===id);if(!v||!v.geo){MDRIVE=null;render();return}
+    const ts=P.techs.filter(t=>t.geo);const res=await osrmTable(v.geo,ts.map(t=>t.geo));
+    MDRIVE={rows:ts.map((t,i)=>({id:t.id,name:t.name,skill:t.staff.lead_skill||t.staff.title,...res[i]})).sort((a,b)=>(a.min??1e9)-(b.min??1e9))}}
+  if(MSEL&&MSEL.id===id&&TAB==='map')render()}
+function mapAfterRender(){
+  if(!MAPD||typeof L==='undefined'||!$('map'))return;
+  if(LMAP){try{MAPVIEW={c:LMAP.getCenter(),z:LMAP.getZoom()};LMAP.remove()}catch(e){}}
+  LMAP=L.map('map',{zoomControl:true}).setView(MAPVIEW?MAPVIEW.c:[38.9,-77.03],MAPVIEW?MAPVIEW.z:9);
+  L.tileLayer('https://{s}.basemap.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}).addTo(LMAP);
+  const P=mapPoints();const dm={};if(MDRIVE&&MDRIVE.rows)MDRIVE.rows.forEach(r=>dm[r.id]=r);
+  P.sites.forEach(s=>L.circleMarker([s.geo.lat,s.geo.lng],{radius:4,color:'#22C55E',fillColor:'#22C55E',fillOpacity:.7,weight:1}).addTo(LMAP).bindPopup(`<b>${esc(s.name)}</b><br>Clocked in ${fmtDT(s.date)}${s.ev?'<br>'+esc(s.ev):''}`));
+  P.venues.filter(v=>v.geo).forEach(v=>{const d=dm[v.id];const sel=MSEL&&MSEL.id===v.id;
+    const m=L.circleMarker([v.geo.lat,v.geo.lng],{radius:sel?10:7,color:'#fff',weight:sel?3:1,fillColor:MSEL&&MSEL.type==='tech'&&d?driveColor(d.min):'#E70B0E',fillOpacity:.95}).addTo(LMAP);
+    m.bindTooltip(esc(v.name)+(d&&d.min!=null?' · '+Math.round(d.min)+' min':''));m.on('click',()=>mapSelect('venue',v.id))});
+  P.techs.filter(t=>t.geo).forEach(t=>{const d=dm[t.id];const sel=MSEL&&MSEL.id===t.id;
+    const m=L.circleMarker([t.geo.lat,t.geo.lng],{radius:sel?9:6,color:'#fff',weight:sel?3:1,fillColor:MSEL&&MSEL.type==='venue'&&d?driveColor(d.min):'#60A5FA',fillOpacity:.95}).addTo(LMAP);
+    m.bindTooltip(esc(t.name)+(d&&d.min!=null?' · '+Math.round(d.min)+' min':''));m.on('click',()=>mapSelect('tech',t.id));
+    if(sel)RINGS.forEach((mi,i)=>L.circle([t.geo.lat,t.geo.lng],{radius:mi*1609.344,color:['#22C55E','#F5A623','#E70B0E'][i],weight:1.5,fill:false,dashArray:'6 6'}).addTo(LMAP).bindTooltip(mi+' mi',{permanent:false}))});
+  if(!MAPVIEW){const all=P.techs.filter(t=>t.geo).map(t=>[t.geo.lat,t.geo.lng]).concat(P.venues.filter(v=>v.geo).map(v=>[v.geo.lat,v.geo.lng]));if(all.length>1)LMAP.fitBounds(all,{padding:[30,30],maxZoom:11})}
+  setTimeout(()=>LMAP&&LMAP.invalidateSize(),50)}
+async function mapLocate(){
+  const P=mapPoints();const missing=[...new Set(P.techs.filter(t=>t.addr&&!t.geo).map(t=>t.addr).concat(P.venues.filter(v=>v.addr&&!v.geo).map(v=>v.addr)))];
+  MLOCATING=true;render();let ok=0,bad=[];
+  for(let i=0;i<missing.length;i++){const a=missing[i];if($('mapProg'))$('mapProg').innerHTML=`<div class="card"><div class="cb small">Locating ${i+1} of ${missing.length}: ${esc(a)}</div></div>`;
+    let g=null;try{g=await geocode(a)}catch(e){}
+    if(g){MAPD.geo[a.trim()]=[g.lat,g.lng];ok++;try{await sb.rpc('sh_geo_save',{p_address:a.trim(),p_lat:g.lat,p_lng:g.lng})}catch(e){}}else bad.push(a);
+    await sleep(1100)}
+  MLOCATING=false;MAPVIEW=null;render();toast(`Located ${ok} address(es)`+(bad.length?` · couldn't find ${bad.length} — check spelling in Crew`:''))}
+function mapPlaceEdit(id){const p=id?(MAPD.places||[]).find(x=>x.id===id):{kind:'hotel'};
+  openModal(`<h3>${id?'Edit':'Add'} venue / hotel</h3>
+   <div class="f2"><div><label class="f">Name</label><input class="i" id="pl_name" value="${esc(p.name||'')}"></div><div><label class="f">Type</label><select class="i" id="pl_kind">${['hotel','venue','office','warehouse'].map(k=>`<option ${p.kind===k?'selected':''}>${k}</option>`).join('')}</select></div></div>
+   <label class="f">Address</label><input class="i" id="pl_addr" placeholder="1800 Jefferson Davis Hwy, Arlington, VA 22202" value="${esc(p.address||'')}">
+   <div class="f2"><div><label class="f">Contact</label><input class="i" id="pl_contact" value="${esc(p.contact||'')}"></div><div><label class="f">Phone</label><input class="i" id="pl_phone" value="${esc(p.phone||'')}"></div></div>
+   <label class="f">Notes (loading dock, parking, AV contact…)</label><textarea class="i" id="pl_notes" rows="3">${esc(p.notes||'')}</textarea>
+   <div class="small muted" id="pl_msg"></div>
+   <div class="acts">${id?`<button class="btn bad" onclick="mapPlaceDel('${id}')">Delete</button><span class="sp"></span>`:''}<button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="mapPlaceSave(${id?`'${id}'`:'null'})">Save</button></div>`)}
+async function mapPlaceSave(id){const name=$('pl_name').value.trim(),addr=$('pl_addr').value.trim();if(!name||!addr)return toast('Name and address are required');
+  $('pl_msg').textContent='Finding the address on the map…';let g=null;try{g=await geocode(addr)}catch(e){}
+  if(!g)$('pl_msg').textContent='Could not find that address — saved without a pin. Check the spelling.';
+  const r=await rpc('sh_place_save',{p:{id,name,kind:$('pl_kind').value,address:addr,contact:$('pl_contact').value,phone:$('pl_phone').value,notes:$('pl_notes').value,lat:g?g.lat:null,lng:g?g.lng:null}});
+  if(g)try{await sb.rpc('sh_geo_save',{p_address:addr,p_lat:g.lat,p_lng:g.lng})}catch(e){}
+  closeLayer();toast(g?'Saved and pinned':'Saved (no pin)');MAPVIEW=null;await loadMapData()}
+async function mapPlaceDel(id){if(!confirm('Delete this venue/hotel?'))return;await rpc('sh_place_delete',{p_id:id});closeLayer();MSEL=null;MDRIVE=null;await loadMapData()}
 
 /* ================= SETTINGS ================= */
 function rSettings(){const M=settings('mileage'),P=settings('payroll');
