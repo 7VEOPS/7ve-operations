@@ -743,7 +743,8 @@ function mapAfterRender(){
   if(!MAPD||typeof L==='undefined'||!$('map'))return;
   if(LMAP){try{MAPVIEW={c:LMAP.getCenter(),z:LMAP.getZoom()};LMAP.remove()}catch(e){}}
   LMAP=L.map('map',{zoomControl:true}).setView(MAPVIEW?MAPVIEW.c:[38.9,-77.03],MAPVIEW?MAPVIEW.z:9);
-  L.tileLayer('https://{s}.basemap.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}).addTo(LMAP);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'}).addTo(LMAP);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(LMAP);
   const P=mapPoints();const dm={};if(MDRIVE&&MDRIVE.rows)MDRIVE.rows.forEach(r=>dm[r.id]=r);
   P.sites.forEach(s=>L.circleMarker([s.geo.lat,s.geo.lng],{radius:4,color:'#22C55E',fillColor:'#22C55E',fillOpacity:.7,weight:1}).addTo(LMAP).bindPopup(`<b>${esc(s.name)}</b><br>Clocked in ${fmtDT(s.date)}${s.ev?'<br>'+esc(s.ev):''}`));
   P.venues.filter(v=>v.geo).forEach(v=>{const d=dm[v.id];const sel=MSEL&&MSEL.id===v.id;
@@ -753,7 +754,6 @@ function mapAfterRender(){
     const m=L.circleMarker([t.geo.lat,t.geo.lng],{radius:sel?9:6,color:'#fff',weight:sel?3:1,fillColor:MSEL&&MSEL.type==='venue'&&d?driveColor(d.min):'#60A5FA',fillOpacity:.95}).addTo(LMAP);
     m.bindTooltip(esc(t.name)+(d&&d.min!=null?' · '+Math.round(d.min)+' min':''));m.on('click',()=>mapSelect('tech',t.id));
     if(sel)RINGS.forEach((mi,i)=>L.circle([t.geo.lat,t.geo.lng],{radius:mi*1609.344,color:['#22C55E','#F5A623','#E70B0E'][i],weight:1.5,fill:false,dashArray:'6 6'}).addTo(LMAP).bindTooltip(mi+' mi',{permanent:false}))});
-  if(!MAPVIEW){const all=P.techs.filter(t=>t.geo).map(t=>[t.geo.lat,t.geo.lng]).concat(P.venues.filter(v=>v.geo).map(v=>[v.geo.lat,v.geo.lng]));if(all.length>1)LMAP.fitBounds(all,{padding:[30,30],maxZoom:11})}
   setTimeout(()=>LMAP&&LMAP.invalidateSize(),50)}
 async function mapLocate(){
   const P=mapPoints();const missing=[...new Set(P.techs.filter(t=>t.addr&&!t.geo).map(t=>t.addr).concat(P.venues.filter(v=>v.addr&&!v.geo).map(v=>v.addr)))];
