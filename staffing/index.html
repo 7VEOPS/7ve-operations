@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0A">
+<title>7VE Staffing HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0A0A0A;--panel:#141414;--panel2:#1C1C1C;--line:#2A2A2A;--text:#F5F5F5;--muted:#9A9A9A;--red:#E70B0E;--red2:#FF3B3E;--green:#22C55E;--amber:#F5A623;--blue:#3B82F6;--mono:'IBM Plex Mono',monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--red2)}
+.hidden{display:none!important}
+.brand{font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.brand b{color:var(--red)}
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lcard{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:10px;padding:28px}
+.lcard h1{margin:0 0 4px;font-size:28px}
+.lcard p{color:var(--muted);margin:0 0 20px;font-size:13px}
+label.f{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:12px 0 5px}
+input.i,select.i,textarea.i{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;outline:none}
+input.i:focus,select.i:focus,textarea.i:focus{border-color:var(--red)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#444}
+.btn.p{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.btn.p:hover{background:var(--red2)}
+.btn.s{padding:4px 8px;font-size:12px}
+.btn.g{background:transparent}
+.btn.ok{border-color:var(--green);color:var(--green)}
+.btn.bad{border-color:#5a1f1f;color:#f87171}
+.lmsg{font-size:13px;margin-top:12px;min-height:18px}
+.links{display:flex;justify-content:space-between;margin-top:14px;font-size:12px}
+.links a{cursor:pointer;color:var(--muted)}
+/* shell */
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.hrow{display:flex;align-items:center;gap:14px;padding:10px 18px;flex-wrap:wrap}
+.hrow .brand{font-size:22px}
+.sp{flex:1}
+.who{color:var(--muted);font-size:12px}
+nav{display:flex;gap:2px;padding:0 12px;overflow-x:auto}
+nav button{background:none;border:none;border-bottom:2px solid transparent;padding:10px 12px;color:var(--muted);cursor:pointer;font-weight:600;white-space:nowrap}
+nav button.on{color:var(--text);border-bottom-color:var(--red)}
+nav .badge{background:var(--red);color:#fff;border-radius:9px;padding:0 6px;font-size:11px;margin-left:5px}
+main{padding:18px;max-width:1400px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .n{font-family:'Saira Condensed';font-size:30px;font-weight:700;line-height:1}
+.kpi .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:16px}
+.card>.ch{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card>.ch h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+.card>.cb{padding:12px 14px}
+.cb.np{padding:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #1f1f1f;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.tw{overflow-x:auto}
+.chip{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;border:1px solid var(--line);margin:1px 2px 1px 0;white-space:nowrap}
+.c-g{color:var(--green);border-color:#14532d}
+.c-r{color:#f87171;border-color:#5a1f1f}
+.c-a{color:var(--amber);border-color:#5a4210}
+.c-b{color:#93c5fd;border-color:#1e3a8a}
+.led{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#444;vertical-align:middle}
+.led.g{background:var(--green);box-shadow:0 0 6px var(--green)}
+.led.r{background:var(--red);box-shadow:0 0 6px var(--red)}
+.led.a{background:var(--amber)}
+.empty{color:var(--muted);padding:16px;text-align:center;font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .i{width:auto}
+/* booking */
+.bk{display:grid;grid-template-columns:280px 1fr;gap:16px}
+@media(max-width:900px){.bk{grid-template-columns:1fr}}
+.slist .it{padding:10px 12px;border-bottom:1px solid #1f1f1f;cursor:pointer}
+.slist .it:hover{background:var(--panel2)}
+.slist .it.on{border-left:3px solid var(--red);background:var(--panel2)}
+.day{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--bg)}
+.day .dh{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.slot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr auto;gap:6px;padding:6px 10px;align-items:center}
+@media(max-width:700px){.slot{grid-template-columns:1fr 1fr}}
+.slot .warn{grid-column:1/-1;font-size:11px;color:var(--amber);margin-top:-2px}
+/* drawer & modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;justify-content:flex-end}
+.dr{width:100%;max-width:460px;height:100%;overflow:auto;background:var(--panel);border-left:3px solid var(--red);padding:20px}
+.md{margin:auto;width:100%;max-width:480px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:10px;padding:20px;max-height:92vh;overflow:auto}
+.dr h3,.md h3{margin:0 0 10px;font-family:'Saira Condensed';font-size:22px;text-transform:uppercase}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--red);padding:10px 14px;border-radius:6px;z-index:99;font-size:13px;max-width:90vw}
+.flag{font-size:11px;color:var(--amber)}
+.sub{background:#101010}
+.sub td{font-size:12px;color:#cfcfcf}
+.loading{color:var(--muted);padding:40px;text-align:center}
+.help{color:var(--muted);font-size:12px;line-height:1.5}
+@media print{header,nav,.toolbar,.btn,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#ccc;background:#fff}td,th{color:#000;border-color:#ddd}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login" class="hidden">
+  <div class="lcard">
+    <h1 class="brand">7VE <b>Staffing</b> HQ</h1>
+    <p>Book crew, track time and mileage, and get payroll ready.</p>
+    <form id="lform" onsubmit="return doLogin(event)">
+      <label class="f">Email</label>
+      <input class="i" id="lemail" type="email" autocomplete="username" required>
+      <label class="f">Password</label>
+      <input class="i" id="lpass" type="password" autocomplete="current-password" required minlength="8">
+      <div style="margin-top:16px"><button class="btn p" style="width:100%" id="lbtn">Sign in</button></div>
+    </form>
+    <div class="lmsg" id="lmsg"></div>
+    <div class="links"><a onclick="doSignup()">First time? Create password</a><a onclick="doReset()">Forgot password</a></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <header>
+    <div class="hrow">
+      <div class="brand">7VE <b>Staffing</b> HQ</div>
+      <div class="sp"></div>
+      <span class="who" id="who"></span>
+      <button class="btn s" onclick="loadData()">↻ Refresh</button>
+      <button class="btn s g" id="soBtn" onclick="signOut()">Sign out</button>
+    </div>
+    <nav id="nav"></nav>
+  </header>
+  <main id="main"><div class="loading">Loading…</div></main>
+</div>
+
+<div id="toast" class="hidden"></div>
+<div id="layer"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const SUPA_URL='https://pjgthflwhcciiqgbzmrs.supabase.co';
+const OPEN_MODE=true;
+const SUPA_KEY='sb_publishable_M29g62qrLYCwNfs-0tJe5A_8f8KPrDO';
+const POSITIONS=['A1','A2','V1','V2','L1','L2','GAV','Setup/AV Test','Stream Tech','PTZ Cam Tech','In-room Video/Hybrid','Audio Tech','Crew Chief','Technical Lead','Stagehand','Technical Director','Production Manager'];
+
+/* storage that never throws (artifact / private mode safe) */
+const memStore={};
+const safeStore={
+  getItem(k){try{return localStorage.getItem(k)}catch(e){return memStore[k]??null}},
+  setItem(k,v){try{localStorage.setItem(k,v)}catch(e){memStore[k]=v}},
+  removeItem(k){try{localStorage.removeItem(k)}catch(e){delete memStore[k]}}
+};
+let sb=null;
+try{ sb=supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{storage:safeStore,persistSession:true,autoRefreshToken:true}}); }catch(e){ console.error(e); }
+
+/* ================= STATE ================= */
+let D=null, TAB='status', ME=null;
+const UI={bkSel:null,bkDraft:null,crewQ:'',clkTech:'',payStart:null,payEnd:null,payIncludeBooked:false,payOpen:{},milFilter:'all'};
+let IDX={};
+
+/* ================= UTIL ================= */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function rateFmt(n){return '$'+(+n||0).toFixed(3).replace(/0$/,'')}
+function money(n){return '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function num(n,d=2){return (Number(n)||0).toFixed(d)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.add('hidden'),3800)}
+function ymd(d){d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parseYmd(s){const [y,m,d]=String(s).split('-').map(Number);return new Date(y,m-1,d)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function todayYmd(){return ymd(new Date())}
+function fmtDate(s){if(!s)return '';const d=typeof s==='string'&&s.length===10?parseYmd(s):new Date(s);return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+function fmtTime(s){if(!s)return '';return new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+function fmtDT(s){if(!s)return '';return new Date(s).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function hrsBetween(a,b){return Math.max(0,(new Date(b)-new Date(a))/36e5)}
+function dur(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return hh+'h '+String(mm).padStart(2,'0')+'m'}
+function toLocalInput(s){if(!s)return '';const d=new Date(s);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())}
+function csvCell(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function downloadCSV(name,rows){const txt=rows.map(r=>r.map(csvCell).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function mapLink(lat,lng){return lat!=null&&lng!=null?`<a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" rel="noopener">📍 map</a>`:'<span class="muted small">no GPS</span>'}
+
+/* ================= PAY RULES (match Ops Platform V4 card) ================= */
+const V4={base:10,mini:5,otTo:12,otX:1.5,dtX:2,tiers:{
+  gen:{label:'General Stagehand',pay:33},skl:{label:'Skilled Stagehand / AV Tech',pay:40},a2:{label:'A2 / L2 / V2',pay:48},
+  a1:{label:'A1 / L1 / V1 / Crew Chief / Lead',pay:60},spc:{label:'Specialist / Designer / PM',pay:70},td:{label:'Technical Director',pay:80}}};
+function v4Tier(txt){const t=String(txt||'').toLowerCase();
+  if(/technical director|\btd\b/.test(t))return 'td';
+  if(/production manager|designer|specialist|\bpm\b|\bld\b/.test(t))return 'spc';
+  if(/a1|v1|l1|crew chief|technical lead|lead/.test(t))return 'a1';
+  if(/a2|v2|l2|in-room|audio tech|hybrid/.test(t))return 'a2';
+  if(/skilled|av tech|stream|ptz|camera|video|audio|lighting|gav/.test(t))return 'skl';
+  return 'gen';}
+function v4Split(h){
+  if(h<=0)return {reg:0,ot:0,dt:0,units:0,mini:false,paid:0};
+  if(h<=V4.mini)return {reg:V4.mini,ot:0,dt:0,units:V4.mini,mini:true,paid:V4.mini};
+  const paid=Math.max(h,V4.base),reg=V4.base,ot=Math.min(Math.max(paid-V4.base,0),V4.otTo-V4.base),dt=Math.max(paid-V4.otTo,0);
+  return {reg,ot,dt,units:reg+ot*V4.otX+dt*V4.dtX,mini:false,paid};}
+function straightSplit(h){return {reg:h,ot:0,dt:0,units:h,mini:false,paid:h}}
+/* schedule time strings like "6:00a-2:00p" (same reader as Ops Platform) */
+function clockCand(t){t=String(t).trim().toLowerCase();
+  if(/^(12(:00)?\s*)?midnight$/.test(t))return {c:[0],assumed:false};
+  if(/^(12(:00)?\s*)?noon$/.test(t))return {c:[720],assumed:false};
+  const m=t.match(/^(\d{1,2})(?::(\d{2}))?\s*(?:([ap])(?:\.?m\.?)?)?$/);if(!m)return null;
+  const h=parseInt(m[1],10),mn=parseInt(m[2]||'0',10);if(h<1||h>12||mn>59)return null;
+  const conv=ap=>{let hr=h;if(ap==='p'&&hr!==12)hr+=12;if(ap==='a'&&hr===12)hr=0;return hr*60+mn};
+  if(m[3])return {c:[conv(m[3])],assumed:false};return {c:[conv('a'),conv('p')],assumed:true};}
+function shiftRead(s){if(!s)return null;s=String(s).replace(/[–—]/g,'-');
+  const R=/(\d{1,2}(?::\d{2})?\s*[ap](?:\.?m\.?)?|(?:12(?::00)?\s*)?(?:midnight|noon))\s*(?:-|\bto\b)\s*((?:12(?::00)?\s*)?(?:midnight|noon)|\d{1,2}(?::\d{2})?\s*(?:[ap](?:\.?m\.?)?)?)/i;
+  const m=s.match(R);if(!m)return null;const A=clockCand(m[1]),B=clockCand(m[2]);if(!A||!B||A.assumed)return null;
+  const a=A.c[0];const opts=B.c.map(b=>{let d=b-a;if(d<0)d+=1440;return d}).filter(d=>d>0);
+  return {start:a,hours:(opts.length?Math.min(...opts):0)/60};}
+function schedHours(t){const r=shiftRead(t);return r?r.hours:8}
+
+/* ================= INDEXES ================= */
+function staffName(s){return s?((s.first_name||'')+' '+(s.last_name||'')).trim():'—'}
+function buildIndex(){
+  const I={staff:{},staffByEmail:{},roster:{},rosterByEmail:{},addrByAuth:{},authByStaff:{},staffByAuth:{}};
+  (D.staff||[]).forEach(s=>{I.staff[s.id]=s;if(s.email)I.staffByEmail[s.email.toLowerCase()]=s});
+  (D.roster||[]).forEach(r=>{if(r.auth_user_id)I.roster[r.auth_user_id]=r;if(r.email)I.rosterByEmail[r.email.toLowerCase()]=r});
+  (D.profiles||[]).forEach(p=>{if(p.address)I.addrByAuth[p.tech_user_id]=p.address});
+  (D.staff||[]).forEach(s=>{const r=s.email&&I.rosterByEmail[s.email.toLowerCase()];if(r&&r.auth_user_id){I.authByStaff[s.id]=r.auth_user_id;I.staffByAuth[r.auth_user_id]=s}});
+  // expand schedules into shifts
+  I.shifts=[];
+  (D.schedules||[]).forEach(sc=>{const d=sc.data||{};const created=new Date(sc.created_at);
+    (d.days||[]).forEach(day=>{const date=day.date||labelDate(day.label,created);
+      ((d.assign||{})[day.id]||[]).forEach((a,ix)=>{I.shifts.push({sid:sc.id,event:sc.event_name,client:d.client||'',venue:d.venue||'',dayId:day.id,label:day.label,date,ix,pos:a.pos||'',room:a.room||'',time:a.time||'',staffId:a.tech||null,hours:schedHours(a.time)})})})});
+  I.availByStaff={};
+  (D.availability||[]).forEach(a=>{const s=I.staffByAuth[a.tech_user_id];if(!s)return;(I.availByStaff[s.id]=I.availByStaff[s.id]||[]).push(a)});
+  IDX=I;}
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+function labelDate(label,created){const L=String(label||'');let m=L.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if(!m){const n=L.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:,?\s+(\d{4}))?/i);if(!n)return null;m=[null,MON[n[1].toLowerCase()],n[2],n[3]]}
+  let y=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):created.getFullYear();const mo=+m[1],dd=+m[2];
+  if(!m[3]&&mo<created.getMonth()+1-6)y++;return ymd(new Date(y,mo-1,dd));}
+function techName(authId){const s=IDX.staffByAuth[authId];if(s)return staffName(s);const r=IDX.roster[authId];return r?r.full_name:'Unknown tech'}
+function staffForAuth(authId){return IDX.staffByAuth[authId]||null}
+function homeAddr(staff,authId){return (staff&&staff.address)||(authId&&IDX.addrByAuth[authId])||''}
+function isUnavailable(staffId,date){return (IDX.availByStaff[staffId]||[]).some(a=>date&&a.date_start<=date&&a.date_end>=date)}
+function shiftsOn(staffId,date){return IDX.shifts.filter(s=>s.staffId===staffId&&s.date===date)}
+function settings(k){const S=(D&&D.settings)||{};const def={mileage:{rates:[{from:'2026-01-01',rate:0.725},{from:'2026-07-01',rate:0.76}],roundTrip:true,freeMiles:0,reimburse:true},payroll:{period:'weekly',weekStart:1,rateCard:'v4',payoutDays:30}};return Object.assign({},def[k],S[k]||{})}
+function mileRate(date){const r=[...settings('mileage').rates].sort((a,b)=>a.from<b.from?-1:1);let v=r.length?r[0].rate:0.76;r.forEach(x=>{if(date>=x.from)v=x.rate});return +v}
+
+/* ================= AUTH ================= */
+async function boot(){
+  if(!sb){document.body.innerHTML='<div class="loading">Could not load the Supabase library. Check your connection and reload.</div>';return}
+  // LOGIN TURNED OFF for now (OPEN_MODE). To bring it back: set OPEN_MODE=false here
+  // and set staffing_settings 'access' to {"open":false} in the database.
+  if(OPEN_MODE){startApp();return}
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)startApp();else showLogin();
+  sb.auth.onAuthStateChange((ev)=>{if(ev==='SIGNED_OUT')showLogin();if(ev==='PASSWORD_RECOVERY')promptNewPassword()});
+}
+function showLogin(){$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function doLogin(e){e.preventDefault();const m=$('lmsg');m.textContent='Signing in…';m.style.color='var(--muted)';
+  const {error}=await sb.auth.signInWithPassword({email:$('lemail').value.trim(),password:$('lpass').value});
+  if(error){m.textContent=error.message;m.style.color='#f87171';return false}
+  m.textContent='';startApp();return false}
+async function doSignup(){const email=$('lemail').value.trim(),pw=$('lpass').value,m=$('lmsg');
+  if(!email||pw.length<8){m.style.color='var(--amber)';m.textContent='Type your email and a new password (8+ characters) above, then click Create password again.';return}
+  const {data,error}=await sb.auth.signUp({email,password:pw,options:{emailRedirectTo:location.href.split('#')[0]}});
+  if(error){m.style.color='#f87171';m.textContent=error.message;return}
+  if(data.session){startApp()}else{m.style.color='var(--green)';m.textContent='Check your email to confirm, then sign in here.'}}
+async function doReset(){const email=$('lemail').value.trim(),m=$('lmsg');
+  if(!email){m.style.color='var(--amber)';m.textContent='Type your email above first.';return}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
+  m.style.color=error?'#f87171':'var(--green)';m.textContent=error?error.message:'Reset link sent. Check your email.'}
+async function promptNewPassword(){openModal(`<h3>Set a new password</h3><label class="f">New password (8+ characters)</label><input class="i" id="npw" type="password" minlength="8"><div class="acts"><button class="btn p" onclick="saveNewPw()">Save</button></div>`)}
+async function saveNewPw(){const pw=$('npw').value;if(pw.length<8)return toast('Use 8 or more characters');const {error}=await sb.auth.updateUser({password:pw});if(error)return toast(error.message);closeLayer();toast('Password updated');startApp()}
+async function signOut(){await sb.auth.signOut();showLogin()}
+
+/* ================= DATA ================= */
+function loadRange(){const t=new Date();let from=addDays(t,-45);if(UI.payStart&&parseYmd(UI.payStart)<from)from=addDays(parseYmd(UI.payStart),-1);return {from:ymd(from),to:ymd(addDays(t,1))}}
+async function startApp(){$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadData();
+  clearInterval(startApp._t);startApp._t=setInterval(()=>{if(TAB==='status'&&!document.hidden&&!$('layer').innerHTML)loadData(true)},60000)}
+async function loadData(quiet){
+  if(!quiet)$('main').innerHTML='<div class="loading">Loading…</div>';
+  const r=loadRange();
+  const {data,error}=await sb.rpc('sh_overview',{p_from:r.from,p_to:r.to});
+  if(error){
+    const msg=/not authorized/i.test(error.message)?'This account does not have Staffing HQ access yet. Ask the 7VE owner to add your email in Settings → Access.':
+      /function .*sh_overview|could not find/i.test(error.message)?'Staffing HQ is not set up in the database yet (staffing_hq_v1 has not been applied).':error.message;
+    $('main').innerHTML=`<div class="card"><div class="cb"><b>Can't load Staffing HQ.</b><p class="muted">${esc(msg)}</p>${OPEN_MODE?'<button class="btn" onclick="loadData()">Try again</button>':'<button class="btn" onclick="signOut()">Sign out</button>'}</div></div>`;
+    $('nav').innerHTML='';return}
+  D=data;D._from=r.from;ME=D.me;buildIndex();$('who').textContent=OPEN_MODE?'Open access — no login':ME.email+(ME.is_admin?' · owner':'');if(OPEN_MODE)$('soBtn').classList.add('hidden');render()}
+async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error){toast(error.message);throw error}return data}
+
+/* ================= SHELL ================= */
+const TABS=[['status','Team Status'],['booking','Booking'],['crew','Crew'],['clock','Time Clock'],['mileage','Mileage'],['payroll','Payroll Prep'],['settings','Settings']];
+function render(){
+  const pend=(D.requests||[]).filter(r=>r.status==='pending').length;
+  const milPend=(D.mileage||[]).filter(m=>m.status==='pending').length;
+  $('nav').innerHTML=TABS.map(([k,l])=>{let b='';if(k==='clock'&&pend)b=`<span class="badge">${pend}</span>`;if(k==='mileage'&&milPend)b=`<span class="badge">${milPend}</span>`;return `<button class="${TAB===k?'on':''}" onclick="go('${k}')">${l}${b}</button>`}).join('');
+  const fn={status:rStatus,booking:rBooking,crew:rCrew,clock:rClock,mileage:rMileage,payroll:rPayroll,settings:rSettings}[TAB];
+  $('main').innerHTML=fn();
+  if(TAB==='booking')bkAfterRender();
+}
+function go(t){TAB=t;render();window.scrollTo(0,0)}
+function openDrawer(html){$('layer').innerHTML=`<div class="ov" onclick="if(event.target===this)closeLayer()"><div class="dr">${html}</div></div>`}
+function openModal(html){$('layer').innerHTML=`<div class="ov" style="justify-content:center;padding:16px" onclick="if(event.target===this)closeLayer()"><div class="md">${html}</div></div>`}
+function closeLayer(){$('layer').innerHTML=''}
+
+/* ================= TEAM STATUS ================= */
+function rStatus(){
+  const now=new Date(),today=todayYmd();
+  const open=(D.clock||[]).filter(c=>!c.clock_out_at);
+  const todayShifts=IDX.shifts.filter(s=>s.date===today&&s.staffId);
+  const clockedToday=new Set((D.clock||[]).filter(c=>ymd(c.clock_in_at)===today).map(c=>{const s=staffForAuth(c.tech_user_id);return s&&s.id}));
+  const notIn=todayShifts.filter(s=>!clockedToday.has(s.staffId));
+  const online=(D.roster||[]).filter(r=>r.last_active_at&&(now-new Date(r.last_active_at))<10*60e3&&!r.is_admin);
+  const pend=(D.requests||[]).filter(r=>r.status==='pending');
+  const notAct=(D.staff||[]).filter(s=>!isPlaceholder(s)).filter(s=>{const r=s.email&&IDX.rosterByEmail[s.email.toLowerCase()];return !r||!r.auth_user_id});
+  const upcoming=IDX.shifts.filter(s=>s.date&&s.date>today&&s.date<=ymd(addDays(now,7))&&s.staffId);
+  const openSlots=IDX.shifts.filter(s=>s.date&&s.date>=today&&!s.staffId).length;
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="n" style="color:var(--green)">${open.length}</div><div class="l">On the clock now</div></div>
+    <div class="kpi"><div class="n">${todayShifts.length}</div><div class="l">Booked today</div></div>
+    <div class="kpi"><div class="n" style="color:${notIn.length?'var(--amber)':'inherit'}">${notIn.length}</div><div class="l">Booked, not clocked in</div></div>
+    <div class="kpi"><div class="n">${online.length}</div><div class="l">In the portal now</div></div>
+    <div class="kpi"><div class="n" style="color:${pend.length?'var(--red2)':'inherit'}">${pend.length}</div><div class="l">Clock fixes to review</div></div>
+    <div class="kpi"><div class="n" style="color:${openSlots?'var(--amber)':'inherit'}">${openSlots}</div><div class="l">Unfilled slots ahead</div></div>
+  </div><div class="grid2"><div>`;
+  h+=`<div class="card"><div class="ch"><h2><span class="led g"></span>On the clock</h2></div><div class="cb np tw">`+(open.length?`<table><tr><th>Tech</th><th>Since</th><th class="num">Time</th><th>Location</th><th></th></tr>`+open.map(c=>`<tr><td><b>${esc(techName(c.tech_user_id))}</b></td><td>${fmtDT(c.clock_in_at)}</td><td class="num">${dur(hrsBetween(c.clock_in_at,now))}</td><td>${mapLink(c.in_lat,c.in_lng)}</td><td><button class="btn s" onclick="clockOutNow('${c.id}')">Clock out</button></td></tr>`).join('')+`</table>`:`<div class="empty">Nobody is clocked in right now.</div>`)+`</div></div>`;
+  h+=`<div class="card"><div class="ch"><h2>Today's crew · ${fmtDate(today)}</h2></div><div class="cb np tw">`+(todayShifts.length?`<table><tr><th>Tech</th><th>Event</th><th>Role</th><th>Call</th><th>Status</th></tr>`+todayShifts.map(s=>{
+      const st=IDX.staff[s.staffId];const auth=IDX.authByStaff[s.staffId];
+      const c=(D.clock||[]).find(c=>c.tech_user_id===auth&&ymd(c.clock_in_at)===today);
+      const sr=shiftRead(s.time);let chip;
+      if(c&&!c.clock_out_at)chip='<span class="chip c-g">Clocked in '+fmtTime(c.clock_in_at)+'</span>';
+      else if(c)chip='<span class="chip c-b">Done '+fmtTime(c.clock_out_at)+'</span>';
+      else if(sr&&(now.getHours()*60+now.getMinutes())>sr.start+10)chip='<span class="chip c-r">Late / no clock-in</span>';
+      else chip='<span class="chip">Not in yet</span>';
+      if(!auth)chip+=' <span class="chip c-a">No portal login</span>';
+      return `<tr><td><b>${esc(staffName(st))}</b><div class="small muted">${esc(st&&st.phone||'')}</div></td><td>${esc(s.event)}<div class="small muted">${esc(s.room)}</div></td><td>${esc(s.pos)}</td><td class="mono small">${esc(s.time)}</td><td>${chip}</td></tr>`}).join('')+`</table>`:`<div class="empty">No one is booked today.</div>`)+`</div></div>`;
+  h+=`</div><div>`;
+  h+=`<div class="card"><div class="ch"><h2>Clock fixes waiting</h2></div><div class="cb np tw">`+(pend.length?reqTable(pend):`<div class="empty">No requests waiting.</div>`)+`</div></div>`;
+  h+=`<div class="card"><div class="ch"><h2>Next 7 days</h2><span class="sp"></span><button class="btn s" onclick="go('booking')">Open booking</button></div><div class="cb np tw">`+(upcoming.length?`<table><tr><th>Date</th><th>Tech</th><th>Event</th><th>Call</th></tr>`+upcoming.sort((a,b)=>a.date<b.date?-1:1).slice(0,40).map(s=>`<tr><td class="small">${fmtDate(s.date)}</td><td>${esc(staffName(IDX.staff[s.staffId]))}</td><td class="small">${esc(s.event)} · ${esc(s.pos)}</td><td class="mono small">${esc(s.time)}</td></tr>`).join('')+`</table>`:`<div class="empty">Nothing booked in the next week.</div>`)+`</div></div>`;
+  h+=`<div class="card"><div class="ch"><h2>In the portal now</h2></div><div class="cb">`+(online.length?online.map(r=>`<span class="chip c-g"><span class="led g"></span>${esc(r.full_name)}</span>`).join(''):`<span class="muted small">No techs active in the last 10 minutes.</span>`)+`</div></div>`;
+  if(notAct.length)h+=`<div class="card"><div class="ch"><h2>Staff without an active portal login</h2></div><div class="cb small">${notAct.map(s=>`<span class="chip c-a">${esc(staffName(s))}</span>`).join('')}<p class="help">These people can't clock in from the Tech Portal until they activate their account at tech.7virtuesentertainment.com. Clock them in by hand in Time Clock if needed.</p></div></div>`;
+  h+=`</div></div><p class="help">Updates every minute while this tab is open.</p>`;
+  return h;}
+function reqTable(list){return `<table><tr><th>Tech</th><th>Asked for</th><th>Was</th><th>Reason</th><th></th></tr>`+list.map(r=>`<tr><td><b>${esc(r.full_name||techName(r.tech_user_id))}</b><div class="small muted">${fmtDT(r.created_at)}</div></td><td class="small">${fmtDT(r.requested_in)} → ${r.requested_out?fmtTime(r.requested_out):'—'}</td><td class="small muted">${r.cur_in?fmtDT(r.cur_in)+' → '+(r.cur_out?fmtTime(r.cur_out):'open'):'new shift'}</td><td class="small">${esc(r.reason||'')}</td><td>${r.status==='pending'?`<div class="row"><button class="btn s ok" onclick="resolveReq('${r.id}',true)">Approve</button><button class="btn s bad" onclick="resolveReq('${r.id}',false)">Deny</button></div>`:`<span class="chip">${esc(r.status)}</span>`}</td></tr>`).join('')+`</table>`}
+async function resolveReq(id,ok){await rpc('sh_request_resolve',{p_id:id,p_approve:ok});toast(ok?'Approved — time updated':'Denied');loadData(true)}
+async function clockOutNow(id){if(!confirm('Clock this tech out now?'))return;await rpc('sh_clock_out_now',{p_id:id});toast('Clocked out');loadData(true)}
+
+/* ================= BOOKING ================= */
+function schedDates(sc){const d=sc.data||{};const c=new Date(sc.created_at);return (d.days||[]).map(x=>x.date||labelDate(x.label,c)).filter(Boolean).sort()}
+function rBooking(){
+  const today=todayYmd();
+  const list=(D.schedules||[]).map(sc=>{const ds=schedDates(sc);return {sc,first:ds[0]||'',last:ds[ds.length-1]||''}});
+  const up=list.filter(x=>!x.last||x.last>=today).sort((a,b)=>(a.first||'9')<(b.first||'9')?-1:1);
+  const past=list.filter(x=>x.last&&x.last<today).sort((a,b)=>a.last>b.last?-1:1);
+  const item=x=>{const sc=x.sc,d=sc.data||{};let need=0,fill=0;(d.days||[]).forEach(day=>{need+=+day.needed||0;fill+=((d.assign||{})[day.id]||[]).filter(a=>a.tech).length});
+    return `<div class="it ${UI.bkSel===sc.id?'on':''}" onclick="bkOpen('${sc.id}')"><b>${esc(sc.event_name||'Untitled')}</b><div class="small muted">${x.first?fmtDate(x.first):'no dates'}${x.last&&x.last!==x.first?' – '+fmtDate(x.last):''} · <span style="color:${fill<need?'var(--amber)':'var(--green)'}">${fill}/${need} filled</span></div></div>`};
+  let h=`<div class="bk"><div><div class="card"><div class="ch"><h2>Bookings</h2><span class="sp"></span><button class="btn s p" onclick="bkNew()">+ New</button></div><div class="cb np slist">`+
+    (up.length?up.map(item).join(''):'<div class="empty">No upcoming bookings.</div>')+
+    (past.length?`<div class="small muted" style="padding:10px 12px;border-top:1px solid var(--line)">PAST</div>`+past.slice(0,25).map(item).join(''):'')+
+    `</div></div></div><div id="bkEd">${UI.bkDraft?'':'<div class="card"><div class="cb empty">Pick a booking on the left, or click + New.</div></div>'}</div></div>`;
+  return h;}
+function bkOpen(id){const sc=D.schedules.find(s=>s.id===id);UI.bkSel=id;UI.bkDraft={id,event_name:sc.event_name,data:JSON.parse(JSON.stringify(sc.data||{}))};
+  const c=new Date(sc.created_at);(UI.bkDraft.data.days||[]).forEach(d=>{if(!d.date)d.date=labelDate(d.label,c)||''});render()}
+function bkNew(){UI.bkSel=null;const id='d'+Date.now();
+  UI.bkDraft={id:null,event_name:'',data:{days:[{id,label:'',date:todayYmd(),needed:1}],assign:{[id]:[]},off:{},skills:{},taxOn:true,budget:'',client:'',venue:'',netTerms:'30',rateCard:'v4',rateSetup:60,rateSkilled:70}};render()}
+function bkAfterRender(){if(UI.bkDraft)$('bkEd').innerHTML=bkEditor()}
+function staffOptions(sel,date,dayId){
+  const B=UI.bkDraft;
+  const opts=(D.staff||[]).map(s=>{let tag='';
+    if(isUnavailable(s.id,date))tag=' ⛔ unavailable';
+    else{const other=shiftsOn(s.id,date).filter(x=>x.sid!==B.id);const same=((B.data.assign||{})[dayId]||[]).filter(a=>a.tech===s.id).length;
+      if(other.length)tag=' ⚠ booked: '+other[0].event; else if(same>1)tag=' ⚠ twice this day';}
+    return `<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(staffName(s))}${s.lead_skill?' · '+esc(s.lead_skill):''}${esc(tag)}</option>`}).join('');
+  return `<option value="">— open slot —</option>`+opts}
+function bkEditor(){
+  const B=UI.bkDraft,d=B.data;d.assign=d.assign||{};
+  const clients=[...new Set((D.jobs||[]).map(j=>j.client).concat((D.schedules||[]).map(s=>(s.data||{}).client)).filter(Boolean))];
+  let h=`<div class="card"><div class="ch"><h2>${B.id?'Edit booking':'New booking'}</h2><span class="sp"></span>
+    <button class="btn s" onclick="bkCrewText()">Copy crew text</button><button class="btn s" onclick="bkEmail()">Email crew</button><button class="btn s p" onclick="bkSave()">Save</button></div><div class="cb">
+    <div class="f2"><div><label class="f">Event / show name</label><input class="i" value="${esc(B.event_name)}" oninput="UI.bkDraft.event_name=this.value"></div>
+    <div><label class="f">Client</label><input class="i" list="clist" value="${esc(d.client||'')}" oninput="UI.bkDraft.data.client=this.value"><datalist id="clist">${clients.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
+    <label class="f">Venue / address (used for crew text and mileage labels)</label><input class="i" value="${esc(d.venue||'')}" oninput="UI.bkDraft.data.venue=this.value">
+    <datalist id="plist">${POSITIONS.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+    <div style="margin-top:14px">`;
+  (d.days||[]).forEach((day,di)=>{const slots=d.assign[day.id]=d.assign[day.id]||[];const filled=slots.filter(a=>a.tech).length;
+    h+=`<div class="day"><div class="dh"><input class="i" type="date" style="width:150px" value="${esc(day.date||'')}" onchange="bkDay(${di},'date',this.value)">
+      <input class="i" style="width:170px" placeholder="Label e.g. 11/4 Morning" value="${esc(day.label||'')}" oninput="bkDay(${di},'label',this.value,true)">
+      <span class="small muted">Needed</span><input class="i" type="number" min="0" style="width:64px" value="${+day.needed||0}" onchange="bkDay(${di},'needed',+this.value)">
+      <span class="chip ${filled<(+day.needed||0)?'c-a':'c-g'}">${filled}/${+day.needed||0}</span><span class="sp"></span>
+      <button class="btn s" onclick="bkSlotAdd(${di})">+ Slot</button><button class="btn s g" onclick="bkDayCopy(${di})">Duplicate day</button><button class="btn s bad" onclick="bkDayDel(${di})">✕</button></div>`;
+    slots.forEach((a,si)=>{let warn='';if(a.tech){if(isUnavailable(a.tech,day.date))warn='Marked unavailable this day in the Tech Portal.';else{const o=shiftsOn(a.tech,day.date).filter(x=>x.sid!==B.id);if(o.length)warn='Also booked on '+o.map(x=>x.event+' ('+x.time+')').join(', ')}
+      const st=IDX.staff[a.tech];if(st&&!IDX.authByStaff[a.tech])warn+=(warn?' · ':'')+'No portal login — they can\'t clock in themselves.'}
+      h+=`<div class="slot"><select class="i" onchange="bkSlot(${di},${si},'tech',this.value)">${staffOptions(a.tech,day.date,day.id)}</select>
+        <input class="i" list="plist" placeholder="Role" value="${esc(a.pos||'')}" oninput="bkSlot(${di},${si},'pos',this.value,true)">
+        <input class="i" placeholder="Room" value="${esc(a.room||'')}" oninput="bkSlot(${di},${si},'room',this.value,true)">
+        <input class="i mono" placeholder="6:00a-2:00p" value="${esc(a.time||'')}" oninput="bkSlot(${di},${si},'time',this.value,true)">
+        <button class="btn s g" onclick="bkSlotDel(${di},${si})">✕</button>${warn?`<div class="warn">⚠ ${esc(warn)}</div>`:''}</div>`});
+    if(!slots.length)h+=`<div class="empty small">No slots yet.</div>`;
+    h+=`</div>`});
+  h+=`<button class="btn" onclick="bkDayAdd()">+ Add day</button></div>
+    <p class="help">Saved bookings show up in the Ops Platform's Crew Schedule and on each tech's portal schedule. ⛔ = tech marked unavailable · ⚠ = already booked elsewhere that day.</p></div></div>`;
+  return h;}
+function bkRe(){$('bkEd').innerHTML=bkEditor()}
+function bkDay(i,k,v,quiet){const day=UI.bkDraft.data.days[i];day[k]=v;if(k==='date'&&v&&!day.label){const d=parseYmd(v);day.label=(d.getMonth()+1)+'/'+d.getDate()}if(!quiet)bkRe()}
+function bkDayAdd(){const d=UI.bkDraft.data;const last=d.days[d.days.length-1];const id='d'+Date.now();const date=last&&last.date?ymd(addDays(parseYmd(last.date),1)):todayYmd();const dt=parseYmd(date);
+  d.days.push({id,label:(dt.getMonth()+1)+'/'+dt.getDate(),date,needed:last?last.needed:1});d.assign[id]=[];bkRe()}
+function bkDayCopy(i){const d=UI.bkDraft.data,src=d.days[i];const id='d'+Date.now();const date=src.date?ymd(addDays(parseYmd(src.date),1)):'';const dt=date?parseYmd(date):null;
+  d.days.splice(i+1,0,{id,label:dt?(dt.getMonth()+1)+'/'+dt.getDate():'',date,needed:src.needed});d.assign[id]=JSON.parse(JSON.stringify(d.assign[src.id]||[]));bkRe()}
+function bkDayDel(i){if(!confirm('Remove this day and its slots?'))return;const d=UI.bkDraft.data;const day=d.days.splice(i,1)[0];delete d.assign[day.id];bkRe()}
+function bkSlotAdd(i){const d=UI.bkDraft.data,day=d.days[i];const prev=(d.assign[day.id]||[]).slice(-1)[0];(d.assign[day.id]=d.assign[day.id]||[]).push({tech:'',pos:prev?prev.pos:'',room:prev?prev.room:'',time:prev?prev.time:''});bkRe()}
+function bkSlotDel(i,s){const d=UI.bkDraft.data;d.assign[d.days[i].id].splice(s,1);bkRe()}
+function bkSlot(i,s,k,v,quiet){const d=UI.bkDraft.data;d.assign[d.days[i].id][s][k]=v;if(!quiet)bkRe()}
+async function bkSave(){const B=UI.bkDraft;if(!B.event_name.trim())return toast('Give the booking a name');
+  B.data.days.forEach(day=>{if(!day.label&&day.date){const d=parseYmd(day.date);day.label=(d.getMonth()+1)+'/'+d.getDate()}});
+  const id=await rpc('sh_schedule_save',{p_id:B.id,p_name:B.event_name.trim(),p_data:B.data});UI.bkSel=id;B.id=id;toast('Booking saved');await loadData(true);if(D.schedules.find(s=>s.id===id))bkOpen(id)}
+function bkCrewLines(){const B=UI.bkDraft,d=B.data;let out=[B.event_name+(d.venue?' — '+d.venue:'')];
+  (d.days||[]).forEach(day=>{out.push('');out.push((day.date?fmtDate(day.date):'')+(day.label?' ('+day.label+')':''));
+    (d.assign[day.id]||[]).forEach(a=>out.push('• '+(a.tech?staffName(IDX.staff[a.tech]):'OPEN')+' — '+(a.pos||'')+(a.room?' · '+a.room:'')+(a.time?' · '+a.time:'')))});
+  out.push('');out.push('Clock in and out in the 7VE Tech Portal: tech.7virtuesentertainment.com');return out.join('\n')}
+async function bkCrewText(){const t=bkCrewLines();try{await navigator.clipboard.writeText(t);toast('Crew list copied')}catch(e){openModal(`<h3>Crew text</h3><textarea class="i" rows="14">${esc(t)}</textarea><div class="acts"><button class="btn" onclick="closeLayer()">Close</button></div>`)}}
+function bkEmail(){const d=UI.bkDraft.data;const emails=[...new Set(Object.values(d.assign||{}).flat().map(a=>a.tech&&IDX.staff[a.tech]&&IDX.staff[a.tech].email).filter(Boolean))];
+  if(!emails.length)return toast('No booked crew with email addresses yet');
+  location.href='mailto:?bcc='+encodeURIComponent(emails.join(','))+'&subject='+encodeURIComponent('7VE Booking: '+UI.bkDraft.event_name)+'&body='+encodeURIComponent(bkCrewLines())}
+
+/* ================= CREW ================= */
+function payReady(s){const miss=[];if(!s.doc_w9)miss.push('W-9');if(!s.doc_onboard)miss.push('ACH/onboarding');return miss}
+function isPlaceholder(s){return /^open\b/i.test((s.first_name||'').trim())}
+function rCrew(){
+  const q=UI.crewQ.toLowerCase(),today=todayYmd();
+  const list=(D.staff||[]).filter(s=>!isPlaceholder(s)).filter(s=>!q||[staffName(s),s.title,s.lead_skill,s.skills,s.secondary_skills,s.email,s.phone].join(' ').toLowerCase().includes(q));
+  let h=`<div class="toolbar"><input class="i" style="min-width:260px" placeholder="Search name, skill, role…" value="${esc(UI.crewQ)}" oninput="UI.crewQ=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{render();const i=document.querySelector('.toolbar input');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)">
+    <span class="muted small">${list.length} active staff · add new people in the Ops Platform (People → Prospects → Staff) and they appear here automatically.</span></div>
+    <div class="card"><div class="cb np tw"><table><tr><th>Name</th><th>Role / skills</th><th>Contact</th><th class="num">Pay</th><th>Paperwork</th><th>Portal</th><th class="num">Booked ahead</th><th></th></tr>`;
+  h+=list.map(s=>{const r=s.email&&IDX.rosterByEmail[s.email.toLowerCase()];const ahead=IDX.shifts.filter(x=>x.staffId===s.id&&x.date&&x.date>=today).length;const miss=payReady(s);
+    const portal=!r?'<span class="chip c-r">No account</span>':r.auth_user_id?'<span class="chip c-g">Active</span>':'<span class="chip c-a">Not activated</span>';
+    return `<tr><td><b>${esc(staffName(s))}</b>${s.address?'':'<div class="flag">no home address (mileage)</div>'}</td><td class="small">${esc(s.lead_skill||s.title||'')}<div class="muted">${esc([s.secondary_skills,s.skills].filter(Boolean).join(', ').slice(0,80))}</div></td>
+      <td class="small">${esc(s.phone||'')}<div class="muted">${esc(s.email||'')}</div></td><td class="num">${+s.pay_rate>0?money(s.pay_rate)+'<div class="small muted">'+(s.pay_type==='day'?'marked "day" → V4 card used':'/hr')+'</div>':'<span class="flag">V4 card rate</span>'}</td>
+      <td>${['w9','nda','coi','onboard'].map(k=>`<span class="chip ${s['doc_'+k]?'c-g':'c-r'}">${k==='onboard'?'ACH':k.toUpperCase()}</span>`).join('')}${miss.length?`<div class="flag">Not payroll-ready: ${miss.join(', ')}</div>`:''}</td>
+      <td>${portal}</td><td class="num">${ahead}</td><td><button class="btn s" onclick="crewEdit('${s.id}')">Edit</button></td></tr>`}).join('');
+  h+=`</table>${list.length?'':'<div class="empty">No matches.</div>'}</div></div>`;return h}
+function crewEdit(id){const s=IDX.staff[id];const today=todayYmd();const up=IDX.shifts.filter(x=>x.staffId===id&&x.date&&x.date>=today).sort((a,b)=>a.date<b.date?-1:1);
+  const av=(IDX.availByStaff[id]||[]).filter(a=>a.date_end>=today);
+  const chk=(k,l)=>`<label class="small" style="margin-right:12px"><input type="checkbox" id="ce_${k}" ${s['doc_'+k]?'checked':''}> ${l}</label>`;
+  openDrawer(`<h3>${esc(staffName(s))}</h3><div class="small muted">${esc(s.email||'')}</div>
+   <div class="f2"><div><label class="f">Phone</label><input class="i" id="ce_phone" value="${esc(s.phone||'')}"></div><div><label class="f">Title</label><input class="i" id="ce_title" value="${esc(s.title||'')}"></div></div>
+   <label class="f">Home address (starting point for mileage)</label><input class="i" id="ce_address" value="${esc(s.address||'')}">
+   <div class="f2"><div><label class="f">Lead skill</label><input class="i" id="ce_lead_skill" list="plist2" value="${esc(s.lead_skill||'')}"><datalist id="plist2">${POSITIONS.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div><div><label class="f">Skills</label><input class="i" id="ce_skills" value="${esc(s.skills||'')}"></div></div>
+   <div class="f2"><div><label class="f">Pay type</label><select class="i" id="ce_pay_type"><option value="hourly" ${s.pay_type!=='day'?'selected':''}>Hourly</option><option value="day" ${s.pay_type==='day'?'selected':''}>Day rate</option></select></div><div><label class="f">Pay rate ($)</label><input class="i" id="ce_pay_rate" type="number" step="0.01" value="${s.pay_rate??''}"></div></div>
+   <div class="f2"><div><label class="f">Pay method</label><input class="i" id="ce_pay_method" placeholder="ACH, Zelle…" value="${esc(s.pay_method||'')}"></div><div><label class="f">Pay handle / note</label><input class="i" id="ce_pay_handle" value="${esc(s.pay_handle||'')}"></div></div>
+   <label class="f">Paperwork on file</label><div>${chk('w9','W-9')}${chk('onboard','ACH form')}${chk('nda','NDA')}${chk('coi','COI / decline')}</div>
+   <label class="f">Notes</label><textarea class="i" id="ce_notes" rows="3">${esc(s.notes||'')}</textarea>
+   <div class="acts"><button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="crewSave('${id}')">Save</button></div>
+   <label class="f" style="margin-top:20px">Upcoming bookings</label>${up.length?up.map(x=>`<div class="small" style="padding:4px 0;border-bottom:1px solid #222">${fmtDate(x.date)} · ${esc(x.event)} · ${esc(x.pos)} <span class="mono muted">${esc(x.time)}</span></div>`).join(''):'<div class="small muted">None</div>'}
+   <label class="f" style="margin-top:14px">Marked unavailable</label>${av.length?av.map(a=>`<div class="small">${fmtDate(a.date_start)} – ${fmtDate(a.date_end)} <span class="muted">${esc(a.note||'')}</span></div>`).join(''):'<div class="small muted">Nothing marked</div>'}`)}
+async function crewSave(id){const v=k=>$('ce_'+k).value;const p={phone:v('phone'),title:v('title'),address:v('address'),lead_skill:v('lead_skill'),skills:v('skills'),pay_type:v('pay_type'),pay_method:v('pay_method'),pay_handle:v('pay_handle'),notes:v('notes'),
+  doc_w9:$('ce_w9').checked,doc_onboard:$('ce_onboard').checked,doc_nda:$('ce_nda').checked,doc_coi:$('ce_coi').checked};
+  if(v('pay_rate')!=='')p.pay_rate=+v('pay_rate');
+  await rpc('sh_staff_update',{p_id:id,p});closeLayer();toast('Saved');loadData(true)}
+
+/* ================= TIME CLOCK ================= */
+function matchShift(c){const s=staffForAuth(c.tech_user_id);if(!s)return null;const d=ymd(c.clock_in_at);const cand=shiftsOn(s.id,d);if(!cand.length)return null;
+  if(cand.length===1)return cand[0];const mins=new Date(c.clock_in_at).getHours()*60+new Date(c.clock_in_at).getMinutes();
+  return cand.map(x=>({x,d:Math.abs(((shiftRead(x.time)||{}).start??mins)-mins)})).sort((a,b)=>a.d-b.d)[0].x}
+function rClock(){
+  const techs=[...new Set((D.clock||[]).map(c=>c.tech_user_id))];
+  const rows=(D.clock||[]).filter(c=>!UI.clkTech||c.tech_user_id===UI.clkTech);
+  const pend=(D.requests||[]).filter(r=>r.status==='pending');
+  let tot=0;rows.forEach(c=>{if(c.clock_out_at)tot+=hrsBetween(c.clock_in_at,c.clock_out_at)});
+  let h=`${pend.length?`<div class="card"><div class="ch"><h2>Clock fixes waiting (${pend.length})</h2></div><div class="cb np tw">${reqTable(pend)}</div></div>`:''}
+   <div class="toolbar"><select class="i" onchange="UI.clkTech=this.value;render()"><option value="">All techs</option>${techs.map(t=>`<option value="${t}" ${UI.clkTech===t?'selected':''}>${esc(techName(t))}</option>`).join('')}</select>
+   <button class="btn p" onclick="clkEdit()">+ Add shift by hand</button><button class="btn" onclick="clkExport()">Export CSV</button><span class="sp"></span><span class="muted small">Last 45 days · ${rows.length} shifts · ${num(tot)} hrs closed</span></div>
+   <div class="card"><div class="cb np tw"><table><tr><th>Tech</th><th>Date</th><th>In</th><th>Out</th><th class="num">Hours</th><th>Booked as</th><th class="num">Booked hrs</th><th>Where</th><th>Notes</th><th></th></tr>`;
+  h+=rows.map(c=>{const m=matchShift(c);const hrs=c.clock_out_at?hrsBetween(c.clock_in_at,c.clock_out_at):null;const diff=m&&hrs!=null?hrs-m.hours:null;
+    return `<tr><td><b>${esc(techName(c.tech_user_id))}</b></td><td class="small">${fmtDate(c.clock_in_at)}</td><td class="mono small">${fmtTime(c.clock_in_at)}</td>
+     <td class="mono small">${c.clock_out_at?fmtTime(c.clock_out_at):'<span class="chip c-g">on clock</span>'}</td><td class="num">${hrs!=null?num(hrs):'—'}</td>
+     <td class="small">${m?esc(m.event)+'<div class="muted">'+esc(m.pos)+' · '+esc(m.time)+'</div>':'<span class="flag">not on a booking</span>'}</td>
+     <td class="num">${m?num(m.hours):''}${diff!=null&&Math.abs(diff)>=0.5?`<div class="small" style="color:${diff>0?'var(--amber)':'#93c5fd'}">${diff>0?'+':''}${num(diff)}</div>`:''}</td>
+     <td class="small">${mapLink(c.in_lat,c.in_lng)}</td><td class="small muted">${c.manual?'<span class="chip c-a">edited</span>':''}${esc(c.edit_note||'')}${c.edited_by?'<div>by '+esc(c.edited_by)+'</div>':''}</td>
+     <td><div class="row">${c.clock_out_at?'':`<button class="btn s" onclick="clockOutNow('${c.id}')">Out now</button>`}<button class="btn s" onclick="clkEdit('${c.id}')">Edit</button></div></td></tr>`}).join('');
+  h+=`</table>${rows.length?'':'<div class="empty">No clock-ins in this range.</div>'}</div></div>`;return h}
+function clkEdit(id){const c=id?(D.clock||[]).find(x=>x.id===id):null;
+  const techs=(D.roster||[]).filter(r=>r.auth_user_id&&!r.is_admin);
+  openModal(`<h3>${c?'Edit shift':'Add shift by hand'}</h3>
+   <label class="f">Tech</label><select class="i" id="ck_tech" ${c?'disabled':''}>${techs.map(r=>`<option value="${r.auth_user_id}" ${c&&c.tech_user_id===r.auth_user_id?'selected':''}>${esc(techName(r.auth_user_id))}</option>`).join('')}</select>
+   ${techs.length?'':'<div class="flag">No activated portal accounts yet.</div>'}
+   <div class="f2"><div><label class="f">Clock in</label><input class="i" type="datetime-local" id="ck_in" value="${c?toLocalInput(c.clock_in_at):''}"></div><div><label class="f">Clock out</label><input class="i" type="datetime-local" id="ck_out" value="${c?toLocalInput(c.clock_out_at):''}"></div></div>
+   <label class="f">Reason for the change (required)</label><input class="i" id="ck_note" placeholder="Forgot to clock in, phone died…" value="">
+   <div class="acts">${c?`<button class="btn bad" onclick="clkDel('${c.id}')">Delete</button><span class="sp"></span>`:''}<button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="clkSave(${c?`'${c.id}'`:'null'})">Save</button></div>`)}
+async function clkSave(id){const tin=$('ck_in').value,tout=$('ck_out').value,note=$('ck_note').value.trim();
+  if(!tin)return toast('Clock-in time is required');if(!note)return toast('Add a reason so payroll has a record');
+  if(tout&&new Date(tout)<=new Date(tin))return toast('Clock-out must be after clock-in');
+  const c=id?(D.clock||[]).find(x=>x.id===id):null;
+  await rpc('sh_clock_save',{p_id:id,p_tech:c?c.tech_user_id:$('ck_tech').value,p_in:new Date(tin).toISOString(),p_out:tout?new Date(tout).toISOString():null,p_note:note});closeLayer();toast('Shift saved');loadData(true)}
+async function clkDel(id){if(!confirm('Delete this shift? This cannot be undone.'))return;await rpc('sh_clock_delete',{p_id:id});closeLayer();toast('Shift deleted');loadData(true)}
+function clkExport(){const rows=[['Tech','Date','Clock in','Clock out','Hours','Booking','Role','Booked hours','GPS lat','GPS lng','Edited','Note']];
+  (D.clock||[]).forEach(c=>{const m=matchShift(c);rows.push([techName(c.tech_user_id),ymd(c.clock_in_at),fmtTime(c.clock_in_at),c.clock_out_at?fmtTime(c.clock_out_at):'',c.clock_out_at?num(hrsBetween(c.clock_in_at,c.clock_out_at)):'',m?m.event:'',m?m.pos:'',m?num(m.hours):'',c.in_lat??'',c.in_lng??'',c.manual?'yes':'',c.edit_note||''])});
+  downloadCSV('7VE-time-clock-'+todayYmd()+'.csv',rows)}
+
+/* ================= MILEAGE ================= */
+function geoCache(){try{return JSON.parse(safeStore.getItem('sh_geo')||'{}')}catch(e){return {}}}
+async function geocode(addr){const c=geoCache();if(c[addr])return c[addr];
+  const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='+encodeURIComponent(addr),{headers:{'Accept':'application/json'}});
+  const j=await r.json();if(!j.length)return null;const p={lat:+j[0].lat,lng:+j[0].lon};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}
+function haversineMi(a,b){const R=3958.8,t=x=>x*Math.PI/180;const dLat=t(b.lat-a.lat),dLng=t(b.lng-a.lng);const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+async function driveMiles(a,b){try{const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`);const j=await r.json();
+  if(j.routes&&j.routes[0])return {mi:j.routes[0].distance/1609.344,est:false}}catch(e){}return {mi:haversineMi(a,b)*1.25,est:true}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function rMileage(){
+  const S=settings('mileage');const today=todayYmd();
+  const have=new Set((D.mileage||[]).map(m=>m.clock_id).filter(Boolean));
+  const todo=(D.clock||[]).filter(c=>c.in_lat!=null&&!have.has(c.id));
+  let rows=(D.mileage||[]);if(UI.milFilter!=='all')rows=rows.filter(m=>m.status===UI.milFilter);
+  const sum=k=>rows.reduce((a,m)=>a+(+m[k]||0),0);
+  const rates=[...S.rates].sort((a,b)=>a.from<b.from?-1:1).map(r=>`${rateFmt(r.rate)}/mi from ${fmtDate(r.from)}`).join(' · ');
+  let h=`<div class="kpis"><div class="kpi"><div class="n">${num(sum('miles'),1)}</div><div class="l">Miles shown</div></div><div class="kpi"><div class="n">${money(sum('amount'))}</div><div class="l">Mileage $ shown</div></div>
+    <div class="kpi"><div class="n" style="color:${todo.length?'var(--amber)':'inherit'}">${todo.length}</div><div class="l">Clock-ins not calculated yet</div></div><div class="kpi"><div class="n">${(D.mileage||[]).filter(m=>m.status==='pending').length}</div><div class="l">Waiting for approval</div></div></div>
+   <div class="toolbar"><button class="btn p" onclick="milCalc()" ${todo.length?'':'disabled'}>Calculate from clock-ins (${todo.length})</button><button class="btn" onclick="milEdit()">+ Add trip by hand</button>
+    <select class="i" onchange="UI.milFilter=this.value;render()">${['all','pending','approved','paid','rejected'].map(s=>`<option ${UI.milFilter===s?'selected':''}>${s}</option>`).join('')}</select>
+    <button class="btn ok" onclick="milApproveAll()">Approve all pending</button><button class="btn" onclick="milExport()">Export IRS mileage log</button></div>
+   <p class="help">Rate: ${rates}${S.roundTrip?' · round trip (home → site → home)':' · one way'}${+S.freeMiles?' · first '+S.freeMiles+' mi per trip not paid':''}. Miles are driving distance from the tech's home address to where they clocked in. Change rates in Settings.</p>
+   <div id="milProg"></div>
+   <div class="card"><div class="cb np tw"><table><tr><th>Date</th><th>Tech</th><th>From → To</th><th class="num">One way</th><th class="num">Miles</th><th class="num">Rate</th><th class="num">Amount</th><th>Source</th><th>Status</th><th></th></tr>`;
+  h+=rows.map(m=>{const s=IDX.staff[m.staff_id];const nm=s?staffName(s):(m.tech_user_id?techName(m.tech_user_id):'—');
+    const stc={pending:'c-a',approved:'c-g',paid:'c-b',rejected:'c-r'}[m.status]||'';
+    return `<tr><td class="small">${fmtDate(m.trip_date)}</td><td><b>${esc(nm)}</b></td><td class="small">${esc(m.from_addr||'')}<div class="muted">→ ${esc(m.to_label||'')}${m.to_lat!=null?' '+mapLink(m.to_lat,m.to_lng):''}</div></td>
+     <td class="num">${m.one_way_miles!=null?num(m.one_way_miles,1):''}</td><td class="num">${num(m.miles,1)}</td><td class="num">${rateFmt(m.rate)}</td><td class="num">${money(m.amount)}</td>
+     <td class="small muted">${esc(m.source)}${m.notes?'<div>'+esc(m.notes)+'</div>':''}</td><td><span class="chip ${stc}">${esc(m.status)}</span></td>
+     <td><div class="row">${m.status==='pending'?`<button class="btn s ok" onclick="milStatus('${m.id}','approved')">Approve</button>`:''}<button class="btn s" onclick="milEdit('${m.id}')">Edit</button></div></td></tr>`}).join('');
+  h+=`</table>${rows.length?'':'<div class="empty">No mileage yet. Click "Calculate from clock-ins" or add a trip by hand.</div>'}</div></div>`;return h}
+async function milCalc(){
+  const S=settings('mileage');const have=new Set((D.mileage||[]).map(m=>m.clock_id).filter(Boolean));
+  const todo=(D.clock||[]).filter(c=>c.in_lat!=null&&!have.has(c.id));const prog=$('milProg');let done=0,skipped=[];
+  for(const c of todo){
+    prog.innerHTML=`<div class="card"><div class="cb small">Calculating ${done+1} of ${todo.length}… (about 1 second each)</div></div>`;
+    const st=staffForAuth(c.tech_user_id);const addr=homeAddr(st,c.tech_user_id);
+    if(!addr){skipped.push(techName(c.tech_user_id)+' (no home address)');done++;continue}
+    let home=null;try{home=await geocode(addr)}catch(e){}
+    await sleep(1100);
+    if(!home){skipped.push(techName(c.tech_user_id)+' (address not found)');done++;continue}
+    const site={lat:c.in_lat,lng:c.in_lng};const dm=await driveMiles(home,site);
+    const date=ymd(c.clock_in_at);const m=matchShift(c);
+    let miles=(S.roundTrip?2:1)*dm.mi;miles=Math.max(0,miles-(+S.freeMiles||0));
+    try{await rpc('sh_mileage_save',{p:{staff_id:st?st.id:null,tech_user_id:c.tech_user_id,clock_id:c.id,trip_date:date,purpose:m?('Crew call: '+m.event):'Crew call',
+      from_addr:addr,to_label:(m&&(m.venue||m.event))||'Clock-in location',to_lat:c.in_lat,to_lng:c.in_lng,one_way_miles:+dm.mi.toFixed(1),round_trip:!!S.roundTrip,
+      miles:+miles.toFixed(1),rate:mileRate(date),source:'auto',status:'pending',notes:dm.est?'Estimated (routing service unavailable) — check':null}})}catch(e){skipped.push(techName(c.tech_user_id)+' (save failed)')}
+    done++}
+  prog.innerHTML='';toast(`Mileage calculated for ${done-skipped.length} shift(s)`+(skipped.length?` · skipped: ${skipped.join(', ')}`:''));loadData(true)}
+function milEdit(id){const m=id?(D.mileage||[]).find(x=>x.id===id):{trip_date:todayYmd(),round_trip:settings('mileage').roundTrip,status:'pending'};
+  openModal(`<h3>${id?'Edit trip':'Add trip by hand'}</h3>
+   <label class="f">Tech</label><select class="i" id="mi_staff" onchange="milFillHome()">${(D.staff||[]).map(s=>`<option value="${s.id}" ${m.staff_id===s.id?'selected':''}>${esc(staffName(s))}</option>`).join('')}</select>
+   <div class="f2"><div><label class="f">Date</label><input class="i" type="date" id="mi_date" value="${esc(m.trip_date||'')}"></div><div><label class="f">Status</label><select class="i" id="mi_status">${['pending','approved','paid','rejected'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+   <label class="f">From</label><input class="i" id="mi_from" value="${esc(m.from_addr||'')}">
+   <label class="f">To</label><input class="i" id="mi_to" value="${esc(m.to_label||'')}">
+   <label class="f">Purpose</label><input class="i" id="mi_purpose" value="${esc(m.purpose||'')}" placeholder="Crew call: event name">
+   <div class="f2"><div><label class="f">Total miles</label><input class="i" type="number" step="0.1" id="mi_miles" value="${m.miles??''}"></div><div><label class="f">Rate ($/mi, blank = IRS for that date)</label><input class="i" type="number" step="0.001" id="mi_rate" value="${id?m.rate:''}"></div></div>
+   <label class="small"><input type="checkbox" id="mi_rt" ${m.round_trip?'checked':''}> Round trip</label>
+   <div class="row" style="margin-top:8px"><button class="btn s" onclick="milLookup()">Look up driving miles</button><span class="small muted" id="mi_msg"></span></div>
+   <label class="f">Notes</label><input class="i" id="mi_notes" value="${esc(m.notes||'')}">
+   <div class="acts">${id?`<button class="btn bad" onclick="milDel('${id}')">Delete</button><span class="sp"></span>`:''}<button class="btn" onclick="closeLayer()">Cancel</button><button class="btn p" onclick="milSave(${id?`'${id}'`:'null'})">Save</button></div>`);
+  if(!id)milFillHome()}
+function milFillHome(){const s=IDX.staff[$('mi_staff').value];if(s&&!$('mi_from').value)$('mi_from').value=homeAddr(s,IDX.authByStaff[s.id])}
+async function milLookup(){const f=$('mi_from').value.trim(),t=$('mi_to').value.trim(),msg=$('mi_msg');if(!f||!t)return toast('Fill in From and To first');
+  msg.textContent='Looking up…';try{const a=await geocode(f);await sleep(1100);const b=await geocode(t);if(!a||!b){msg.textContent='Could not find one of those addresses';return}
+  const dm=await driveMiles(a,b);const tot=dm.mi*($('mi_rt').checked?2:1);$('mi_miles').value=tot.toFixed(1);msg.textContent=num(dm.mi,1)+' mi one way'+(dm.est?' (estimate)':'')}catch(e){msg.textContent='Lookup failed'}}
+async function milSave(id){const date=$('mi_date').value;const miles=+$('mi_miles').value;if(!date||!(miles>=0))return toast('Date and miles are required');
+  const s=IDX.staff[$('mi_staff').value];const rate=$('mi_rate').value!==''?+$('mi_rate').value:mileRate(date);
+  await rpc('sh_mileage_save',{p:{id,staff_id:s.id,tech_user_id:IDX.authByStaff[s.id]||null,trip_date:date,purpose:$('mi_purpose').value,from_addr:$('mi_from').value,to_label:$('mi_to').value,round_trip:$('mi_rt').checked,miles,rate,status:$('mi_status').value,notes:$('mi_notes').value||null,source:'manual'}});
+  closeLayer();toast('Trip saved');loadData(true)}
+async function milDel(id){if(!confirm('Delete this trip?'))return;await rpc('sh_mileage_delete',{p_id:id});closeLayer();toast('Deleted');loadData(true)}
+async function milStatus(id,st){await rpc('sh_mileage_status',{p_ids:[id],p_status:st});toast('Mileage '+st);loadData(true)}
+async function milApproveAll(){const ids=(D.mileage||[]).filter(m=>m.status==='pending').map(m=>m.id);if(!ids.length)return toast('Nothing pending');if(!confirm('Approve '+ids.length+' pending trip(s)?'))return;await rpc('sh_mileage_status',{p_ids:ids,p_status:'approved'});toast('Approved');loadData(true)}
+function milExport(){const rows=[['Date','Driver','Business purpose','Start','Destination','Round trip','Miles','Rate','Amount','Status']];
+  (D.mileage||[]).slice().sort((a,b)=>a.trip_date<b.trip_date?-1:1).forEach(m=>{const s=IDX.staff[m.staff_id];rows.push([m.trip_date,s?staffName(s):'',m.purpose||'',m.from_addr||'',m.to_label||'',m.round_trip?'yes':'no',num(m.miles,1),m.rate,num(m.amount),m.status])});
+  downloadCSV('7VE-mileage-log-'+todayYmd()+'.csv',rows)}
+
+/* ================= PAYROLL PREP ================= */
+function defaultPeriod(){const P=settings('payroll');const t=new Date();const ws=+P.weekStart||1;
+  let start=addDays(t,-((t.getDay()-ws+7)%7));start=addDays(start,P.period==='biweekly'?-14:-7);const len=P.period==='biweekly'?14:7;
+  return {s:ymd(start),e:ymd(addDays(start,len-1))}}
+function payShift(c,staff,P){
+  const hrs=hrsBetween(c.clock_in_at,c.clock_out_at);const m=matchShift(c);
+  const role=(m&&m.pos)||staff.lead_skill||staff.title||'';const tier=v4Tier(role);
+  const pr=payRateFor(staff,role);const split=P.rateCard==='straight'?straightSplit(hrs):v4Split(hrs);
+  return {kind:'clock',id:c.id,date:ymd(c.clock_in_at),in:c.clock_in_at,out:c.clock_out_at,hrs,event:m?m.event:'',pos:role,rate:pr.rate,split,pay:pr.rate*split.units,basis:pr.basis,manual:c.manual}}
+/* same rule as the Ops Platform: use the staff hourly rate if set, otherwise the V4 tier pay for the role */
+function payRateFor(staff,role){const tier=v4Tier(role||staff.lead_skill||staff.title);const T=V4.tiers[tier];const pr=+staff.pay_rate;
+  if(pr>0&&(!staff.pay_type||staff.pay_type==='hourly'))return {rate:pr,basis:'staff hourly rate'};
+  return {rate:T.pay,basis:'V4 '+T.label+(pr>0?' (pay type is "day")':' (no rate on file)')}}
+function buildPayroll(s,e){
+  const P=settings('payroll'),MS=settings('mileage');const lines={};const flags=[];
+  const L=st=>lines[st.id]=lines[st.id]||{staff_id:st.id,name:staffName(st),shifts:[],booked:[],open:0,miles:0,mileAmt:0,milePending:0,mileIds:[],flags:[]};
+  (D.clock||[]).forEach(c=>{const d=ymd(c.clock_in_at);if(d<s||d>e)return;const st=staffForAuth(c.tech_user_id);
+    if(!st){flags.push(techName(c.tech_user_id)+' clocked in but is not an active staff member — check People in the Ops Platform');return}
+    const l=L(st);if(!c.clock_out_at){l.open++;return}l.shifts.push(payShift(c,st,P))});
+  // booked shifts with no clock-in
+  IDX.shifts.forEach(x=>{if(!x.staffId||!x.date||x.date<s||x.date>e)return;const st=IDX.staff[x.staffId];if(!st)return;const auth=IDX.authByStaff[x.staffId];
+    if(isPlaceholder(st))return;const hit=(D.clock||[]).some(c=>c.tech_user_id===auth&&ymd(c.clock_in_at)===x.date);if(hit)return;const l=L(st);
+    const pr=payRateFor(st,x.pos);const split=P.rateCard==='straight'?straightSplit(x.hours):v4Split(x.hours);
+    l.booked.push({kind:'booked',date:x.date,hrs:x.hours,event:x.event,pos:x.pos,time:x.time,rate:pr.rate,split,pay:pr.rate*split.units,basis:pr.basis+' · booked hours'})});
+  (D.mileage||[]).forEach(m=>{if(m.trip_date<s||m.trip_date>e||!m.staff_id)return;const st=IDX.staff[m.staff_id];if(!st)return;const l=L(st);
+    if(m.status==='approved'||m.status==='paid'){if(MS.reimburse){l.miles+=+m.miles;l.mileAmt+=+m.amount;l.mileIds.push(m.id)}}else if(m.status==='pending')l.milePending++});
+  const out=Object.values(lines).map(l=>{const st=IDX.staff[l.staff_id];const use=l.shifts.concat(UI.payIncludeBooked?l.booked:[]);
+    const sum=(k)=>use.reduce((a,x)=>a+(k==='pay'?x.pay:k==='hrs'?x.hrs:x.split[k]),0);
+    l.hrs=sum('hrs');l.reg=sum('reg');l.ot=sum('ot');l.dt=sum('dt');l.labor=sum('pay');l.total=l.labor+l.mileAmt;
+    const lastDay=use.map(x=>x.date).sort().pop();l.payBy=lastDay?ymd(addDays(parseYmd(lastDay),+P.payoutDays||30)):'';
+    l.pay_method=st.pay_method||'';l.pay_handle=st.pay_handle||'';
+    payReady(st).forEach(m=>l.flags.push('Missing '+m));if(l.open)l.flags.push(l.open+' shift(s) still open');
+    if(l.booked.length&&!UI.payIncludeBooked)l.flags.push(l.booked.length+' booked shift(s) with no clock-in');if(l.milePending)l.flags.push(l.milePending+' mileage trip(s) not approved');
+    if(use.some(x=>/^V4/.test(x.basis)))l.flags.push('Paid at V4 card rate (no hourly rate on file)');
+    return l}).filter(l=>l.shifts.length||l.booked.length||l.miles||l.open).sort((a,b)=>a.name<b.name?-1:1);
+  const T={people:out.length,hrs:out.reduce((a,l)=>a+l.hrs,0),labor:out.reduce((a,l)=>a+l.labor,0),miles:out.reduce((a,l)=>a+l.miles,0),mileage:out.reduce((a,l)=>a+l.mileAmt,0)};T.total=T.labor+T.mileage;
+  return {lines:out,totals:T,flags}}
+function rPayroll(){
+  if(!UI.payStart){const p=defaultPeriod();UI.payStart=p.s;UI.payEnd=p.e}
+  const P=settings('payroll');const R=buildPayroll(UI.payStart,UI.payEnd);const T=R.totals;
+  const run=(D.payroll||[]).find(r=>r.period_start===UI.payStart&&r.period_end===UI.payEnd);
+  const stc={draft:'c-a',approved:'c-g',paid:'c-b'};
+  let h=`<div class="toolbar"><button class="btn" onclick="payShiftPeriod(-1)">◀</button><input class="i" type="date" value="${UI.payStart}" onchange="paySetRange(this.value,null)"><span class="muted">to</span><input class="i" type="date" value="${UI.payEnd}" onchange="paySetRange(null,this.value)"><button class="btn" onclick="payShiftPeriod(1)">▶</button>
+    <label class="small"><input type="checkbox" ${UI.payIncludeBooked?'checked':''} onchange="UI.payIncludeBooked=this.checked;render()"> Pay booked shifts with no clock-in (uses booked hours)</label><span class="sp"></span>
+    ${run?`<span class="chip ${stc[run.status]||''}">Run: ${esc(run.status)}</span>`:''}
+    <button class="btn" onclick="payExport()">Export CSV</button><button class="btn" onclick="window.print()">Print</button>
+    ${!run||run.status==='draft'?`<button class="btn" onclick="paySave('draft')">Save draft</button><button class="btn p" onclick="paySave('approved')">Approve payroll</button>`:''}
+    ${run&&run.status==='approved'?`<button class="btn p" onclick="paySave('paid')">Mark paid</button>`:''}</div>
+   <div class="kpis"><div class="kpi"><div class="n">${T.people}</div><div class="l">People</div></div><div class="kpi"><div class="n">${num(T.hrs,1)}</div><div class="l">Hours worked</div></div>
+    <div class="kpi"><div class="n">${money(T.labor)}</div><div class="l">Labor pay</div></div><div class="kpi"><div class="n">${money(T.mileage)}</div><div class="l">Mileage (${num(T.miles,0)} mi)</div></div>
+    <div class="kpi"><div class="n" style="color:var(--red2)">${money(T.total)}</div><div class="l">Total to pay</div></div></div>
+   ${R.flags.length?`<div class="card"><div class="cb small">${R.flags.map(f=>`<div class="flag">⚠ ${esc(f)}</div>`).join('')}</div></div>`:''}
+   ${run&&run.status!=='draft'?`<div class="card"><div class="cb small">This period was <b>${esc(run.status)}</b>${run.approved_by?' by '+esc(run.approved_by)+' on '+fmtDT(run.approved_at):''}. The snapshot saved then: ${money((run.totals||{}).total)} for ${(run.totals||{}).people||0} people. Numbers below are live; if they differ, something changed after approval.</div></div>`:''}
+   <div class="card"><div class="ch"><h2>${fmtDate(UI.payStart)} – ${fmtDate(UI.payEnd)} · ${P.rateCard==='straight'?'straight hourly':'V4 rules: 5-hr minimum, 10-hr day, OT 1.5× hrs 11–12, DT 2× after 12'}</h2></div><div class="cb np tw">
+   <table><tr><th>Tech</th><th class="num">Shifts</th><th class="num">Hours</th><th class="num">Reg / OT / DT</th><th class="num">Labor</th><th class="num">Miles</th><th class="num">Mileage</th><th class="num">Total</th><th>Pay to</th><th>Pay by</th><th>Check</th></tr>`;
+  R.lines.forEach(l=>{const use=l.shifts.concat(UI.payIncludeBooked?l.booked:[]);const open=UI.payOpen[l.staff_id];
+    h+=`<tr style="cursor:pointer" onclick="UI.payOpen['${l.staff_id}']=!UI.payOpen['${l.staff_id}'];render()"><td><b>${open?'▾':'▸'} ${esc(l.name)}</b></td><td class="num">${use.length}</td><td class="num">${num(l.hrs)}</td>
+     <td class="num small">${num(l.reg,1)} / ${num(l.ot,1)} / ${num(l.dt,1)}</td><td class="num">${money(l.labor)}</td><td class="num">${num(l.miles,1)}</td><td class="num">${money(l.mileAmt)}</td><td class="num"><b>${money(l.total)}</b></td>
+     <td class="small">${esc(l.pay_method||'—')}<div class="muted">${esc(l.pay_handle||'')}</div></td><td class="small">${l.payBy?fmtDate(l.payBy):''}</td>
+     <td>${l.flags.length?l.flags.map(f=>`<div class="flag">⚠ ${esc(f)}</div>`).join(''):'<span class="chip c-g">Ready</span>'}</td></tr>`;
+    if(open)h+=l.shifts.concat(l.booked).map(x=>`<tr class="sub"><td style="padding-left:28px">${fmtDate(x.date)} ${x.kind==='booked'?`<span class="chip ${UI.payIncludeBooked?'c-a':'c-r'}">booked, no clock-in${UI.payIncludeBooked?'':' · not paid'}</span>`:x.manual?'<span class="chip c-a">edited</span>':''}</td>
+      <td colspan="2" class="small">${x.kind==='clock'?fmtTime(x.in)+' – '+fmtTime(x.out):esc(x.time)} · ${num(x.hrs)} h</td><td class="num small">${x.split.mini?'5-hr min':num(x.split.reg,1)+' / '+num(x.split.ot,1)+' / '+num(x.split.dt,1)}</td>
+      <td class="num">${money(x.pay)}</td><td colspan="3" class="small">${esc(x.event||'not on a booking')} · ${esc(x.pos||'')} · ${money(x.rate)} ${esc(x.basis)}</td><td colspan="3"></td></tr>`).join('')});
+  h+=`</table>${R.lines.length?'':'<div class="empty">No time or mileage in this period.</div>'}</div></div>`;
+  const past=(D.payroll||[]);
+  if(past.length)h+=`<div class="card noprint"><div class="ch"><h2>Saved payroll runs</h2></div><div class="cb np tw"><table><tr><th>Period</th><th>Status</th><th class="num">People</th><th class="num">Total</th><th>By</th><th></th></tr>${past.map(r=>`<tr><td>${fmtDate(r.period_start)} – ${fmtDate(r.period_end)}</td><td><span class="chip ${stc[r.status]||''}">${esc(r.status)}</span></td><td class="num">${(r.totals||{}).people||0}</td><td class="num">${money((r.totals||{}).total)}</td><td class="small muted">${esc(r.approved_by||r.created_by||'')}</td><td><button class="btn s" onclick="paySetRange('${r.period_start}','${r.period_end}')">Open</button>${r.status==='draft'?` <button class="btn s bad" onclick="payDel('${r.id}')">Delete</button>`:''}</td></tr>`).join('')}</table></div></div>`;
+  h+=`<p class="help">Pay comes from real clock-in/out times. Shifts are matched to bookings by tech and date to pick the role. Techs get paid within ${P.payoutDays} days of their last day worked ("Pay by"). Approving saves a snapshot so later changes stand out.</p>`;
+  return h}
+async function paySetRange(s,e){if(s)UI.payStart=s;if(e)UI.payEnd=e;if(UI.payEnd<UI.payStart)UI.payEnd=UI.payStart;
+  if(!D||!D._from||UI.payStart<D._from){await loadData(true);return}render()}
+function payShiftPeriod(dir){const len=Math.round((parseYmd(UI.payEnd)-parseYmd(UI.payStart))/864e5)+1;paySetRange(ymd(addDays(parseYmd(UI.payStart),dir*len)),ymd(addDays(parseYmd(UI.payEnd),dir*len)))}
+function payLinesSnapshot(R){return R.lines.map(l=>({staff_id:l.staff_id,name:l.name,shifts:l.shifts.length+(UI.payIncludeBooked?l.booked.length:0),hrs:+l.hrs.toFixed(2),reg:+l.reg.toFixed(2),ot:+l.ot.toFixed(2),dt:+l.dt.toFixed(2),labor:+l.labor.toFixed(2),miles:+l.miles.toFixed(1),mileage:+l.mileAmt.toFixed(2),total:+l.total.toFixed(2),pay_method:l.pay_method,pay_by:l.payBy,flags:l.flags,mileIds:l.mileIds,clockIds:l.shifts.map(x=>x.id)}))}
+async function paySave(status){const R=buildPayroll(UI.payStart,UI.payEnd);const run=(D.payroll||[]).find(r=>r.period_start===UI.payStart&&r.period_end===UI.payEnd);
+  const flagged=R.lines.filter(l=>l.flags.length).length;
+  if(status==='approved'&&flagged&&!confirm(flagged+' tech(s) still have warnings. Approve anyway?'))return;
+  if(status==='paid'&&!confirm('Mark this payroll as paid? Approved mileage in it will be marked paid too.'))return;
+  const T=Object.fromEntries(Object.entries(R.totals).map(([k,v])=>[k,+(+v).toFixed(2)]));
+  const p=status==='paid'?{id:run.id,status:'paid'}:{id:run?run.id:null,period_start:UI.payStart,period_end:UI.payEnd,status,lines:payLinesSnapshot(R),totals:T};
+  await rpc('sh_payroll_save',{p});
+  if(status==='paid'){const ids=(run.lines||[]).flatMap(l=>l.mileIds||[]);if(ids.length)await rpc('sh_mileage_status',{p_ids:ids,p_status:'paid'})}
+  toast({draft:'Draft saved',approved:'Payroll approved',paid:'Marked paid'}[status]);loadData(true)}
+async function payDel(id){if(!confirm('Delete this draft?'))return;await rpc('sh_payroll_delete',{p_id:id});loadData(true)}
+function payExport(){const R=buildPayroll(UI.payStart,UI.payEnd);const rows=[['Period start','Period end','Tech','Email','Shifts','Hours','Reg hrs','OT hrs','DT hrs','Labor pay','Miles','Mileage pay','Total','Pay method','Pay handle','Pay by','Warnings']];
+  R.lines.forEach(l=>{const st=IDX.staff[l.staff_id];rows.push([UI.payStart,UI.payEnd,l.name,st.email||'',l.shifts.length+(UI.payIncludeBooked?l.booked.length:0),num(l.hrs),num(l.reg),num(l.ot),num(l.dt),num(l.labor),num(l.miles,1),num(l.mileAmt),num(l.total),l.pay_method,l.pay_handle,l.payBy,l.flags.join('; ')])});
+  rows.push([]);rows.push(['','','TOTAL','','',num(R.totals.hrs),'','','',num(R.totals.labor),num(R.totals.miles,1),num(R.totals.mileage),num(R.totals.total)]);
+  downloadCSV('7VE-payroll-'+UI.payStart+'_to_'+UI.payEnd+'.csv',rows)}
+
+/* ================= SETTINGS ================= */
+function rSettings(){const M=settings('mileage'),P=settings('payroll');
+  let h=`<div class="grid2"><div class="card"><div class="ch"><h2>Mileage</h2></div><div class="cb">
+    <label class="f">Rates per mile (by start date)</label><div id="rateRows">${M.rates.map((r,i)=>`<div class="row" style="margin-bottom:6px"><input class="i" type="date" style="width:160px" value="${r.from}" data-k="from" data-i="${i}"><input class="i" type="number" step="0.001" style="width:110px" value="${r.rate}" data-k="rate" data-i="${i}"><button class="btn s g" onclick="this.parentNode.remove()">✕</button></div>`).join('')}</div>
+    <button class="btn s" onclick="addRateRow()">+ Add rate</button>
+    <p class="help">Default is the IRS business rate: 72.5¢ for Jan 1 – Jun 30, 2026 and 76¢ from Jul 1, 2026 (IRS Announcement 2026-11). Add next year's rate here when the IRS announces it.</p>
+    <label class="small"><input type="checkbox" id="st_rt" ${M.roundTrip?'checked':''}> Count round trip (home → site → home)</label><br>
+    <label class="small"><input type="checkbox" id="st_reimb" ${M.reimburse?'checked':''}> Add approved mileage to tech pay</label>
+    <label class="f">Miles per trip not paid (0 = pay all)</label><input class="i" type="number" id="st_free" style="width:120px" value="${+M.freeMiles||0}">
+    <div class="acts"><button class="btn p" onclick="saveMileSettings()">Save mileage settings</button></div></div></div>
+   <div class="card"><div class="ch"><h2>Payroll</h2></div><div class="cb">
+    <label class="f">Pay period</label><select class="i" id="st_period"><option value="weekly" ${P.period!=='biweekly'?'selected':''}>Weekly</option><option value="biweekly" ${P.period==='biweekly'?'selected':''}>Every 2 weeks</option></select>
+    <label class="f">Week starts on</label><select class="i" id="st_ws">${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d,i)=>`<option value="${i}" ${+P.weekStart===i?'selected':''}>${d}</option>`).join('')}</select>
+    <label class="f">Hours rules</label><select class="i" id="st_rc"><option value="v4" ${P.rateCard!=='straight'?'selected':''}>V4 rate card (5-hr min, 10-hr day, OT/DT)</option><option value="straight" ${P.rateCard==='straight'?'selected':''}>Straight hourly (hours × rate)</option></select>
+    <label class="f">Days to pay techs after last show day</label><input class="i" type="number" id="st_days" style="width:120px" value="${+P.payoutDays||30}">
+    <div class="acts"><button class="btn p" onclick="savePaySettings()">Save payroll settings</button></div></div></div></div>`;
+  if(OPEN_MODE)h+=`<div class="card"><div class="cb small"><b>Login is turned off.</b> <span class="muted">Anyone with this page's link can open it. Access controls come back when the login is turned on again.</span></div></div>`;
+  if(ME.is_admin){h+=`<div class="card"><div class="ch"><h2>Access — who can open Staffing HQ</h2></div><div class="cb">
+    <div class="row"><input class="i" style="max-width:260px" id="ac_email" placeholder="staffing manager email"><input class="i" style="max-width:200px" id="ac_name" placeholder="Name"><button class="btn p" onclick="accSave()">Give access</button></div>
+    <p class="help">After you add them, they open this page, type their email and a new password, and click <b>First time? Create password</b>. You (the owner) always have access.</p>
+    <table><tr><th>Email</th><th>Name</th><th>Status</th><th></th></tr>${(D.access||[]).map(a=>`<tr><td>${esc(a.email)}</td><td>${esc(a.full_name||'')}</td><td><span class="chip ${a.active?'c-g':'c-r'}">${a.active?'active':'removed'}</span></td><td><button class="btn s" onclick="accToggle('${esc(a.email)}',${!a.active})">${a.active?'Remove':'Restore'}</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted small">Nobody added yet.</td></tr>'}</table></div></div>`}
+  return h}
+function addRateRow(){const d=document.createElement('div');d.className='row';d.style.marginBottom='6px';d.innerHTML=`<input class="i" type="date" style="width:160px" data-k="from"><input class="i" type="number" step="0.001" style="width:110px" data-k="rate"><button class="btn s g" onclick="this.parentNode.remove()">✕</button>`;$('rateRows').appendChild(d)}
+async function saveMileSettings(){const rates=[...$('rateRows').children].map(r=>({from:r.querySelector('[data-k=from]').value,rate:+r.querySelector('[data-k=rate]').value})).filter(r=>r.from&&r.rate>0);
+  if(!rates.length)return toast('Add at least one rate');
+  await rpc('sh_setting_save',{p_key:'mileage',p_value:{rates,roundTrip:$('st_rt').checked,reimburse:$('st_reimb').checked,freeMiles:+$('st_free').value||0}});toast('Mileage settings saved');loadData(true)}
+async function savePaySettings(){await rpc('sh_setting_save',{p_key:'payroll',p_value:{period:$('st_period').value,weekStart:+$('st_ws').value,rateCard:$('st_rc').value,payoutDays:+$('st_days').value||30}});UI.payStart=null;toast('Payroll settings saved');loadData(true)}
+async function accSave(){const e=$('ac_email').value.trim();if(!/@/.test(e))return toast('Enter an email');await rpc('sh_access_save',{p_email:e,p_name:$('ac_name').value.trim()||null,p_active:true});toast('Access given to '+e);loadData(true)}
+async function accToggle(e,on){await rpc('sh_access_save',{p_email:e,p_name:null,p_active:on});toast(on?'Restored':'Removed');loadData(true)}
+
+boot();
+</script>
+</body>
+</html>
