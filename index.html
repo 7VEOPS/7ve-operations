@@ -792,7 +792,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
       </div>
 
       <div class="view" id="view-jobs">
-        <div id="jobsTabBar" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px"><div class="tab active" onclick="setJobsTab('list',this)">📋 Jobs by Client</div><div class="tab" onclick="setJobsTab('schedule',this)">📅 Crew Schedule</div></div>
+        <div id="jobsTabBar" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px"><div class="tab active" onclick="setJobsTab('list',this)">📋 Jobs by Client</div><div class="tab" onclick="setJobsTab('schedule',this)">📅 Crew Schedule</div><div class="tab" id="jobsTabWebBtn" onclick="setJobsTab('web',this)">🌐 Website Requests</div></div>
         <div id="jobsTab-list">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div>
@@ -824,6 +824,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
         </div>
         <div id="jobsList"></div>
       </div>
+        <div id="jobsTab-web" style="display:none"></div>
         <div id="jobsTab-schedule" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
@@ -4071,6 +4072,56 @@ setTimeout(function(){var sel=document.getElementById('obPerson');if(sel&&rec&&r
 obWebLoad(true);
 }
 (function(){var o=obLoad;obLoad=function(){o();obWebLoad(true);};})();
+/* ===== Website job requests (Jobs tab) ===== */
+let jrRows=[], jrAll=false;
+async function jrLoad(quiet){
+  const box=document.getElementById('jobsTab-web'); if(!box) return;
+  try{ jrRows=await sbGet('website_job_requests?select=*&order=created_at.desc'); }
+  catch(e){ if(!quiet) box.innerHTML='<div style="color:#e74c3c;font-size:12px">Could not load website requests: '+obEsc(e.message)+'</div>'; return; }
+  const n=jrRows.filter(r=>r.status==='new').length;
+  const t=document.getElementById('jobsTabWebBtn'); if(t) t.textContent='🌐 Website Requests'+(n?' ('+n+' new)':'');
+  if(box.style.display!=='none') jrDraw();
+}
+function jrDraw(){
+  const box=document.getElementById('jobsTab-web');
+  const rows=jrRows.filter(r=>jrAll||r.status!=='archived');
+  let h='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px"><div><div style="font-size:16px;font-weight:700">Website Requests</div><div style="font-size:11px;color:var(--muted)">Job and booking requests submitted on 7virtuesentertainment.com land here.</div></div><div><label style="font-size:12px;margin-right:10px"><input type="checkbox" '+(jrAll?'checked ':'')+'onchange="jrAll=this.checked;jrDraw()"> Show archived</label><button class="btn" onclick="jrLoad()">Refresh</button></div></div>';
+  if(!rows.length) h+='<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:8px">No website job requests yet.</div>';
+  const inp='padding:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text)';
+  rows.forEach(r=>{
+    const id=obEsc(r.id), d=r.created_at?new Date(r.created_at).toLocaleString():'';
+    const opts=['new','contacted','quoted','booked','declined','archived'].map(s=>'<option value="'+s+'"'+(r.status===s?' selected':'')+'>'+s+'</option>').join('');
+    const sv=(r.services||[]).join(', ');
+    const sub=encodeURIComponent('Your 7VE booking request'+(r.event_date?' ('+r.event_date+')':''));
+    h+='<div style="border:1px solid var(--border);background:var(--bg-card);border-radius:8px;padding:12px;margin-bottom:10px">'
+    +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="font-weight:700;font-size:14px">'+obEsc(r.name)+(r.organization?' · '+obEsc(r.organization):'')+(r.status==='new'?' <span style="font-size:10px;background:#c0392b;color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px">NEW</span>':'')+'</div><div style="font-size:11px;color:var(--muted)">'+obEsc(d)+'</div></div>'
+    +'<div style="font-size:12px;margin-top:6px">'+(r.email?'<a href="mailto:'+obEsc(r.email)+'?subject='+sub+'" style="color:var(--accent,#e74c3c)">'+obEsc(r.email)+'</a>':'')+(r.phone?' · <a href="tel:'+obEsc(r.phone)+'" style="color:var(--accent,#e74c3c)">'+obEsc(r.phone)+'</a>':'')+'</div>'
+    +'<div style="font-size:12px;margin-top:6px"><b>Event:</b> '+obEsc(r.event_type||'—')+' · <b>Date:</b> '+obEsc(r.event_date||'TBD')+' · <b>Where:</b> '+obEsc(r.location||'—')+(r.attendance?' · <b>Attendance:</b> '+obEsc(r.attendance):'')+'</div>'
+    +(sv?'<div style="font-size:12px;margin-top:4px"><b>Services:</b> '+obEsc(sv)+'</div>':'')
+    +(r.details?'<div style="font-size:12px;margin-top:4px;white-space:pre-wrap"><b>Details:</b> '+obEsc(r.details)+'</div>':'')
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">'
+    +'<select onchange="jrStatus(\''+id+'\',this.value)" style="'+inp+'">'+opts+'</select>'
+    +'<input value="'+obEsc(r.admin_notes||'')+'" placeholder="Notes" onchange="jrNote(\''+id+'\',this.value)" style="flex:1;min-width:160px;'+inp+'">'
+    +'<button class="btn btn-primary" onclick="jrToJob(\''+id+'\')">Create job</button></div></div>';
+  });
+  box.innerHTML=h;
+}
+async function jrStatus(id,v){ try{await sbPatch('website_job_requests?id=eq.'+encodeURIComponent(id),{status:v,reviewed_at:new Date().toISOString()});}catch(e){alert('Save failed: '+e.message);} await jrLoad(); }
+async function jrNote(id,v){ try{await sbPatch('website_job_requests?id=eq.'+encodeURIComponent(id),{admin_notes:v});}catch(e){alert('Save failed: '+e.message);} }
+async function jrToJob(id){
+  const r=jrRows.find(x=>String(x.id)===String(id)); if(!r) return;
+  if(!confirm('Create a job for "'+(r.organization||r.name)+'" from this request?')) return;
+  const note=['Website request from '+r.name+(r.email?' <'+r.email+'>':'')+(r.phone?' '+r.phone:''),(r.event_type?'Type: '+r.event_type:''),((r.services||[]).length?'Services: '+r.services.join(', '):''),(r.attendance?'Attendance: '+r.attendance:''),(r.details||'')].filter(Boolean).join('\n');
+  try{
+    await sbPost('jobs',{client:r.organization||r.name,name:(r.event_type||'Event')+' - '+(r.organization||r.name),show_date:r.event_date||null,venue:r.location||null,revenue:0,notes:note});
+    await sbPatch('website_job_requests?id=eq.'+encodeURIComponent(id),{status:'booked',reviewed_at:new Date().toISOString()});
+  }catch(e){ alert('Could not create job: '+e.message); return; }
+  try{ if(typeof loadJobs==='function') await loadJobs(); }catch(_){}
+  toast('Job created','Added to Jobs by Client. Open it to add revenue and costs.');
+  jrLoad(true);
+}
+setTimeout(function(){ try{ jrLoad(true); }catch(_){} },2500);
+
 
 function obDl(i){
 const f=obFiles[i];
@@ -6353,7 +6404,9 @@ function setJobsTab(tab, el){
   document.querySelectorAll('#jobsTabBar .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
   document.getElementById('jobsTab-list').style.display = tab==='list'?'block':'none';
   document.getElementById('jobsTab-schedule').style.display = tab==='schedule'?'block':'none';
+  var wb=document.getElementById('jobsTab-web'); if(wb) wb.style.display = tab==='web'?'block':'none';
   if(tab==='schedule') ensureCrewLoaded();
+  if(tab==='web') jrLoad();
 }
 async function ensureCrewLoaded(){
   if(!crewLoaded){ crewLoaded=true; if((people||[]).length===0 && typeof loadPeople==='function'){ try{await loadPeople();}catch(e){} } await csList(); }
