@@ -523,6 +523,8 @@ async function geocode(addr){const c=geoCache();if(c[addr])return c[addr];
   for(let i=0;i<tries.length;i++){if(i)await sleep(1100);
     const r=await fetch(NOMI+'limit=1&q='+encodeURIComponent(tries[i]),{headers:{'Accept':'application/json'}});
     const j=await r.json();if(j.length){const p={lat:+j[0].lat,lng:+j[0].lon};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}}
+  const zip=(String(addr).match(/\b(\d{5})(?:-\d{4})?\s*\.?\s*$/)||String(addr).match(/\b(\d{5})\b(?!.*\d{5})/)||[])[1];
+  if(zip){await sleep(1100);try{const r=await fetch(NOMI+'limit=1&postalcode='+zip,{headers:{'Accept':'application/json'}});const j=await r.json();if(j.length){const p={lat:+j[0].lat,lng:+j[0].lon,approx:true};c[addr]=p;safeStore.setItem('sh_geo',JSON.stringify(c));return p}}catch(e){}}
   return null}
 function haversineMi(a,b){const R=3958.8,t=x=>x*Math.PI/180;const dLat=t(b.lat-a.lat),dLng=t(b.lng-a.lng);const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
 async function driveMiles(a,b){try{const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`);const j=await r.json();
@@ -714,7 +716,8 @@ function rMap(){
    <div id="mapProg"></div>
    <div class="mapwrap"><div id="map"></div><div class="card mside" style="margin:0"><div class="cb np">${side}</div></div></div>
    <p class="help">Rings show straight-line miles (${RINGS.join(' / ')} mi). Drive times are normal-traffic estimates from OpenStreetMap routing, not live traffic.${noAddr.length?' '+noAddr.length+' tech(s) have no home address — add it in Crew.':''}</p>`}
-async function loadMapData(){try{MAPD=await rpc('sh_map_data',{});MAPD.geo=MAPD.geo||{};}catch(e){MAPD={places:[],geo:{},rentals:[]}}if(TAB==='map')render()}
+async function loadMapData(){try{MAPD=await rpc('sh_map_data',{});MAPD.geo=MAPD.geo||{};}catch(e){MAPD={places:[],geo:{},rentals:[]}}if(TAB==='map'){render();if(!MLOCATING&&mapMissing().length)mapLocate(true)}}
+function mapMissing(){const P=mapPoints();return [...new Set(P.techs.filter(t=>t.addr&&!t.geo).map(t=>t.addr).concat(P.venues.filter(v=>v.addr&&!v.geo).map(v=>v.addr)))].filter(a=>!(MAPD.failed||{})[a])}
 function mapSideSelected(P){
   if(MSEL.type==='tech'){const t=P.techs.find(x=>x.id===MSEL.id);if(!t)return '';
     const rows=(MDRIVE&&MDRIVE.rows)||[];
@@ -758,14 +761,14 @@ function mapAfterRender(){
     m.bindTooltip(esc(t.name)+(d&&d.min!=null?' · '+Math.round(d.min)+' min':''));m.on('click',()=>mapSelect('tech',t.id));
     if(sel)RINGS.forEach((mi,i)=>L.circle([t.geo.lat,t.geo.lng],{radius:mi*1609.344,color:['#22C55E','#F5A623','#E70B0E'][i],weight:1.5,fill:false,dashArray:'6 6'}).addTo(LMAP).bindTooltip(mi+' mi',{permanent:false}))});
   setTimeout(()=>LMAP&&LMAP.invalidateSize(),50)}
-async function mapLocate(){
-  const P=mapPoints();const missing=[...new Set(P.techs.filter(t=>t.addr&&!t.geo).map(t=>t.addr).concat(P.venues.filter(v=>v.addr&&!v.geo).map(v=>v.addr)))];
+async function mapLocate(auto){
+  if(!auto)MAPD.failed={};const missing=mapMissing();if(!missing.length)return;
   MLOCATING=true;render();let ok=0,bad=[];
   for(let i=0;i<missing.length;i++){const a=missing[i];if($('mapProg'))$('mapProg').innerHTML=`<div class="card"><div class="cb small">Locating ${i+1} of ${missing.length}: ${esc(a)}</div></div>`;
     let g=null;try{g=await geocode(a)}catch(e){}
-    if(g){MAPD.geo[a.trim()]=[g.lat,g.lng];ok++;try{await sb.rpc('sh_geo_save',{p_address:a.trim(),p_lat:g.lat,p_lng:g.lng})}catch(e){}}else bad.push(a);
+    if(g){MAPD.geo[a.trim()]=[g.lat,g.lng];ok++;try{await sb.rpc('sh_geo_save',{p_address:a.trim(),p_lat:g.lat,p_lng:g.lng})}catch(e){}}else{bad.push(a);(MAPD.failed=MAPD.failed||{})[a]=1}
     await sleep(1100)}
-  MLOCATING=false;MAPVIEW=null;render();toast(`Located ${ok} address(es)`+(bad.length?` · couldn't find ${bad.length} — check spelling in Crew`:''))}
+  MLOCATING=false;if(!auto)MAPVIEW=null;if(TAB==='map')render();toast(`${auto?'Pinned new addresses: ':''}Located ${ok} address(es)`+(bad.length?` · couldn't find ${bad.length} — check spelling in Crew`:''))}
 let PLGEO=null;
 function mapPlaceEdit(id,pre){const p=id?(MAPD.places||[]).find(x=>x.id===id):Object.assign({kind:'hotel'},pre||{});if(!pre)PLREPL=null;PLGEO=p.lat!=null?{lat:+p.lat,lng:+p.lng,addr:p.address}:null;
   openModal(`<h3>${id?'Edit':'Add'} venue / hotel</h3>
