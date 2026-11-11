@@ -639,11 +639,62 @@ async function loadSkillsList(){
 }
 let currentTechProfile = null;
 
+/* profile photo */
+async function phSignedUrl(path){const c=await getSupabaseClient();const r=await c.storage.from('staff-photos').createSignedUrl(path,3600);return r&&r.data&&r.data.signedUrl;}
+async function phLoadMine(){
+  const el=document.getElementById('my-photo');if(!el)return;
+  try{
+    const c=await getSupabaseClient();const u=await c.auth.getUser();
+    if(!u||!u.data||!u.data.user)return;
+    const r=await c.from('tech_roster').select('photo_path').eq('auth_user_id',u.data.user.id).maybeSingle();
+    if(r&&r.data&&r.data.photo_path){
+      const url=await phSignedUrl(r.data.photo_path);
+      if(url){el.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover" alt="Your photo">';const b=document.getElementById('photo-btn');if(b)b.textContent='Change profile photo';}
+    }
+  }catch(e){}
+}
+function phResize(file){
+  return new Promise(function(res,rej){
+    const img=new Image();const u=URL.createObjectURL(file);
+    img.onload=function(){
+      const m=640;const sc=Math.min(1,m/Math.max(img.width,img.height));
+      const w=Math.round(img.width*sc),h=Math.round(img.height*sc);
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(u);
+      cv.toBlob(function(b){b?res(b):rej(new Error('Could not process photo'));},'image/jpeg',0.85);
+    };
+    img.onerror=function(){URL.revokeObjectURL(u);rej(new Error('Could not read that image'));};
+    img.src=u;
+  });
+}
+async function phUpload(file){
+  const msg=document.getElementById('photo-msg');
+  const say=function(t,bad){if(msg){msg.textContent=t;msg.style.color=bad?'#e74c3c':'var(--dim)';}};
+  try{
+    say('Uploading…');
+    const blob=await phResize(file);
+    const c=await getSupabaseClient();const u=await c.auth.getUser();
+    if(!u||!u.data||!u.data.user)throw new Error('Please sign in again');
+    const path=u.data.user.id+'/profile.jpg';
+    const up=await c.storage.from('staff-photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'});
+    if(up.error)throw up.error;
+    const rp=await c.rpc('set_my_photo',{p:path});
+    if(rp.error)throw rp.error;
+    say('Photo saved ✓ — 7VE can now see it on your staff card.');
+    const el=document.getElementById('my-photo');if(el)el.dataset.ph='';
+    phLoadMine();
+  }catch(e){say('Upload failed: '+(e&&e.message?e.message:e),true);}
+}
+document.addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#photo-btn');if(b){const i=document.getElementById('photo-input');if(i)i.click();}});
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='photo-input'&&e.target.files&&e.target.files[0]){phUpload(e.target.files[0]);e.target.value='';}});
+new MutationObserver(function(){const el=document.getElementById('my-photo');if(el&&!el.dataset.ph){el.dataset.ph='1';phLoadMine();}}).observe(document.body,{childList:true,subtree:true});
+
 function infoView(){
   const ssnDisplay = maskSSN(currentProfile.ssn);
   const p = currentTechProfile || {};
   const row = (label, value, extra) => `<div class="card"><div class="card-row"><span>${label}</span><span class="pill" ${extra||''}>${value}</span></div></div>`;
   return head('02 · Profile', 'Your Information', 'Personal details, banking, and contractor paperwork — visible only to you and 7VE admin.') + `
+    <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><div id="my-photo" style="width:72px;height:72px;border-radius:50%;background:var(--charcoal);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto;">👤</div><div><button class="btn-primary" id="photo-btn" type="button">Add profile photo</button><input type="file" id="photo-input" accept="image/*" style="display:none"><div id="photo-msg" style="font-size:11px;color:var(--dim);margin-top:6px;">A clear photo of your face — 7VE uses it so the team knows who you are.</div></div></div>
     <button class="btn-primary" id="edit-profile-btn" style="margin-bottom:16px;">${currentTechProfile ? 'Edit Information' : '+ Add Your Information'}</button>
     ${row('Address', p.address || '<span class="led led-off"></span> Not started')}
     ${row('Direct deposit / banking', p.bank_name ? (p.bank_name + ' •••• ' + (p.bank_account_last4||'')) : '<span class="led led-off"></span> Not started')}
