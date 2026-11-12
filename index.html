@@ -832,6 +832,7 @@ body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
               <div class="fg" style="margin:0"><label class="fl">Client</label><input class="fi" id="csClient" list="csClientDL" placeholder="Pick or type a client" oninput="CS.client=this.value" style="min-width:190px"><datalist id="csClientDL"></datalist></div>
               <div class="fg" style="margin:0"><label class="fl">Setup Rate $/hr</label><input class="fi" id="csRateSetup" type="number" min="0" value="50" oninput="csSetRate('rateSetup',this.value)" style="width:100px"></div>
               <div class="fg" style="margin:0"><label class="fl">Skilled Rate $/hr</label><input class="fi" id="csRateSkilled" type="number" min="0" value="60" oninput="csSetRate('rateSkilled',this.value)" style="width:100px"></div>
+              <div class="fg" style="margin:0"><label class="fl" title="Optional. Sets the pay rate for this show. Techs whose base pay is lower see a 'higher pay available' notice in the Tech Portal.">Show Pay $/hr (techs)</label><input class="fi" id="csShowPay" type="number" min="0" step="0.5" placeholder="base" oninput="CS.showPay=parseFloat(this.value)||0" style="width:100px"></div>
               <select class="fs" id="csPicker" onchange="csLoad(this.value)" style="width:auto;min-width:150px"><option value="">— saved schedules —</option></select>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -4123,48 +4124,6 @@ async function jrToJob(id){
 setTimeout(function(){ try{ jrLoad(true); }catch(_){} },2500);
 
 
-/* staff photos from the technician portal */
-let phMap={};
-async function phLoadAll(){
-  try{
-    const rows=await sbGet('tech_roster?select=email,photo_path&photo_path=not.is.null');
-    if(!rows.length)return;
-    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/staff-photos',{method:'POST',headers:headers(),body:JSON.stringify({expiresIn:3600,paths:rows.map(function(x){return x.photo_path;})})});
-    if(!r.ok)return;
-    const signed=await r.json();const byPath={};
-    signed.forEach(function(s){if(s&&s.signedURL&&!s.error)byPath[s.path]=SUPA_URL+'/storage/v1'+s.signedURL;});
-    phMap={};
-    rows.forEach(function(x){if(x.email&&byPath[x.photo_path])phMap[String(x.email).toLowerCase()]=byPath[x.photo_path];});
-    phApply();
-  }catch(e){}
-}
-function phImg(el,url){
-  if(!el||!url)return;
-  el.textContent='';el.style.padding='0';el.style.overflow='hidden';
-  const i=document.createElement('img');i.src=url;i.alt='';
-  i.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block';
-  el.appendChild(i);
-}
-function phFor(p){return p&&p.email?phMap[String(p.email).toLowerCase()]:null;}
-function phApply(){
-  const grid=document.getElementById('peopleGrid');
-  if(grid){
-    grid.querySelectorAll('[onclick^="openPersonDetail("]').forEach(function(card){
-      const m=card.getAttribute('onclick').match(/openPersonDetail\('([^']+)'/);
-      const p=m&&(people||[]).find(function(x){return String(x.id)===m[1];});
-      const url=phFor(p);if(!url)return;
-      const ini=((p.first_name||'?')[0]+((p.last_name||'')[0]||'')).toUpperCase();
-      const els=card.querySelectorAll('div,span');
-      for(const el of els){if(el.children.length===0&&el.textContent.trim()===ini){phImg(el,url);break;}}
-    });
-  }
-}
-(function(){
-  const rp=renderPeople;renderPeople=function(){rp.apply(this,arguments);phApply();};
-  const od=openPersonDetail;openPersonDetail=function(id){od.apply(this,arguments);const p=(people||[]).find(function(x){return x.id===id;});const url=phFor(p);if(url)phImg(document.getElementById('pdAvatar'),url);};
-  const lp=loadPeople;loadPeople=async function(){await lp.apply(this,arguments);phLoadAll();};
-})();
-
 function obDl(i){
 const f=obFiles[i];
 const blob=new Blob([f.bytes],{type:'application/pdf'});
@@ -4185,7 +4144,7 @@ const coi=mode==='coi'
 :'3. Insurance Decline & Rate Acknowledgment – you will work under 7VE\'s insurance at a reduced rate. Sign and return it. (You can switch to the full rate any time by providing a valid COI.)';
 const body='Hi '+first+',\n\nWelcome to 7 Virtues Entertainment. Please complete and return the attached paperwork before your first engagement:\n\n'+
 '1. W-9 – fill out lines 1–7, sign and date it.\n2. ACH Direct Deposit Authorization – so we can pay you by direct deposit. Please send banking details only on this form with a voided check or bank letter, never typed into an email.\n'+coi+
-'\n4. Non-Disclosure Agreement (NDA) – sign and return it.\n\nYou can also sign in to the technician portal at https://tech.7virtuesentertainment.com (activate with your email and the last 4 digits of your phone number).\n\nQuestions? Reply here or call '+OB_PHONE+'.\n\nThank you,\nTito Rodriguez\n7 Virtues Entertainment, LLC';
+'\n4. Non-Disclosure Agreement (NDA) – sign and return it.\n\nYou can also sign in to the technician portal at https://tech.7virtuesentertainment.com (activate with your email and the last 4 digits of your phone number).\n\nQuestions? Reply here or call '+OB_PHONE+'.\n\nThank you,\nRoberto Rodriguez\n7 Virtues Entertainment, LLC';
 return {subj,body};
 }
 async function obCopy(id){
@@ -6592,7 +6551,7 @@ function csAutoFill(){
   }); });
   csRender();
 }
-function csNew(){ CS.id=null; CS.techPaid={}; CS.cancelled=null; csSyncCancelBtn(); CS.hardHours=false; csSyncHardBtn(); CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
+function csNew(){ CS.id=null; CS.techPaid={}; CS.cancelled=null; csSyncCancelBtn(); CS.hardHours=false; csSyncHardBtn(); CS.showPay=0; (function(){var e=document.getElementById('csShowPay'); if(e) e.value='';})(); CS.client=''; document.getElementById('csClient').value=''; CS.netTerms='15'; CS.taxOn=true; CS.createdAt=null; csSyncNetTermsSel(); csSyncTaxBtn(); CS.rateCard='v4'; csSyncCardBtn(); CS.event=''; CS.budget=''; CS.rateSetup=50; CS.rateSkilled=60; CS.days=[]; CS.assign={}; CS.skills={}; CS.off={}; CS.cur=null; document.getElementById('csEvName').value=''; document.getElementById('csRateSetup').value='50'; document.getElementById('csRateSkilled').value='60'; document.getElementById('csPicker').value=''; csRender(); }
 function csSetBudget(v){ CS.budget=v; }
 function csSetRate(k,v){ CS[k]=parseFloat(v)||0; }
 
@@ -6612,7 +6571,7 @@ async function csLoad(id){
     const rows=await sbGet('crew_schedules?id=eq.'+encodeURIComponent(id)+'&select=*');
     const r=rows&&rows[0]; if(!r) return;
     const data=typeof r.data==='string'?JSON.parse(r.data):(r.data||{});
-    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.techPaid=data.techPaid||{}; CS.cancelled=data.cancelled||null; CS.hardHours=!!data.hardHours; csSyncHardBtn(); CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn(); csSyncCancelBtn();
+    CS.id=r.id; CS.event=r.event_name||''; CS.rateCard=data.rateCard||'legacy'; csSyncCardBtn(); CS.budget=data.budget||''; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60; CS.days=data.days||[]; CS.assign=data.assign||{}; CS.skills=data.skills||{}; CS.off=data.off||{}; CS.techPaid=data.techPaid||{}; CS.cancelled=data.cancelled||null; CS.hardHours=!!data.hardHours; csSyncHardBtn(); CS.showPay=parseFloat(data.showPay)||0; (function(){var e=document.getElementById('csShowPay'); if(e) e.value=CS.showPay||'';})(); CS.client=data.client||''; document.getElementById('csClient').value=CS.client; CS.netTerms=(data.netTerms!=null)?String(data.netTerms):'15'; CS.taxOn=(data.taxOn!==false); CS.createdAt=r.created_at||null; csSyncNetTermsSel(); csSyncTaxBtn(); csSyncCancelBtn();
     CS.cur=CS.days[0]?CS.days[0].id:null;
     document.getElementById('csEvName').value=CS.event; document.getElementById('csRateSetup').value=CS.rateSetup; document.getElementById('csRateSkilled').value=CS.rateSkilled; csRender();
   }catch(e){ toast('Load failed', String(e).substring(0,60)); }
@@ -6662,7 +6621,7 @@ function csToggleTax(){
 async function csSave(){
   if(!CS.event){ toast('Name it','Give the schedule an event name first.'); return; }
   const isNew=!CS.id;
-  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off, techPaid:CS.techPaid||{}, cancelled:CS.cancelled||null, hardHours:!!CS.hardHours}};
+  const row={event_name:CS.event, data:{client:(CS.client||'').trim(), rateCard:CS.rateCard, netTerms:(CS.netTerms??'15'), taxOn:(CS.taxOn!==false), budget:CS.budget, rateSetup:CS.rateSetup, rateSkilled:CS.rateSkilled, days:CS.days, assign:CS.assign, skills:CS.skills, off:CS.off, techPaid:CS.techPaid||{}, cancelled:CS.cancelled||null, hardHours:!!CS.hardHours, showPay:(parseFloat(CS.showPay)||0)}};
   try{
     if(CS.id){ await sbPatch('crew_schedules?id=eq.'+encodeURIComponent(CS.id), row); }
     else{
@@ -6794,8 +6753,8 @@ function psDueDate(data, created){
 }
 /* invoice total for a saved schedule, priced with that schedule's own rate card */
 function psTotal(data){
-  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled,hardHours:CS.hardHours};
-  CS.hardHours=!!data.hardHours; CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
+  const keep={rateCard:CS.rateCard,rateSetup:CS.rateSetup,rateSkilled:CS.rateSkilled,hardHours:CS.hardHours,showPay:CS.showPay};
+  CS.showPay=parseFloat(data.showPay)||0; CS.hardHours=!!data.hardHours; CS.rateCard=data.rateCard||'legacy'; CS.rateSetup=data.rateSetup??50; CS.rateSkilled=data.rateSkilled??60;
   let sub=0; const items=[];
   try{
     (data.days||[]).forEach(d=>(((data.assign||{})[d.id])||[]).forEach(s=>{
@@ -6889,7 +6848,7 @@ function psTechRows(){
   const out=[];
   (PS_ROWS||[]).forEach(r=>{
     if(r.cancelled) return;
-    const keep={rateCard:CS.rateCard,hardHours:CS.hardHours}; CS.hardHours=!!r.data.hardHours; CS.rateCard=r.data.rateCard||'legacy';
+    const keep={rateCard:CS.rateCard,hardHours:CS.hardHours,showPay:CS.showPay}; CS.showPay=parseFloat(r.data.showPay)||0; CS.hardHours=!!r.data.hardHours; CS.rateCard=r.data.rateCard||'legacy';
     const by={};
     try{
       (r.data.days||[]).forEach(d=>(((r.data.assign||{})[d.id])||[]).forEach(sl=>{
@@ -7116,17 +7075,17 @@ function csLine0(s,p){
   const pr=parseFloat(p.pay_rate);
   const hourly=!p.pay_type||p.pay_type==='hourly';
   if(CS.hardHours){
-    const payRate=pr||40, billRate=csBillRate(s.pos);
+    const payRate=Math.max(pr||40,CS.showPay||0), billRate=csBillRate(s.pos);
     const reg=Math.min(hrs,10), ot=Math.min(Math.max(hrs-10,0),2), dt=Math.max(hrs-12,0);
     const units=reg+ot*1.5+dt*2;
     return {hrs,tier:null,payRate,billRate,pay:payRate*units,bill:billRate*units,split:{worked:hrs,paid:hrs,reg,ot,dt,units,hard:true}};
   }
   if(CS.rateCard==='legacy'){
-    const payRate=pr||40, billRate=csBillRate(s.pos);
+    const payRate=Math.max(pr||40,CS.showPay||0), billRate=csBillRate(s.pos);
     return {hrs,tier:null,payRate,billRate,pay:payRate*hrs,bill:billRate*hrs,split:null};
   }
   const tier=v4Tier(s.pos), T=V4.tiers[tier];
-  const payRate=(pr>0&&hourly)?pr:T.pay;
+  const payRate=Math.max((pr>0&&hourly)?pr:T.pay,CS.showPay||0);
   const sp=v4Split(hrs);
   return {hrs,tier,T,payRate,billRate:T.bill,pay:payRate*sp.units,bill:T.bill*sp.units,split:sp};
 }
@@ -7796,7 +7755,7 @@ Thanks,
 {sender}
 7 Virtues Entertainment
 {phone}`}};
-const treq={mode:'std',sel:{},extra:'',f:{location:'',time:'',position:'',pay:'',count:'',window:'2 hours',sender:'Tito',phone:'',date:''},subject:'',body:'',edited:false,client:'office',from:(function(){try{return localStorage.getItem('7ve_treq_from')||'staffing@7virtuesentertainment.com';}catch(e){return 'staffing@7virtuesentertainment.com';}})()};
+const treq={mode:'std',sel:{},extra:'',f:{location:'',time:'',position:'',pay:'',count:'',window:'2 hours',sender:'Roberto Rodriguez',phone:'',date:''},subject:'',body:'',edited:false,client:'office',from:(function(){try{return localStorage.getItem('7ve_treq_from')||'staffing@7virtuesentertainment.com';}catch(e){return 'staffing@7virtuesentertainment.com';}})()};
 function treqTemplates(){ try{ const s=JSON.parse(localStorage.getItem(TREQ_KEY)||'null'); if(s&&s.std&&s.pop) return s; }catch(e){} return JSON.parse(JSON.stringify(TREQ_DEFAULT)); }
 function treqSaveTemplate(){ try{ const t=treqTemplates(); t[treq.mode]={subject:treq.subject,body:treq.body}; localStorage.setItem(TREQ_KEY,JSON.stringify(t)); toast('Template saved','Your '+(treq.mode==='pop'?'pop-up':'standard')+' wording is saved on this browser.'); }catch(e){ toast('Not saved','This browser blocked saving.'); } }
 function treqResetTemplate(){ try{ const t=treqTemplates(); t[treq.mode]=JSON.parse(JSON.stringify(TREQ_DEFAULT[treq.mode])); localStorage.setItem(TREQ_KEY,JSON.stringify(t)); }catch(e){} treq.edited=false; treqRegen(); }
@@ -7816,7 +7775,7 @@ function treqPrefill(){
   if(!treq.f.location&&slot) treq.f.location=(slot.room&&slot.room!=='Other')?slot.room:'';
   if(!treq.f.count&&need) treq.f.count=String(need);
   if(!treq.f.pay) treq.f.pay='$'+(CS.rateSetup||50)+'/hr setup, $'+(CS.rateSkilled||60)+'/hr skilled';
-  try{ const s=JSON.parse(localStorage.getItem(TREQ_KEY+'_f')||'null'); if(s){ if(!treq.f.phone) treq.f.phone=s.phone||''; if(s.sender) treq.f.sender=s.sender; } }catch(e){}
+  try{ const s=JSON.parse(localStorage.getItem(TREQ_KEY+'_f')||'null'); if(s){ if(!treq.f.phone) treq.f.phone=s.phone||''; if(s.sender) treq.f.sender=(/^\s*tito\b/i.test(s.sender)?'Roberto Rodriguez':s.sender); } }catch(e){}
 }
 async function openTechRequest(pop){
   if(!(typeof people!=='undefined'&&people&&people.length)){ try{ people=await sbGet('staff_people?select=*&order=last_name'); }catch(e){} }
