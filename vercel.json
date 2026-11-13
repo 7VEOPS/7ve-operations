@@ -18,6 +18,26 @@
       "destination": "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "hq.7virtuesentertainment.com"
+        }
+      ],
+      "destination": "/staffing/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "hq.7virtuesentertainment.com"
+        }
+      ],
+      "destination": "/staffing/$1"
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
