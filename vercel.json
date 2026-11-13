@@ -5,6 +5,17 @@
       "has": [
         {
           "type": "host",
+          "value": "hq.7virtuesentertainment.com"
+        }
+      ],
+      "destination": "/staffing/",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "tech.7virtuesentertainment.com"
         }
       ],
@@ -16,16 +27,6 @@
     {
       "source": "/irs/fw9.pdf",
       "destination": "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "hq.7virtuesentertainment.com"
-        }
-      ],
-      "destination": "/staffing/index.html"
     },
     {
       "source": "/(.*)",
