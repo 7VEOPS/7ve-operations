@@ -4317,7 +4317,7 @@ function itemSVG(it, sel){
   let text = '';
   if(label){ const fs = Math.max(0.35, Math.min(c.s==='label'?1.2:0.85, H*0.55, (w*1.7)/Math.max(label.length,1))); text = `<text x="${w/2}" y="${H/2}" font-size="${fs}" fill="${c.s==='label'?'#111':tc}" text-anchor="middle" dominant-baseline="central" font-family="Saira Condensed, Arial Narrow, sans-serif" font-weight="700" style="pointer-events:none">${h(label)}</text>`; }
   const outline = sel ? `<rect x="-0.3" y="-0.3" width="${w+0.6}" height="${H+0.6}" fill="none" stroke="#d71920" stroke-width="0.12" stroke-dasharray="0.4 0.25"/>` : '';
-  return `<g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${it.rot||0} ${w/2} ${H/2})" style="cursor:move">${body}${text}${outline}</g>`;
+  return `<g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${it.rot||0} ${w/2} ${H/2})" style="cursor:move">${(it.fanA>0&&it.fanD>0)?(()=>{const cx=w/2,cy=H/2,d=it.fanD,hh=Math.min(it.fanA,359)/2*Math.PI/180,x1=cx-d*Math.sin(hh),y1=cy-d*Math.cos(hh),x2=cx+d*Math.sin(hh),y2=cy-d*Math.cos(hh);const big=it.fanA>180?1:0;return '<path d="M'+cx+' '+cy+' L'+x1+' '+y1+' A'+d+' '+d+' 0 '+big+' 1 '+x2+' '+y2+' Z" fill="'+fill+'" fill-opacity="0.16" stroke="'+fill+'" stroke-width="0.1" stroke-dasharray="0.5 0.3" style="pointer-events:none"/><text x="'+cx+'" y="'+(cy-d-0.5)+'" font-size="1" text-anchor="middle" fill="'+fill+'" style="pointer-events:none">'+it.fanA+'° · '+d+' ft</text>';})():''}${body}${text}${outline}${sel?'<g class="rh" style="cursor:grab"><line x1="'+(w/2)+'" y1="-0.3" x2="'+(w/2)+'" y2="-2" stroke="#d71920" stroke-width="0.1"/><circle cx="'+(w/2)+'" cy="-2.1" r="1.4" fill="transparent"/><circle cx="'+(w/2)+'" cy="-2.1" r="0.7" fill="#fff" stroke="#d71920" stroke-width="0.14"/><text x="'+(w/2)+'" y="-2.05" font-size="0.9" text-anchor="middle" dominant-baseline="central" fill="#d71920" style="pointer-events:none">⟳</text></g>':''}</g>`;
 }
 function diagramSVG(d, {thumb=false, sel=null}={}){
   const W = Number(d.width_ft)||60, L = Number(d.length_ft)||40;
@@ -4382,8 +4382,10 @@ function cbFinish(){
 function cbBind(svg){
   const toFt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());};
   const snap=v=>ED.snap?Math.round(v*2)/2:Math.round(v*10)/10;
-  const od=svg.onpointerdown, om=svg.onpointermove;
+  const od=svg.onpointerdown, om=svg.onpointermove, ou=svg.onpointerup; let rot=null;
   svg.onpointerdown=function(e){
+    const rh=!CB.mode&&e.target.closest&&e.target.closest('.rh');
+    if(rh){ const gi=rh.closest('.it'); const rit=gi&&ED.d.items.find(i=>String(i.id)===gi.dataset.id); if(rit){ e.preventDefault(); rot={it:rit,g:gi}; try{ svg.setPointerCapture(e.pointerId); }catch(x){} return; } }
     if(CB.mode){
       e.preventDefault(); const p=toFt(e), pt=[snap(p.x),snap(p.y)], now=Date.now();
       if(CB.cur&&CB.cur.length){ const l=CB.cur[CB.cur.length-1]; if(now-CB.t<400&&l[0]===pt[0]&&l[1]===pt[1]){ cbFinish(); return; } }
@@ -4396,9 +4398,11 @@ function cbBind(svg){
     if(had){ setTimeout(()=>{ if(ED){ ED.draw(); cbRefresh(); } },0); }
   };
   svg.onpointermove=function(e){
+    if(rot){ const p=toFt(e); const cx=rot.it.x+rot.it.w/2, cy=rot.it.y+rot.it.h/2; let a=Math.atan2(p.y-cy,p.x-cx)*180/Math.PI+90; a=((a%360)+360)%360; a=ED.snap?(Math.round(a/15)*15)%360:Math.round(a)%360; rot.it.rot=a; rot.g.setAttribute('transform','translate('+rot.it.x+' '+rot.it.y+') rotate('+a+' '+(rot.it.w/2)+' '+(rot.it.h/2)+')'); return; }
     if(CB.mode&&CB.cur&&CB.cur.length){ const p=toFt(e); const el=svg.querySelector('#cbPrev'); if(el) el.setAttribute('d',cbD(CB.cur.concat([[snap(p.x),snap(p.y)]]))); return; }
     if(om) om.call(this,e);
   };
+  svg.onpointerup=svg.onpointercancel=function(e){ if(rot){ rot=null; ED.dirty=true; ED.draw(); if(ED.insp) ED.insp(); return; } if(ou) ou.call(this,e); };
 }
 document.addEventListener('click',e=>{
   if(!ED||!e.target.closest) return;
@@ -4467,6 +4471,7 @@ function openEditor(d){
         <div class="grid g2"><label class="f"><span>Width ft</span><input class="i" type="number" step="0.5" min="0.5" data-p="w" value="${it.w}"></label><label class="f"><span>Depth ft</span><input class="i" type="number" step="0.5" min="0.3" data-p="h" value="${it.h}"></label></div>
         <div class="grid g2"><label class="f"><span>X ft</span><input class="i" type="number" step="0.5" data-p="x" value="${it.x}"></label><label class="f"><span>Y ft</span><input class="i" type="number" step="0.5" data-p="y" value="${it.y}"></label></div>
         <label class="f"><span>Rotation °</span><input class="i" type="number" step="15" data-p="rot" value="${it.rot||0}"></label>
+        <div class="grid g2"><label class="f"><span>Fan angle ° (coverage)</span><input class="i" type="number" step="5" min="0" max="360" data-p="fanA" value="${it.fanA||0}"></label><label class="f"><span>Fan throw ft</span><input class="i" type="number" step="1" min="0" data-p="fanD" value="${it.fanD||0}"></label></div>
         ${it.type==='chairs'?`<div class="dim" style="font-size:12px;margin:-6px 0 10px">${seatsOf(it)} chairs in this row (width ÷ 1.5 ft)</div>`:''}
         <div class="row" style="margin-bottom:14px"><button class="btn sm" id="iRot">⟳ 90°</button><button class="btn sm" id="iDup">Duplicate</button><button class="btn sm" id="iDel" style="color:var(--red2)">Delete</button></div>
         <div class="dim" style="font-size:11.5px;margin-bottom:14px">Keys: arrows nudge · R rotate 15° · Del remove · Ctrl/⌘+D duplicate</div>`
@@ -9848,3 +9853,4 @@ async function printCostSheet(){
 </body>
 </html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_72j9EFRLzjekxy5vmT1sA55FxocA" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6atm9J6UcoYKbVfh6PmUJJvoaQgg" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
 <script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_DKy3VmXeK3KyoomzVUEfGiwYQgGt" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+<script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_GxUs2MUUr6ThjkJamsiHQSJwTRc5" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
