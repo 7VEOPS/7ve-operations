@@ -4333,7 +4333,7 @@ function diagramSVG(d, {thumb=false, sel=null}={}){
   </svg>`;
 }
 /* ---------- cable runs ---------- */
-const CB_KIND={audio:{n:'Audio',c:'#2563eb',dash:'0.7 0.35'},power:{n:'Power',c:'#dc2626',dash:''},cat:{n:'Cat',c:'#16a34a',dash:'0.25 0.3'}};
+const CB_KIND={audio:{n:'Audio',c:'#2563eb',dash:'0.7 0.35'},power:{n:'Power',c:'#dc2626',dash:''},cat:{n:'Cat',c:'#16a34a',dash:'0.25 0.3'},sdi:{n:'SDI',c:'#ea580c',dash:'1.2 0.3 0.25 0.3'}};
 const CB_STD=[10,25,50,75,100,150,200,250,300,500];
 let CB={mode:null,cur:null,sel:null,t:0};
 function cbLen(pts){let s=0;for(let i=1;i<pts.length;i++)s+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return s;}
