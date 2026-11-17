@@ -4282,12 +4282,20 @@ const CAT = {
   bar:{n:'Bar',w:8,h:2.5,g:'Room',s:'rect',c:'#6b4423',t:'#fff',lbl:'BAR',cnt:null},
   label:{n:'Text Label',w:8,h:1.6,g:'Room',s:'label',c:'transparent',lbl:'LABEL',cnt:null},
 };
-const GROUPS = ['Staging','Seating','Video','Audio','Lighting','Room'];
+const GROUPS = ['Staging','Seating','Video','Audio','Wireless','Lighting','Room'];
+Object.assign(CAT,{
+  bmd_s2h:{n:'Blackmagic Micro Converter (SDI to HDMI)',w:1.4,h:0.8,g:'Video',s:'rect',c:'#111827',t:'#fff',lbl:'S→H',cnt:'Blackmagic Micro Converter (SDI to HDMI)'},
+  hl_tx:{n:'Hollyland Transmitter',w:1.2,h:0.9,g:'Wireless',s:'rect',c:'#7c3aed',t:'#fff',lbl:'HL TX',cnt:'Hollyland transmitter'},
+  hl_rx:{n:'Hollyland Receiver',w:1.2,h:0.9,g:'Wireless',s:'rect',c:'#a78bfa',t:'#111',lbl:'HL RX',cnt:'Hollyland receiver'},
+  td_tx:{n:'Teradek Transmitter',w:1.2,h:0.9,g:'Wireless',s:'rect',c:'#0f766e',t:'#fff',lbl:'TD TX',cnt:'Teradek transmitter'},
+  td_rx:{n:'Teradek Receiver',w:1.2,h:0.9,g:'Wireless',s:'rect',c:'#5eead4',t:'#111',lbl:'TD RX',cnt:'Teradek receiver'}
+});
 const seatsOf = it => it.type==='chairs' ? Math.max(1, Math.round(it.w/1.5)) : (CAT[it.type]?.seats || 0);
-function newDiagram(over={}){ return {id:null, location_id:null, made_by:'7ve', client_name:'', venue:'', event_date:null, job_id:null, request_id:null, title:'', room:'', width_ft:60, length_ft:40, items:[], background:null, bg_opacity:0.5, notes:'', version:0, ...over}; }
+function newDiagram(over={}){ return {id:null, location_id:null, made_by:'7ve', client_name:'', venue:'', event_date:null, job_id:null, request_id:null, title:'', room:'', width_ft:60, length_ft:40, items:[], cables:[], background:null, bg_opacity:0.5, notes:'', version:0, ...over}; }
 function diagramCounts(d){
   const out = {}; let seats=0;
   (d.items||[]).forEach(it => { const c=CAT[it.type]; if(!c) return; seats += seatsOf(it); if(c.cnt) out[c.cnt]=(out[c.cnt]||0)+1; });
+  const cbs={}; (d.cables||[]).forEach(c=>{const o=cbs[c.kind]||(cbs[c.kind]={n:0,ft:0}); o.n++; o.ft+=cbLen(c.pts);}); Object.keys(cbs).forEach(k=>{ out[((CB_KIND[k]||{n:k}).n)+' cable runs']=cbs[k].n+' · '+Math.round(cbs[k].ft)+"'"; });
   return {out, seats};
 }
 function countsHTML(d){
@@ -4321,9 +4329,95 @@ function diagramSVG(d, {thumb=false, sel=null}={}){
     <rect x="${-pad}" y="${-pad}" width="${W+pad*2}" height="${L+pad*2}" fill="#fff"/>
     ${bg}<g>${grid}</g>${ticks}
     <rect x="0" y="0" width="${W}" height="${L}" fill="none" stroke="#111" stroke-width="${thumb?0.25:0.18}"/>
-    <g id="items">${(d.items||[]).map(it=>itemSVG(it, it.id===sel)).join('')}</g>
+    ${cablesSVG(d,thumb,thumb?null:CB.sel)}<g id="items">${(d.items||[]).map(it=>itemSVG(it, it.id===sel)).join('')}</g>
   </svg>`;
 }
+/* ---------- cable runs ---------- */
+const CB_KIND={audio:{n:'Audio',c:'#2563eb',dash:'0.7 0.35'},power:{n:'Power',c:'#dc2626',dash:''},cat:{n:'Cat',c:'#16a34a',dash:'0.25 0.3'}};
+const CB_STD=[10,25,50,75,100,150,200,250,300,500];
+let CB={mode:null,cur:null,sel:null,t:0};
+function cbLen(pts){let s=0;for(let i=1;i<pts.length;i++)s+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return s;}
+function cbStd(len){const need=len*1.1;return CB_STD.find(x=>x>=need)||Math.ceil(need/50)*50;}
+function cbD(pts){return pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');}
+function cablesSVG(d,thumb,sel){
+  let out='';const num={};
+  (d.cables||[]).forEach(c=>{
+    const k=CB_KIND[c.kind]||CB_KIND.audio; num[c.kind]=(num[c.kind]||0)+1;
+    const on=c.id===sel;
+    out+='<g class="cb" data-cid="'+h(c.id)+'">';
+    if(!thumb) out+='<path d="'+cbD(c.pts)+'" fill="none" stroke="transparent" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"/>';
+    out+='<path d="'+cbD(c.pts)+'" fill="none" stroke="'+k.c+'" stroke-width="'+(on?0.55:0.32)+'" stroke-linecap="round" stroke-linejoin="round"'+(k.dash?' stroke-dasharray="'+k.dash+'"':'')+'/>';
+    if(!thumb){
+      const mi=Math.floor((c.pts.length-1)/2), m=c.pts[mi], m2=c.pts[mi+1]||m;
+      const lab=(c.label?c.label+' · ':k.n+' '+num[c.kind]+' · ')+Math.round(cbLen(c.pts))+"'";
+      out+='<text x="'+((m[0]+m2[0])/2)+'" y="'+(((m[1]+m2[1])/2)-0.5)+'" font-size="0.9" font-family="IBM Plex Mono, monospace" text-anchor="middle" fill="'+k.c+'" stroke="#fff" stroke-width="0.25" paint-order="stroke" pointer-events="none">'+h(lab)+'</text>';
+      if(on) out+=c.pts.map(p=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="0.5" fill="#fff" stroke="'+k.c+'" stroke-width="0.2" pointer-events="none"/>').join('');
+    }
+    out+='</g>';
+  });
+  if(!thumb&&CB.cur&&CB.cur.length){
+    const k=CB_KIND[CB.mode]||CB_KIND.audio;
+    out+='<path id="cbPrev" d="'+cbD(CB.cur)+'" fill="none" stroke="'+k.c+'" stroke-width="0.32" stroke-opacity="0.7" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>'+CB.cur.map(p=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="0.4" fill="'+k.c+'" pointer-events="none"/>').join('');
+  }
+  return '<g id="cables">'+out+'</g>';
+}
+function cbBarHTML(){
+  ED.d.cables=ED.d.cables||[]; CB.mode=null; CB.cur=null; CB.sel=null;
+  return '<span class="row" id="cbBar" style="gap:4px">'+Object.keys(CB_KIND).map(k=>'<button class="btn ghost sm" data-cbk="'+k+'" style="border-color:'+CB_KIND[k].c+'">〰 '+CB_KIND[k].n+' cable</button>').join('')+'<span class="dim mono" id="cbInfo" style="font-size:12px;margin-left:6px"></span></span>';
+}
+function cbRefresh(){
+  const bar=document.getElementById('cbBar'); if(!bar||!ED) return; if(ED.insp) ED.insp();
+  bar.querySelectorAll('[data-cbk]').forEach(b=>{const on=CB.mode===b.dataset.cbk; b.style.background=on?CB_KIND[b.dataset.cbk].c:''; b.style.color=on?'#fff':'';});
+  const info=document.getElementById('cbInfo'); if(!info) return;
+  const c=(ED.d.cables||[]).find(x=>x.id===CB.sel);
+  let s='',extra='';
+  if(CB.mode){ s=(CB.cur&&CB.cur.length)?('Drawing '+CB_KIND[CB.mode].n+' · '+Math.round(cbLen(CB.cur))+"' so far · click to add a point, double-click to finish, Esc to cancel"):('Click on the plan to start a '+CB_KIND[CB.mode].n+' run'); }
+  else if(c){ const l=cbLen(c.pts); s=(CB_KIND[c.kind]||CB_KIND.audio).n+' run · '+Math.round(l)+"' · use "+cbStd(l)+"' cable"; extra=' <button class="btn sm" data-cbact="name">Name</button> <button class="btn sm" data-cbact="del">Delete run</button>'; }
+  info.innerHTML=h(s)+extra;
+}
+function cbFinish(){
+  if(CB.cur&&CB.cur.length>=2){ const id='c'+Math.random().toString(36).slice(2,8); ED.d.cables=ED.d.cables||[]; ED.d.cables.push({id:id,kind:CB.mode,pts:CB.cur}); CB.sel=id; ED.dirty=true; }
+  CB.cur=null; CB.mode=null; ED.draw(); cbRefresh();
+}
+function cbBind(svg){
+  const toFt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());};
+  const snap=v=>ED.snap?Math.round(v*2)/2:Math.round(v*10)/10;
+  const od=svg.onpointerdown, om=svg.onpointermove;
+  svg.onpointerdown=function(e){
+    if(CB.mode){
+      e.preventDefault(); const p=toFt(e), pt=[snap(p.x),snap(p.y)], now=Date.now();
+      if(CB.cur&&CB.cur.length){ const l=CB.cur[CB.cur.length-1]; if(now-CB.t<400&&l[0]===pt[0]&&l[1]===pt[1]){ cbFinish(); return; } }
+      (CB.cur=CB.cur||[]).push(pt); CB.t=now; ED.draw(); cbRefresh(); return;
+    }
+    const g=e.target.closest&&e.target.closest('.cb');
+    if(g&&!e.target.closest('.it')){ CB.sel=g.dataset.cid; ED.sel=null; e.preventDefault(); ED.draw(); if(ED.insp) ED.insp(); cbRefresh(); return; }
+    const had=CB.sel; CB.sel=null;
+    if(od) od.call(this,e);
+    if(had){ setTimeout(()=>{ if(ED){ ED.draw(); cbRefresh(); } },0); }
+  };
+  svg.onpointermove=function(e){
+    if(CB.mode&&CB.cur&&CB.cur.length){ const p=toFt(e); const el=svg.querySelector('#cbPrev'); if(el) el.setAttribute('d',cbD(CB.cur.concat([[snap(p.x),snap(p.y)]]))); return; }
+    if(om) om.call(this,e);
+  };
+}
+document.addEventListener('click',e=>{
+  if(!ED||!e.target.closest) return;
+  const b=e.target.closest('[data-cbk]');
+  if(b){ const k=b.dataset.cbk; CB.mode=(CB.mode===k)?null:k; CB.cur=null; CB.sel=null; ED.draw(); cbRefresh(); return; }
+  const a=e.target.closest('[data-cbact]');
+  if(a){ const c=(ED.d.cables||[]).find(x=>x.id===CB.sel); if(!c) return;
+    if(a.dataset.cbact==='del'){ ED.d.cables=ED.d.cables.filter(x=>x!==c); CB.sel=null; }
+    else { const v=prompt('Name this run (optional)',c.label||''); if(v===null) return; c.label=v.trim(); }
+    ED.dirty=true; ED.draw(); cbRefresh(); }
+});
+document.addEventListener('keydown',e=>{
+  if(!ED||!document.getElementById('cbBar')) return;
+  if(/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'')) return;
+  if(e.key==='Escape'&&(CB.mode||CB.cur)){ if(CB.cur&&CB.cur.length) CB.cur=null; else CB.mode=null; ED.draw(); cbRefresh(); e.preventDefault(); }
+  else if(e.key==='Enter'&&CB.cur){ cbFinish(); e.preventDefault(); }
+  else if(e.key==='Backspace'&&CB.cur&&CB.cur.length){ CB.cur.pop(); if(!CB.cur.length) CB.cur=null; ED.draw(); cbRefresh(); e.preventDefault(); }
+  else if((e.key==='Delete'||e.key==='Backspace')&&CB.sel&&!CB.mode){ ED.d.cables=(ED.d.cables||[]).filter(x=>x.id!==CB.sel); CB.sel=null; ED.dirty=true; ED.draw(); cbRefresh(); e.preventDefault(); }
+});
 /* ---------- editor ---------- */
 let ED = null;
 function openEditor(d){
@@ -4336,7 +4430,7 @@ function openEditor(d){
       <input class="i" id="edRoom" list="edRooms" placeholder="Room" style="max-width:140px" value="${h(ED.d.room)}"><datalist id="edRooms">${spRooms(ED.d.location_id).map(r=>`<option value="${h(r)}">`).join('')}</datalist>
       <div class="grow"></div>
       <span class="dim mono" id="edState" style="font-size:12px"></span>
-      <button class="btn" id="edPng">Export PNG</button>
+      ${cbBarHTML()}<button class="btn" id="edPng">Export PNG</button>
       ${ED.d.id?'<button class="btn ghost" id="edDel" title="Delete diagram">🗑</button>':''}
       <button class="btn red" id="edSave">Save diagram</button>
     </div>
@@ -4360,10 +4454,10 @@ function openEditor(d){
     const fit = Math.min((wrap.clientWidth-30)/W, (wrap.clientHeight-30)/L);
     const ppf = Math.max(2, fit*ED.zoom);
     svg.setAttribute('width', Math.round(W*ppf)); svg.setAttribute('height', Math.round(L*ppf));
-    bindSvg(svg);
+    bindSvg(svg); try{ cbBind(svg); }catch(e){}
     $('#edState').textContent = ED.dirty ? '● unsaved changes' : (ED.d.id ? 'saved · v'+(ED.d.version||1) : 'new');
   };
-  ED.draw = draw;
+  ED.draw = draw; ED.insp = () => inspector(); setTimeout(cbRefresh,0);
   const inspector = () => {
     const it = ED.d.items.find(i=>i.id===ED.sel);
     const {seats} = diagramCounts(ED.d);
@@ -4461,7 +4555,7 @@ async function saveDiagram(){
   const btn = $('#edSave'); btn.disabled=true; btn.textContent='Saving…';
   try{
     const d = ED.d; if(!d.title) d.title = (d.client_name? d.client_name+' – ':'') + (d.room ? d.room+' layout' : 'Stage plot');
-    const row = {location_id:d.location_id||null, request_id:d.request_id||null, client_name:d.client_name||null, venue:d.venue||null, event_date:d.event_date||null, job_id:d.job_id||null, made_by:d.made_by||'7ve', title:d.title, room:d.room||null, width_ft:+d.width_ft, length_ft:+d.length_ft, items:d.items, background:d.background||null, bg_opacity:d.bg_opacity??0.5, notes:d.notes||null, version:(d.version||0)+1};
+    const row = {location_id:d.location_id||null, request_id:d.request_id||null, client_name:d.client_name||null, venue:d.venue||null, event_date:d.event_date||null, job_id:d.job_id||null, made_by:d.made_by||'7ve', title:d.title, room:d.room||null, width_ft:+d.width_ft, length_ft:+d.length_ft, items:d.items, cables:d.cables||[], background:d.background||null, bg_opacity:d.bg_opacity??0.5, notes:d.notes||null, version:(d.version||0)+1};
     if(d.id) row.id = d.id;
     const saved = await DB.saveDiagram(row);
     ED.d.id = saved.id; ED.d.version = saved.version; ED.dirty=false;
@@ -9753,3 +9847,4 @@ async function printCostSheet(){
 </script>
 </body>
 </html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Guts5DNPMyMTSq4HGCK8NYesudPY" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_Gq77Be3RK5SusdjtimMnahVfYKEG" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_AVMmFEGEz88kjx8AtUTtUBGLr3Ev" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6kS7468E8vGAZqiQvhtMFsLusu2Y" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_48w1GDLCYybe9SnnfL9DStUJoarc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6BKTwbJEfSZ1tzbXDDHiJomLf28H" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ZhWDyspsUz5o2B75ssXBUiGaqKhc" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HFK81tb7ZJAH8kog1gxZt8PdX9Sm" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_72j9EFRLzjekxy5vmT1sA55FxocA" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_6atm9J6UcoYKbVfh6PmUJJvoaQgg" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+<script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_DKy3VmXeK3KyoomzVUEfGiwYQgGt" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
