@@ -241,7 +241,7 @@ function buildIndex(){
   (D.staff||[]).forEach(s=>{const r=s.email&&I.rosterByEmail[s.email.toLowerCase()];if(r&&r.auth_user_id){I.authByStaff[s.id]=r.auth_user_id;I.staffByAuth[r.auth_user_id]=s}});
   // expand schedules into shifts
   I.shifts=[];
-  (D.schedules||[]).forEach(sc=>{const d=sc.data||{};const created=new Date(sc.created_at);
+  (D.schedules||[]).forEach(sc=>{if(isCancelled(sc))return;const d=sc.data||{};const created=new Date(sc.created_at);
     (d.days||[]).forEach(day=>{const date=day.date||labelDate(day.label,created);
       ((d.assign||{})[day.id]||[]).forEach((a,ix)=>{I.shifts.push({sid:sc.id,event:sc.event_name,client:d.client||'',venue:d.venue||'',dayId:day.id,label:day.label,date,ix,pos:a.pos||'',room:a.room||'',time:a.time||'',staffId:a.tech||null,hours:schedHours(a.time)})})})});
   I.availByStaff={};
@@ -363,17 +363,21 @@ async function resolveReq(id,ok){await rpc('sh_request_resolve',{p_id:id,p_appro
 async function clockOutNow(id){if(!confirm('Clock this tech out now?'))return;await rpc('sh_clock_out_now',{p_id:id});toast('Clocked out');loadData(true)}
 
 /* ================= BOOKING ================= */
+function isCancelled(sc){const c=(sc&&sc.data||{}).cancelled;return !!(c&&c.on)}
 function schedDates(sc){const d=sc.data||{};const c=new Date(sc.created_at);return (d.days||[]).map(x=>x.date||labelDate(x.label,c)).filter(Boolean).sort()}
 function rBooking(){
   const today=todayYmd();
   const list=(D.schedules||[]).map(sc=>{const ds=schedDates(sc);return {sc,first:ds[0]||'',last:ds[ds.length-1]||''}});
-  const up=list.filter(x=>!x.last||x.last>=today).sort((a,b)=>(a.first||'9')<(b.first||'9')?-1:1);
-  const past=list.filter(x=>x.last&&x.last<today).sort((a,b)=>a.last>b.last?-1:1);
+  const canc=list.filter(x=>isCancelled(x.sc)).sort((a,b)=>(a.first||'')>(b.first||'')?-1:1);
+  const live=list.filter(x=>!isCancelled(x.sc));
+  const up=live.filter(x=>!x.last||x.last>=today).sort((a,b)=>(a.first||'9')<(b.first||'9')?-1:1);
+  const past=live.filter(x=>x.last&&x.last<today).sort((a,b)=>a.last>b.last?-1:1);
   const item=x=>{const sc=x.sc,d=sc.data||{};let need=0,fill=0;(d.days||[]).forEach(day=>{need+=+day.needed||0;fill+=((d.assign||{})[day.id]||[]).filter(a=>a.tech).length});
-    return `<div class="it ${UI.bkSel===sc.id?'on':''}" onclick="bkOpen('${sc.id}')"><b>${esc(sc.event_name||'Untitled')}</b><div class="small muted">${x.first?fmtDate(x.first):'no dates'}${x.last&&x.last!==x.first?' – '+fmtDate(x.last):''} · <span style="color:${fill<need?'var(--amber)':'var(--green)'}">${fill}/${need} filled</span></div></div>`};
+    return `<div class="it ${UI.bkSel===sc.id?'on':''}" onclick="bkOpen('${sc.id}')"><b>${esc(sc.event_name||'Untitled')}</b><div class="small muted">${x.first?fmtDate(x.first):'no dates'}${x.last&&x.last!==x.first?' – '+fmtDate(x.last):''} · <span style="color:${fill<need?'var(--amber)':'var(--green)'}">${fill}/${need} filled</span>${isCancelled(sc)?` · <span class="chip c-r">Cancelled</span>`:''}</div>${isCancelled(sc)&&d.cancelled.reason?`<div class="small muted">${esc(d.cancelled.reason)}</div>`:''}</div>`};
   let h=`<div class="bk"><div><div class="card"><div class="ch"><h2>Bookings</h2><span class="sp"></span><button class="btn s p" onclick="bkNew()">+ New</button></div><div class="cb np slist">`+
     (up.length?up.map(item).join(''):'<div class="empty">No upcoming bookings.</div>')+
     (past.length?`<div class="small muted" style="padding:10px 12px;border-top:1px solid var(--line)">PAST</div>`+past.slice(0,25).map(item).join(''):'')+
+    (canc.length?`<div class="small muted" style="padding:10px 12px;border-top:1px solid var(--line)">CANCELLED</div>`+canc.map(item).join(''):'')+
     `</div></div></div><div id="bkEd">${UI.bkDraft?'':'<div class="card"><div class="cb empty">Pick a booking on the left, or click + New.</div></div>'}</div></div>`;
   return h;}
 function bkOpen(id){const sc=D.schedules.find(s=>s.id===id);UI.bkSel=id;UI.bkDraft={id,event_name:sc.event_name,data:JSON.parse(JSON.stringify(sc.data||{}))};
@@ -393,7 +397,8 @@ function bkEditor(){
   const B=UI.bkDraft,d=B.data;d.assign=d.assign||{};
   const clients=[...new Set((D.jobs||[]).map(j=>j.client).concat((D.schedules||[]).map(s=>(s.data||{}).client)).filter(Boolean))];
   let h=`<div class="card"><div class="ch"><h2>${B.id?'Edit booking':'New booking'}</h2><span class="sp"></span>
-    <button class="btn s" onclick="bkCrewText()">Copy crew text</button><button class="btn s" onclick="bkEmail()">Email crew</button><button class="btn s p" onclick="bkSave()">Save</button></div><div class="cb">
+    ${B.id?(d.cancelled&&d.cancelled.on?`<button class="btn s ok" onclick="bkRestore()">Restore booking</button>`:`<button class="btn s bad" onclick="bkCancelAsk()">Cancel booking</button>`):''}<button class="btn s" onclick="bkCrewText()">Copy crew text</button><button class="btn s" onclick="bkEmail()">Email crew</button><button class="btn s p" onclick="bkSave()">Save</button></div><div class="cb">
+    ${d.cancelled&&d.cancelled.on?`<div class="card" style="border-color:#5a1f1f;margin-bottom:12px"><div class="cb small"><b style="color:#f87171">This booking is cancelled.</b> ${d.cancelled.reason?esc(d.cancelled.reason)+' · ':''}${d.cancelled.at?'cancelled '+fmtDT(d.cancelled.at):''}<div class="muted">It doesn't show on Team Status, today's crew, conflict warnings or payroll.</div></div></div>`:''}
     <div class="f2"><div><label class="f">Event / show name</label><input class="i" value="${esc(B.event_name)}" oninput="UI.bkDraft.event_name=this.value"></div>
     <div><label class="f">Client</label><input class="i" list="clist" value="${esc(d.client||'')}" oninput="UI.bkDraft.data.client=this.value"><datalist id="clist">${clients.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div></div>
     <label class="f">Venue / address (used for crew text and mileage labels)</label><input class="i" value="${esc(d.venue||'')}" oninput="UI.bkDraft.data.venue=this.value">
@@ -427,6 +432,9 @@ function bkDayDel(i){if(!confirm('Remove this day and its slots?'))return;const 
 function bkSlotAdd(i){const d=UI.bkDraft.data,day=d.days[i];const prev=(d.assign[day.id]||[]).slice(-1)[0];(d.assign[day.id]=d.assign[day.id]||[]).push({tech:'',pos:prev?prev.pos:'',room:prev?prev.room:'',time:prev?prev.time:''});bkRe()}
 function bkSlotDel(i,s){const d=UI.bkDraft.data;d.assign[d.days[i].id].splice(s,1);bkRe()}
 function bkSlot(i,s,k,v,quiet){const d=UI.bkDraft.data;d.assign[d.days[i].id][s][k]=v;if(!quiet)bkRe()}
+function bkCancelAsk(){openModal(`<h3>Cancel this booking?</h3><p class="small">It comes off Team Status, today's crew and payroll in Staffing HQ, and shows as cancelled in the Ops Platform. You can restore it later.</p><label class="f">Reason</label><input class="i" id="bk_reason" placeholder="Budget not approved, venue cancelled…"><div class="acts"><button class="btn" onclick="closeLayer()">Keep it</button><button class="btn p" onclick="bkCancelDo()">Cancel booking</button></div>`)}
+async function bkCancelDo(){const reason=$('bk_reason').value.trim();closeLayer();UI.bkDraft.data.cancelled={on:true,at:new Date().toISOString(),reason};await bkSave();toast('Booking cancelled')}
+async function bkRestore(){UI.bkDraft.data.cancelled=null;await bkSave();toast('Booking restored')}
 async function bkSave(){const B=UI.bkDraft;if(!B.event_name.trim())return toast('Give the booking a name');
   B.data.days.forEach(day=>{if(!day.label&&day.date){const d=parseYmd(day.date);day.label=(d.getMonth()+1)+'/'+d.getDate()}});
   const id=await rpc('sh_schedule_save',{p_id:B.id,p_name:B.event_name.trim(),p_data:B.data});UI.bkSel=id;B.id=id;toast('Booking saved');await loadData(true);if(D.schedules.find(s=>s.id===id))bkOpen(id)}
